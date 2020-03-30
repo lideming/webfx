@@ -1,0 +1,14 @@
+{
+  "name": "@yuuza/webfx",
+  "version": "1.0.0",
+  "description": "",
+  "main": "lib/webfx.js",
+  "types": "lib/webfx.d.ts",
+  "scripts": {
+    "build": "tsc && tsc -p tsconfig.browser.json",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {}
+}

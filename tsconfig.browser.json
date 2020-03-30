@@ -1,0 +1,17 @@
+{
+    "files": ["src/webfx.ts"],
+    "compilerOptions": {
+        "declaration": true,
+        "module": "AMD",
+        "target": "ES2015",
+        "jsx": "preserve",
+        "lib": ["dom", "es2015"],
+        "sourceMap": false,
+        "downlevelIteration": true,
+        "outFile": "dist/webfx.js"
+    },
+    "exclude": [
+        "node_modules",
+        "**/node_modules/*"
+    ]
+}
