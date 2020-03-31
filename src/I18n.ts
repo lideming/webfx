@@ -105,8 +105,6 @@ export class I18n {
     }
 }
 
-export var i18n = new I18n();
-
 export function createStringBuilder(i18n: I18n) {
     return function (literals: TemplateStringsArray, ...placeholders: any[]) {
         if (placeholders.length === 0) {
@@ -129,22 +127,6 @@ export function createStringBuilder(i18n: I18n) {
     }
 }
 
-export function I(literals: TemplateStringsArray, ...placeholders: any[]) {
-    if (placeholders.length === 0) {
-        return i18n.get(literals[0]);
-    }
-    // Generate format string from template string:
-    var formatString = '';
-    for (var i = 0; i < literals.length; i++) {
-        var lit = literals[i];
-        formatString += lit;
-        if (i < placeholders.length) {
-            formatString += '{' + i + '}';
-        }
-    }
-    var r = i18n.get(formatString);
-    for (var i = 0; i < placeholders.length; i++) {
-        r = r.replace('{' + i + '}', placeholders[i]);
-    }
-    return r;
-}
+export var i18n = new I18n();
+
+export const I = createStringBuilder(i18n);
