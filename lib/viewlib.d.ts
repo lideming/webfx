@@ -264,6 +264,7 @@ export declare class Dialog extends View {
         x: number;
         y: number;
     };
+    center(): void;
     show(): void;
     private _cancelFadeout;
     close(): void;

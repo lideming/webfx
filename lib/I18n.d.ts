@@ -22,6 +22,6 @@ export declare class I18n {
      */
     static detectLanguage(langs: string[]): string;
 }
-export declare var i18n: I18n;
 export declare function createStringBuilder(i18n: I18n): (literals: TemplateStringsArray, ...placeholders: any[]) => string;
-export declare function I(literals: TemplateStringsArray, ...placeholders: any[]): string;
+export declare var i18n: I18n;
+export declare const I: (literals: TemplateStringsArray, ...placeholders: any[]) => string;

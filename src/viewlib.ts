@@ -870,24 +870,24 @@ export class Dialog extends View {
 
         // title bar pointer event handler:
         {
-            let s: { x: number; y: number; };
-            let sPage: { x: number; y: number; };
+            let offset: { x: number; y: number; };
             utils.listenPointerEvents(this.domheader, (e) => {
                 if (e.action === 'down') {
                     if (e.ev.target !== this.domheader && e.ev.target !== this.btnTitle.dom) return;
                     e.ev.preventDefault();
-                    s = this.getOffset();
-                    sPage = {
-                        x: e.point.pageX,
-                        y: e.point.pageY
+                    const rectOverlay = this.overlay.dom.getBoundingClientRect();
+                    const rect = this.dom.getBoundingClientRect();
+                    offset = {
+                        x: e.point.pageX - rectOverlay.x - rect.x,
+                        y: e.point.pageY - rectOverlay.y - rect.y
                     };
                     return 'track';
                 } else if (e.action === 'move') {
                     e.ev.preventDefault();
                     const rect = this.overlay.dom.getBoundingClientRect();
                     const pageX = utils.numLimit(e.point.pageX, rect.left, rect.right);
-                    const pageY = utils.numLimit(e.point.pageY, rect.top, rect.bottom);;
-                    this.setOffset(s.x + pageX - sPage.x, s.y + pageY - sPage.y);
+                    const pageY = utils.numLimit(e.point.pageY, rect.top, rect.bottom);
+                    this.setOffset(pageX - offset.x, pageY - offset.y);
                 }
             });
         }
@@ -917,11 +917,16 @@ export class Dialog extends View {
     setOffset(x: number, y: number) {
         this.dom.style.left = x ? x + 'px' : '';
         this.dom.style.top = y ? y + 'px' : '';
+        this.overlay.setCenterChild(false);
     }
     getOffset() {
         var x = this.dom.style.left ? parseFloat(this.dom.style.left) : 0;
         var y = this.dom.style.top ? parseFloat(this.dom.style.top) : 0;
         return { x, y };
+    }
+    center() {
+        this.setOffset(0, 0);
+        this.overlay.setCenterChild(true);
     }
     show() {
         if (this.shown) return;

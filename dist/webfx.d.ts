@@ -23,9 +23,9 @@ declare module "I18n" {
          */
         static detectLanguage(langs: string[]): string;
     }
-    export var i18n: I18n;
     export function createStringBuilder(i18n: I18n): (literals: TemplateStringsArray, ...placeholders: any[]) => string;
-    export function I(literals: TemplateStringsArray, ...placeholders: any[]): string;
+    export var i18n: I18n;
+    export const I: (literals: TemplateStringsArray, ...placeholders: any[]) => string;
 }
 declare module "utils" {
     import { i18n, I } from "I18n";
@@ -496,6 +496,7 @@ declare module "viewlib" {
             x: number;
             y: number;
         };
+        center(): void;
         show(): void;
         private _cancelFadeout;
         close(): void;
