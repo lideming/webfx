@@ -704,3 +704,17 @@ export class EventRegistrations {
         }
     }
 }
+
+export class TextCompositionWatcher {
+    dom: HTMLElement;
+    isCompositing = false;
+    constructor(dom: IDOM) {
+        this.dom = dom.getDOM();
+        this.dom.addEventListener('compositionstart', (ev) => {
+            this.isCompositing = true;
+        });
+        this.dom.addEventListener('compositionend', (ev) => {
+            this.isCompositing = false;
+        });
+    }
+}

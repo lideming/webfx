@@ -198,3 +198,8 @@ export declare class EventRegistrations {
     add<T extends AnyFunc>(event: Callbacks<T>, func: T): T;
     removeAll(): void;
 }
+export declare class TextCompositionWatcher {
+    dom: HTMLElement;
+    isCompositing: boolean;
+    constructor(dom: IDOM);
+}

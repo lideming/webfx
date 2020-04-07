@@ -228,6 +228,11 @@ declare module "utils" {
         add<T extends AnyFunc>(event: Callbacks<T>, func: T): T;
         removeAll(): void;
     }
+    export class TextCompositionWatcher {
+        dom: HTMLElement;
+        isCompositing: boolean;
+        constructor(dom: IDOM);
+    }
 }
 declare module "viewlib" {
     import { BuildDomExpr, Action, Callbacks, Timer, BuildDOMCtx, IDOM } from "utils";

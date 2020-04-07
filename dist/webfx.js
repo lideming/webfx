@@ -792,6 +792,19 @@ define("utils", ["require", "exports", "I18n"], function (require, exports, I18n
         }
     }
     exports.EventRegistrations = EventRegistrations;
+    class TextCompositionWatcher {
+        constructor(dom) {
+            this.isCompositing = false;
+            this.dom = dom.getDOM();
+            this.dom.addEventListener('compositionstart', (ev) => {
+                this.isCompositing = true;
+            });
+            this.dom.addEventListener('compositionend', (ev) => {
+                this.isCompositing = false;
+            });
+        }
+    }
+    exports.TextCompositionWatcher = TextCompositionWatcher;
 });
 // file: viewlib.ts
 define("viewlib", ["require", "exports", "utils", "I18n"], function (require, exports, utils_1, I18n_2) {
