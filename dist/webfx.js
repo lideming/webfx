@@ -1556,9 +1556,12 @@ define("viewlib", ["require", "exports", "utils", "I18n"], function (require, ex
                         this.close();
                     });
                 }
+                this.overlay.appendView(this);
                 document.body.appendChild(this.overlay.dom);
             }
-            document.body.appendChild(this.dom);
+            else {
+                document.body.appendChild(this.dom);
+            }
             this._originalFocused = document.activeElement;
             this.dom.focus();
             var onfocusout = (e) => {

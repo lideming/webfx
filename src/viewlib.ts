@@ -748,9 +748,11 @@ export class ContextMenu extends ListView {
                     this.close();
                 });
             }
+            this.overlay.appendView(this);
             document.body.appendChild(this.overlay.dom);
+        } else {
+            document.body.appendChild(this.dom);
         }
-        document.body.appendChild(this.dom);
         this._originalFocused = document.activeElement;
         this.dom.focus();
         var onfocusout = (e) => {
