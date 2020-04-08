@@ -140,9 +140,9 @@ export declare class SelectionHelper<TItem extends ISelectable> {
 }
 export declare class ItemActiveHelper<T extends View> {
     funcSetActive: (item: T, val: boolean) => void;
-    current: T;
+    current: T | null;
     constructor(init?: Partial<ItemActiveHelper<T>>);
-    set(item: T): void;
+    set(item: T | null): void;
 }
 declare type SectionActionOptions = {
     text: string;

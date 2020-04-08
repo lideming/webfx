@@ -3,9 +3,9 @@ export { i18n, I };
 /** The name "utils" tells it all. */
 export declare var utils: {
     strPadLeft(str: string, len: number, ch?: string): string;
-    formatTime(sec: number): string;
+    formatTime(sec: any): string;
     fileSizeUnits: string[];
-    formatFileSize(size: number): string;
+    formatFileSize(size: any): string;
     formatDateTime(date: Date): string;
     numLimit(num: number, min: number, max: number): number;
     createName(nameFunc: (num: number) => string, existsFunc: (str: string) => boolean): string;

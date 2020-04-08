@@ -160,7 +160,7 @@ define("utils", ["require", "exports", "I18n"], function (require, exports, I18n
         formatTime(sec) {
             if (typeof sec !== 'number' || isNaN(sec))
                 return '--:--';
-            var sec = Math.round(sec);
+            sec = Math.round(sec);
             var min = Math.floor(sec / 60);
             sec %= 60;
             return this.strPadLeft(min.toString(), 2, '0') + ':' + this.strPadLeft(sec.toString(), 2, '0');

@@ -481,11 +481,11 @@ export class SelectionHelper<TItem extends ISelectable> {
 
 export class ItemActiveHelper<T extends View> {
     funcSetActive = (item: T, val: boolean) => item.toggleClass('active', val);
-    current: T = null;
+    current: T | null = null;
     constructor(init?: Partial<ItemActiveHelper<T>>) {
         utils.objectApply(this, init);
     }
-    set(item: T) {
+    set(item: T | null) {
         if (this.current) this.funcSetActive(this.current, false);
         this.current = item;
         if (this.current) this.funcSetActive(this.current, true);
