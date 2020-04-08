@@ -8,6 +8,7 @@
         "lib": ["dom", "es2015"],
         "sourceMap": false,
         "downlevelIteration": true,
+        "strictNullChecks": true,
         "outDir": "lib"
     },
     "exclude": [

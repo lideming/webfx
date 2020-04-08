@@ -15,11 +15,11 @@ export class View implements IDOM {
     get position() { return this._position; }
 
     domctx = new BuildDOMCtx();
-    protected _dom: HTMLElement = undefined;
+    protected _dom: HTMLElement | undefined = undefined;
     public get domCreated() { return !!this._dom; }
     public get dom() {
         this.ensureDom();
-        return this._dom;
+        return this._dom!;
     }
     public get hidden() { return this.dom.hidden; }
     public set hidden(val: boolean) { this.dom.hidden = val; }
@@ -55,25 +55,25 @@ export class View implements IDOM {
     appendView(view: View) { return this.dom.appendView(view); }
     getDOM() { return this.dom; }
 
-    _onactive: Action = undefined;
-    _onActiveCbs: Action<any>[] = undefined;
+    _onactive: Action | undefined = undefined;
+    _onActiveCbs: Action<any>[] | undefined = undefined;
     get onactive() { return this._onactive; }
     set onactive(val) {
         if (!!this._onactive !== !!val) {
             if (val) {
                 this._onActiveCbs = [
                     (e: MouseEvent) => {
-                        this._onactive();
+                        this._onactive!();
                     },
                     (e: KeyboardEvent) => {
-                        this.handleKeyDown(e, this._onactive);
+                        this.handleKeyDown(e, this._onactive!);
                     }
                 ];
                 this.dom.addEventListener('click', this._onActiveCbs[0]);
                 this.dom.addEventListener('keydown', this._onActiveCbs[1]);
             } else {
-                this.dom.removeEventListener('click', this._onActiveCbs[0]);
-                this.dom.removeEventListener('keydown', this._onActiveCbs[1]);
+                this.dom.removeEventListener('click', this._onActiveCbs![0]);
+                this.dom.removeEventListener('keydown', this._onActiveCbs![1]);
                 this._onActiveCbs = undefined;
             }
         }
@@ -118,7 +118,7 @@ export class ContainerView<T extends View> extends View {
             this.dom.appendChild(view.dom);
         } else {
             items.splice(pos, 0, view);
-            this.dom.insertBefore(view.dom, items[pos + 1]?.dom);
+            this.dom.insertBefore(view.dom, items[pos + 1]?.dom || null);
             for (let i = pos; i < items.length; i++) {
                 items[i]._position = i;
             }
@@ -127,9 +127,9 @@ export class ContainerView<T extends View> extends View {
     removeView(view: T | number) {
         view = this._ensureItem(view);
         view.dom.remove();
-        this.items.splice(view._position, 1);
-        var pos = view._position;
-        view.parentView = view._position = null;
+        var pos = view._position!;
+        view.parentView = view._position = undefined;
+        this.items.splice(pos, 1);
         for (let i = pos; i < this.items.length; i++) {
             this.items[i]._position = i;
         }
@@ -162,8 +162,8 @@ export class ContainerView<T extends View> extends View {
 /** DragManager is used to help exchange information between views */
 export var dragManager = new class DragManager {
     /** The item being dragged */
-    _currentItem: any = null;
-    _currentArray: any[] = null;
+    _currentItem: any | null = null;
+    _currentArray: any[] | null = null;
     get currentItem() { return this._currentItem ?? this._currentArray?.[0] ?? null; };
     get currentArray() {
         if (this._currentItem) return [this._currentItem];
@@ -237,7 +237,7 @@ export abstract class ListViewItem extends View implements ISelectable {
                 ev.preventDefault();
             } else if (this.listview && (ev.code === 'ArrowUp' || ev.code === 'ArrowDown')) {
                 var offset = ev.code === 'ArrowUp' ? -1 : 1;
-                var item = this.listview.get(this.position + offset);
+                var item = this.listview.get(this.position! + offset);
                 if (item) {
                     item.dom.focus();
                     ev.preventDefault();
@@ -255,12 +255,12 @@ export abstract class ListViewItem extends View implements ISelectable {
             var arr: ListViewItem[] = [];
             if (this.selected) {
                 arr = [...this.selectionHelper.selectedItems];
-                arr.sort((a, b) => a.position - b.position); // remove this line to get a new feature!
+                arr.sort((a, b) => a.position! - b.position!); // remove this line to get a new feature!
             } else {
                 arr = [this];
             }
             dragManager.startArray(arr);
-            ev.dataTransfer.setData('text/plain', arr.map(x => x.dragData).join('\r\n'));
+            ev.dataTransfer!.setData('text/plain', arr.map(x => x.dragData).join('\r\n'));
             arr.forEach(x => x.dom.style.opacity = '.5');
         });
         this.dom.addEventListener('dragend', (ev) => {
@@ -284,10 +284,10 @@ export abstract class ListViewItem extends View implements ISelectable {
     }
     // https://stackoverflow.com/questions/7110353
     private enterctr = 0;
-    private dragoverPlaceholder: HTMLElement;
+    private dragoverPlaceholder: HTMLElement | null = null;
     dragHandler(ev: DragEvent, type: string) {
         const item = dragManager.currentItem;
-        let items = dragManager.currentArray;
+        let items = dragManager.currentArray!;
         const drop = type === 'drop';
         const arg: DragArg<ListViewItem> = {
             source: item, target: this,
@@ -299,15 +299,15 @@ export abstract class ListViewItem extends View implements ISelectable {
             if (this.listview?.moveByDragging && item.listview === this.listview) {
                 ev.preventDefault();
                 if (!drop) {
-                    ev.dataTransfer.dropEffect = 'move';
+                    ev.dataTransfer!.dropEffect = 'move';
                     arg.accept = (items.indexOf(this) === -1) ? 'move' : true;
-                    if (arg.accept === 'move' && this.position > item.position) arg.accept = 'move-after';
+                    if (arg.accept === 'move' && this.position! > item.position!) arg.accept = 'move-after';
                 } else {
                     if (items.indexOf(this) === -1) {
-                        if (this.position >= item.position) items = [...items].reverse();
+                        if (this.position! >= item.position!) items = [...items].reverse();
                         for (const it of items) {
                             if (it !== this) {
-                                this.listview.move(it, this.position);
+                                this.listview.move(it, this.position!);
                             }
                         }
                     }
@@ -340,9 +340,9 @@ export abstract class ListViewItem extends View implements ISelectable {
                     this.dragoverPlaceholder = utils.buildDOM({ tag: 'div.dragover-placeholder' }) as HTMLElement;
                     var before = this.dom;
                     if (arg.accept === 'move-after') before = before.nextElementSibling as HTMLElement;
-                    this.dom.parentElement.insertBefore(this.dragoverPlaceholder, before);
+                    this.dom.parentElement!.insertBefore(this.dragoverPlaceholder, before);
                 } else {
-                    this.dragoverPlaceholder.remove();
+                    this.dragoverPlaceholder!.remove();
                     this.dragoverPlaceholder = null;
                 }
             }
@@ -397,7 +397,7 @@ export class ListView<T extends ListViewItem = ListViewItem> extends ContainerVi
         item = this._ensureItem(item);
         this.remove(item, true);
         this.add(item, newpos);
-        this.onItemMoved(item, item.position);
+        this.onItemMoved(item, item.position!);
     }
     /** Remove all items */
     removeAll() {
@@ -416,7 +416,7 @@ export class ListView<T extends ListViewItem = ListViewItem> extends ContainerVi
 
 export interface ISelectable {
     selected: boolean;
-    position: number;
+    position?: number;
 }
 
 export class SelectionHelper<TItem extends ISelectable> {
@@ -432,7 +432,7 @@ export class SelectionHelper<TItem extends ISelectable> {
     }
     onEnabledChanged = new Callbacks();
 
-    itemProvider: ((pos: number) => TItem) = null;
+    itemProvider: ((pos: number) => TItem) | null = null;
 
     ctrlForceSelect = false;
 
@@ -441,7 +441,7 @@ export class SelectionHelper<TItem extends ISelectable> {
     get count() { return this.selectedItems.length; }
 
     /** For shift-click */
-    lastToggledItem: TItem;
+    lastToggledItem: TItem | null = null;
 
     /** Returns true if it's handled by the helper. */
     handleItemClicked(item: TItem, ev: MouseEvent): boolean {
@@ -449,9 +449,9 @@ export class SelectionHelper<TItem extends ISelectable> {
             if (!this.ctrlForceSelect || !ev.ctrlKey) return false;
             this.enabled = true;
         }
-        if (ev.shiftKey && this.lastToggledItem) {
+        if (ev.shiftKey && this.lastToggledItem && this.itemProvider) {
             var toSelect = !!this.lastToggledItem.selected;
-            var start = item.position, end = this.lastToggledItem.position;
+            var start = item.position!, end = this.lastToggledItem.position!;
             if (start > end) [start, end] = [end, start];
             for (let i = start; i <= end; i++) {
                 this.toggleItemSelection(this.itemProvider(i), toSelect);
@@ -526,7 +526,7 @@ export class Section extends View {
     setContent(view: IDOM) {
         var dom = this.dom;
         var firstChild = dom.firstChild;
-        while (dom.lastChild !== firstChild) dom.removeChild(dom.lastChild);
+        while (dom.lastChild !== firstChild) dom.removeChild(dom.lastChild!);
         dom.appendChild(view.getDOM());
     }
     addAction(arg: SectionActionOptions) {
@@ -536,7 +536,7 @@ export class Section extends View {
             tabIndex: 0
         });
         view.onactive = arg.onclick;
-        this.titleDom.parentElement.appendChild(view.dom);
+        this.titleDom.parentElement!.appendChild(view.dom);
     }
 }
 
@@ -557,13 +557,13 @@ export class LoadingIndicator extends View {
     private _textdom: HTMLElement;
     get content() { return this._text; }
     set content(val: string) { this._text = val; this.ensureDom(); this._textdom.textContent = val; }
-    onclick: (e: MouseEvent) => void;
+    onclick: ((e: MouseEvent) => void) | null = null;
     reset() {
         this.state = 'running';
         this.content = I`Loading`;
         this.onclick = null;
     }
-    error(err, retry: Action) {
+    error(err, retry?: Action) {
         this.state = 'error';
         this.content = I`Oh no! Something just goes wrong:` + '\r\n' + err;
         if (retry) {
@@ -610,9 +610,9 @@ export class Overlay extends View {
 
 export class EditableHelper {
     editing = false;
-    beforeEdit: string;
+    beforeEdit: string | null = null;
     element: HTMLElement;
-    onComplete: (newName: string) => void;
+    onComplete: ((newName: string) => void) | null = null;
     constructor(element: HTMLElement) {
         this.element = element;
     }
@@ -620,7 +620,7 @@ export class EditableHelper {
         if (this.editing) return;
         this.editing = true;
         var ele = this.element;
-        var beforeEdit = this.beforeEdit = ele.textContent;
+        var beforeEdit = this.beforeEdit = ele.textContent!;
         utils.toggleClass(ele, 'editing', true);
         var input = utils.buildDOM({
             tag: 'input', type: 'text', value: beforeEdit
@@ -728,15 +728,18 @@ export class ContextMenu extends ListView {
     useOverlay = true;
     private _visible = false;
     get visible() { return this._visible; };
-    overlay: Overlay = null;
-    private _onclose: Action = null;
-    private _originalFocused: Element;
+    overlay: Overlay | null = null;
+    private _onclose: Action | null = null;
+    private _originalFocused: Element | null = null;
     constructor(items?: MenuItem[]) {
         super({ tag: 'div.context-menu', tabIndex: 0 });
         items?.forEach(x => this.add(x));
     }
-    show(arg: { x?: number, y?: number, ev?: MouseEvent; }) {
-        if (arg.ev) { arg.x = arg.ev.pageX; arg.y = arg.ev.pageY; }
+    show(arg: { x: number, y: number; } | { ev: MouseEvent; }) {
+        if ('ev' in arg) arg = {
+            x: arg.ev.pageX,
+            y: arg.ev.pageY
+        };
         this.close();
         this._visible = true;
         if (this.useOverlay) {
@@ -781,9 +784,9 @@ export class ContextMenu extends ListView {
     close() {
         if (this._visible) {
             this._visible = false;
-            this._onclose();
+            this._onclose?.();
             this._onclose = null;
-            this._originalFocused['focus'] && this._originalFocused['focus']();
+            this._originalFocused?.['focus']?.();
             this._originalFocused = null;
             if (this.overlay) utils.fadeout(this.overlay.dom);
             utils.fadeout(this.dom);
@@ -1087,7 +1090,7 @@ export class LabeledInput extends View {
 
 export class ToastsContainer extends View {
     static default: ToastsContainer = new ToastsContainer();
-    parentDom: HTMLElement = null;
+    parentDom: HTMLElement | null = null;
     toasts: Toast[] = [];
     createDom() {
         return { tag: 'div.toasts-container' };
@@ -1113,7 +1116,7 @@ export class ToastsContainer extends View {
 
 export class Toast extends View {
     text: string = '';
-    container: ToastsContainer = null;
+    container: ToastsContainer;
     shown = false;
     timer = new Timer(() => this.close());
     constructor(init?: Partial<Toast>) {

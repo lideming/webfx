@@ -1,9 +1,8 @@
 declare module "I18n" {
     export interface I18nData {
-        [lang: string]: {
-            [key: string]: string;
-        };
+        [lang: string]: LangObj;
     }
+    export type LangObj = Record<string, string>;
     /** Internationalization (aka i18n) helper class */
     export class I18n {
         data: I18nData;
@@ -12,7 +11,7 @@ declare module "I18n" {
         /** Get i18n string for `key`, return `key` when not found. */
         get(key: any, arg?: any[]): string;
         /** Get i18n string for `key`, return `null` when not found. */
-        get2(key: any, arg?: any[], lang?: string): string;
+        get2(key: any, arg?: any[], lang?: string): string | null;
         /** Fills data with an 2darray */
         add2dArray(array: [...string[][]]): void;
         renderElements(elements: any): void;
@@ -185,8 +184,8 @@ declare module "utils" {
         remove(callback: T): void;
     }
     export class Lazy<T> {
-        private _func;
-        private _value;
+        private _func?;
+        private _value?;
         get computed(): boolean;
         get rawValue(): T;
         get value(): T;
@@ -243,7 +242,7 @@ declare module "viewlib" {
         _position?: number;
         get position(): number;
         domctx: BuildDOMCtx;
-        protected _dom: HTMLElement;
+        protected _dom: HTMLElement | undefined;
         get domCreated(): boolean;
         get dom(): HTMLElement;
         get hidden(): boolean;
@@ -260,8 +259,8 @@ declare module "viewlib" {
         toggleClass(clsName: string, force?: boolean): void;
         appendView(view: View): any;
         getDOM(): HTMLElement;
-        _onactive: Action;
-        _onActiveCbs: Action<any>[];
+        _onactive: Action | undefined;
+        _onActiveCbs: Action<any>[] | undefined;
         get onactive(): Action<void>;
         set onactive(val: Action<void>);
         handleKeyDown(e: KeyboardEvent, onactive: Action): void;
@@ -357,20 +356,20 @@ declare module "viewlib" {
     }
     export interface ISelectable {
         selected: boolean;
-        position: number;
+        position?: number;
     }
     export class SelectionHelper<TItem extends ISelectable> {
         _enabled: boolean;
         get enabled(): boolean;
         set enabled(val: boolean);
         onEnabledChanged: Callbacks<Action<void>>;
-        itemProvider: ((pos: number) => TItem);
+        itemProvider: ((pos: number) => TItem) | null;
         ctrlForceSelect: boolean;
         selectedItems: TItem[];
         onSelectedItemsChanged: Callbacks<(action: "add" | "remove", item: TItem) => void>;
         get count(): number;
         /** For shift-click */
-        lastToggledItem: TItem;
+        lastToggledItem: TItem | null;
         /** Returns true if it's handled by the helper. */
         handleItemClicked(item: TItem, ev: MouseEvent): boolean;
         toggleItemSelection(item: TItem, force?: boolean): void;
@@ -407,9 +406,9 @@ declare module "viewlib" {
         private _textdom;
         get content(): string;
         set content(val: string);
-        onclick: (e: MouseEvent) => void;
+        onclick: ((e: MouseEvent) => void) | null;
         reset(): void;
-        error(err: any, retry: Action): void;
+        error(err: any, retry?: Action): void;
         action(func: () => Promise<void>): Promise<void>;
         createDom(): BuildDomExpr;
         postCreateDom(): void;
@@ -423,9 +422,9 @@ declare module "viewlib" {
     }
     export class EditableHelper {
         editing: boolean;
-        beforeEdit: string;
+        beforeEdit: string | null;
         element: HTMLElement;
-        onComplete: (newName: string) => void;
+        onComplete: ((newName: string) => void) | null;
         constructor(element: HTMLElement);
         startEdit(onComplete?: this['onComplete']): void;
         startEditAsync(): Promise<string>;
@@ -458,14 +457,15 @@ declare module "viewlib" {
         useOverlay: boolean;
         private _visible;
         get visible(): boolean;
-        overlay: Overlay;
+        overlay: Overlay | null;
         private _onclose;
         private _originalFocused;
         constructor(items?: MenuItem[]);
         show(arg: {
-            x?: number;
-            y?: number;
-            ev?: MouseEvent;
+            x: number;
+            y: number;
+        } | {
+            ev: MouseEvent;
         }): void;
         close(): void;
     }
@@ -566,7 +566,7 @@ declare module "viewlib" {
     }
     export class ToastsContainer extends View {
         static default: ToastsContainer;
-        parentDom: HTMLElement;
+        parentDom: HTMLElement | null;
         toasts: Toast[];
         createDom(): {
             tag: string;

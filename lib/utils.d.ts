@@ -23,15 +23,15 @@ export declare var utils: {
             child: ['Name: ', { tag: 'span.name', textContent: name } ],
         })
      */
-    buildDOM: <T extends BuildDomReturn = BuildDomReturn>(tree: BuildDomExpr, ctx?: BuildDOMCtx) => T;
+    buildDOM: <T extends BuildDomReturn = BuildDomReturn>(tree: BuildDomExpr, ctx?: BuildDOMCtx | undefined) => T;
     /** Remove all children from the node */
     clearChildren(node: Node): void;
     /** Remove all children from the node (if needed) and append one (if present) */
-    replaceChild(node: Node, newChild?: Node): void;
+    replaceChild(node: Node, newChild?: Node | undefined): void;
     /** Add or remove a classname for the element
      * @param force - true -> add; false -> remove; undefined -> toggle.
      */
-    toggleClass(element: HTMLElement, clsName: string, force?: boolean): boolean;
+    toggleClass(element: HTMLElement, clsName: string, force?: boolean | undefined): boolean;
     /** Fade out the element and remove it */
     fadeout(element: HTMLElement): {
         readonly finished: boolean;
@@ -43,12 +43,12 @@ export declare var utils: {
         remove: () => void;
     };
     arrayRemove<T_1>(array: T_1[], val: T_1): void;
-    arrayInsert<T_2>(array: T_2[], val: T_2, pos?: number): void;
+    arrayInsert<T_2>(array: T_2[], val: T_2, pos?: number | undefined): void;
     arrayMap<T_3, TRet>(arr: Iterable<T_3>, func: (item: T_3, idx: number) => TRet): TRet[];
     arrayForeach<T_4>(arr: Iterable<T_4>, func: (item: T_4, idx: number) => void): void;
-    arrayFind<T_5>(arr: Iterable<T_5>, func: (item: T_5, idx: number) => any): T_5;
-    arraySum<T_6>(arr: Iterable<T_6>, func: (item: T_6) => number): number;
-    objectApply<T_7>(obj: Partial<T_7>, kv?: Partial<T_7>, keys?: (keyof T_7)[]): Partial<T_7>;
+    arrayFind<T_5>(arr: Iterable<T_5>, func: (item: T_5, idx: number) => any): T_5 | null;
+    arraySum<T_6>(arr: Iterable<T_6>, func: (item: T_6) => number | null | undefined): number;
+    objectApply<T_7>(obj: Partial<T_7>, kv?: Partial<T_7> | undefined, keys?: (keyof T_7)[] | undefined): Partial<T_7>;
     mod(a: number, b: number): number;
     readBlobAsDataUrl(blob: Blob): Promise<string>;
 };
@@ -132,7 +132,7 @@ export declare class SettingItem<T> {
     static types: {
         bool: {
             serialize: (data: any) => "true" | "false";
-            deserialize: (str: any) => boolean;
+            deserialize: (str: any) => boolean | undefined;
         };
         str: {
             serialize: (x: any) => any;
@@ -155,10 +155,10 @@ export declare class Callbacks<T extends AnyFunc = Action> {
     remove(callback: T): void;
 }
 export declare class Lazy<T> {
-    private _func;
-    private _value;
+    private _func?;
+    private _value?;
     get computed(): boolean;
-    get rawValue(): T;
+    get rawValue(): T | undefined;
     get value(): T;
     constructor(func: Func<T>);
 }

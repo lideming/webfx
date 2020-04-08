@@ -92,7 +92,7 @@ define("I18n", ["require", "exports"], function (require, exports) {
          * @param langs Available languages
          */
         static detectLanguage(langs) {
-            var cur;
+            var cur = null;
             var curIdx = -1;
             var languages = [];
             // ['en-US'] -> ['en-US', 'en']
@@ -108,7 +108,7 @@ define("I18n", ["require", "exports"], function (require, exports) {
                     curIdx = idx;
                 }
             });
-            return cur;
+            return cur || langs[0];
         }
     }
     exports.I18n = I18n;
@@ -351,6 +351,7 @@ define("utils", ["require", "exports", "I18n"], function (require, exports, I18n
                 if (func(item, idx++))
                     return item;
             }
+            return null;
         }
         arraySum(arr, func) {
             var sum = 0;
@@ -500,9 +501,12 @@ define("utils", ["require", "exports", "I18n"], function (require, exports, I18n
             }
             if (Node && obj instanceof Node)
                 return obj;
-            if (obj['getDOM'])
-                return obj['getDOM']();
-            var node = createElementFromTag(obj.tag);
+            if ('getDOM' in obj)
+                return obj.getDOM();
+            const tag = obj.tag;
+            if (!tag)
+                throw new Error('no tag');
+            var node = createElementFromTag(tag);
             if (obj['_ctx'])
                 ctx = BuildDOMCtx.EnsureCtx(obj['_ctx'], ctx);
             for (var key in obj) {
@@ -917,7 +921,7 @@ define("viewlib", ["require", "exports", "utils", "I18n"], function (require, ex
             }
             else {
                 items.splice(pos, 0, view);
-                this.dom.insertBefore(view.dom, (_a = items[pos + 1]) === null || _a === void 0 ? void 0 : _a.dom);
+                this.dom.insertBefore(view.dom, ((_a = items[pos + 1]) === null || _a === void 0 ? void 0 : _a.dom) || null);
                 for (let i = pos; i < items.length; i++) {
                     items[i]._position = i;
                 }
@@ -926,9 +930,9 @@ define("viewlib", ["require", "exports", "utils", "I18n"], function (require, ex
         removeView(view) {
             view = this._ensureItem(view);
             view.dom.remove();
-            this.items.splice(view._position, 1);
             var pos = view._position;
-            view.parentView = view._position = null;
+            view.parentView = view._position = undefined;
+            this.items.splice(pos, 1);
             for (let i = pos; i < this.items.length; i++) {
                 this.items[i]._position = i;
             }
@@ -1000,6 +1004,7 @@ define("viewlib", ["require", "exports", "utils", "I18n"], function (require, ex
             this.onSelectedChanged = new utils_1.Callbacks();
             // https://stackoverflow.com/questions/7110353
             this.enterctr = 0;
+            this.dragoverPlaceholder = null;
         }
         get listview() { return this.parentView; }
         get selectionHelper() { return this.listview.selectionHelper; }
@@ -1228,6 +1233,8 @@ define("viewlib", ["require", "exports", "utils", "I18n"], function (require, ex
             this.ctrlForceSelect = false;
             this.selectedItems = [];
             this.onSelectedItemsChanged = new utils_1.Callbacks();
+            /** For shift-click */
+            this.lastToggledItem = null;
         }
         get enabled() { return this._enabled; }
         set enabled(val) {
@@ -1247,7 +1254,7 @@ define("viewlib", ["require", "exports", "utils", "I18n"], function (require, ex
                     return false;
                 this.enabled = true;
             }
-            if (ev.shiftKey && this.lastToggledItem) {
+            if (ev.shiftKey && this.lastToggledItem && this.itemProvider) {
                 var toSelect = !!this.lastToggledItem.selected;
                 var start = item.position, end = this.lastToggledItem.position;
                 if (start > end)
@@ -1349,6 +1356,7 @@ define("viewlib", ["require", "exports", "utils", "I18n"], function (require, ex
         constructor(init) {
             super();
             this._status = 'running';
+            this.onclick = null;
             if (init)
                 utils_1.utils.objectApply(this, init);
         }
@@ -1415,6 +1423,8 @@ define("viewlib", ["require", "exports", "utils", "I18n"], function (require, ex
     class EditableHelper {
         constructor(element) {
             this.editing = false;
+            this.beforeEdit = null;
+            this.onComplete = null;
             this.element = element;
         }
         startEdit(onComplete) {
@@ -1536,15 +1546,17 @@ define("viewlib", ["require", "exports", "utils", "I18n"], function (require, ex
             this._visible = false;
             this.overlay = null;
             this._onclose = null;
+            this._originalFocused = null;
             items === null || items === void 0 ? void 0 : items.forEach(x => this.add(x));
         }
         get visible() { return this._visible; }
         ;
         show(arg) {
-            if (arg.ev) {
-                arg.x = arg.ev.pageX;
-                arg.y = arg.ev.pageY;
-            }
+            if ('ev' in arg)
+                arg = {
+                    x: arg.ev.pageX,
+                    y: arg.ev.pageY
+                };
             this.close();
             this._visible = true;
             if (this.useOverlay) {
@@ -1592,11 +1604,12 @@ define("viewlib", ["require", "exports", "utils", "I18n"], function (require, ex
             this.dom.style.top = arg.y + 'px';
         }
         close() {
+            var _a, _b, _c;
             if (this._visible) {
                 this._visible = false;
-                this._onclose();
+                (_a = this._onclose) === null || _a === void 0 ? void 0 : _a.call(this);
                 this._onclose = null;
-                this._originalFocused['focus'] && this._originalFocused['focus']();
+                (_c = (_b = this._originalFocused) === null || _b === void 0 ? void 0 : _b['focus']) === null || _c === void 0 ? void 0 : _c.call(_b);
                 this._originalFocused = null;
                 if (this.overlay)
                     utils_1.utils.fadeout(this.overlay.dom);
@@ -1923,7 +1936,6 @@ define("viewlib", ["require", "exports", "utils", "I18n"], function (require, ex
         constructor(init) {
             super();
             this.text = '';
-            this.container = null;
             this.shown = false;
             this.timer = new utils_1.Timer(() => this.close());
             utils_1.utils.objectApply(this, init);

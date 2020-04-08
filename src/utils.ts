@@ -111,8 +111,8 @@ export var utils = new class Utils {
     /** Fade out the element and remove it */
     fadeout(element: HTMLElement) {
         element.classList.add('fading-out');
-        var cb: Action = null;
-        var end = () => {
+        var cb: Action | null = null;
+        var end: Action | null = () => {
             if (!end) return; // use a random variable as flag ;)
             end = null;
             element.removeEventListener('transitionend', onTransitionend);
@@ -121,7 +121,7 @@ export var utils = new class Utils {
             cb && cb();
         };
         var onTransitionend = function (e: TransitionEvent) {
-            if (e.eventPhase === Event.AT_TARGET) end();
+            if (e.eventPhase === Event.AT_TARGET) end!();
         };
         element.addEventListener('transitionend', onTransitionend);
         setTimeout(end, 350); // failsafe
@@ -220,12 +220,13 @@ export var utils = new class Utils {
         }
     }
 
-    arrayFind<T>(arr: Iterable<T>, func: (item: T, idx: number) => any): T {
+    arrayFind<T>(arr: Iterable<T>, func: (item: T, idx: number) => any): T | null {
         if (arr instanceof Array) return arr.find(func);
         var idx = 0;
         for (var item of arr) {
             if (func(item, idx++)) return item;
         }
+        return null;
     }
 
     arraySum<T>(arr: Iterable<T>, func: (item: T) => number | null | undefined) {
@@ -430,8 +431,10 @@ utils.buildDOM = (() => {
         if (ttl-- < 0) throw new Error('ran out of TTL');
         if (typeof (obj) === 'string') { return document.createTextNode(obj); }
         if (Node && obj instanceof Node) return obj as Node;
-        if (obj['getDOM']) return obj['getDOM']();
-        var node = createElementFromTag((obj as BuildDomNode).tag);
+        if ('getDOM' in obj) return obj.getDOM();
+        const tag = (obj as BuildDomNode).tag;
+        if (!tag) throw new Error('no tag');
+        var node = createElementFromTag(tag);
         if (obj['_ctx']) ctx = BuildDOMCtx.EnsureCtx(obj['_ctx'], ctx);
         for (var key in obj) {
             if (obj.hasOwnProperty(key)) {
@@ -576,16 +579,16 @@ export class Callbacks<T extends AnyFunc = Action> {
 }
 
 export class Lazy<T> {
-    private _func: Func<T>;
-    private _value: T;
+    private _func?: Func<T>;
+    private _value?: T;
     get computed() { return !this._func; }
     get rawValue() { return this._value; }
-    get value() {
+    get value(): T {
         if (this._func) {
             this._value = this._func();
             this._func = undefined;
         }
-        return this._value;
+        return this._value!;
     }
     constructor(func: Func<T>) {
         if (typeof func != 'function') throw new Error('func is not a function');
@@ -605,7 +608,7 @@ export class Semaphore {
         if (this.runningCount === this.maxCount) {
             var resolve: Action;
             var prom = new Promise((res) => { resolve = res; });
-            this.queue.push(resolve);
+            this.queue.push(resolve!);
             return prom;
         } else {
             this.runningCount++;
@@ -617,7 +620,7 @@ export class Semaphore {
             if (window.queueMicrotask) {
                 window.queueMicrotask(this.queue.shift() as any);
             } else {
-                setTimeout(this.queue.shift(), 0);
+                setTimeout(this.queue.shift()!, 0);
             }
         } else {
             this.runningCount--;
@@ -699,7 +702,7 @@ export class EventRegistrations {
     }
     removeAll() {
         while (this.list.length) {
-            var r = this.list.pop();
+            var r = this.list.pop()!;
             r.event.remove(r.func);
         }
     }

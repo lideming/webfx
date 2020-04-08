@@ -1,8 +1,7 @@
 export interface I18nData {
-    [lang: string]: {
-        [key: string]: string;
-    };
+    [lang: string]: LangObj;
 }
+export declare type LangObj = Record<string, string>;
 /** Internationalization (aka i18n) helper class */
 export declare class I18n {
     data: I18nData;
@@ -11,7 +10,7 @@ export declare class I18n {
     /** Get i18n string for `key`, return `key` when not found. */
     get(key: any, arg?: any[]): string;
     /** Get i18n string for `key`, return `null` when not found. */
-    get2(key: any, arg?: any[], lang?: string): string;
+    get2(key: any, arg?: any[], lang?: string): string | null;
     /** Fills data with an 2darray */
     add2dArray(array: [...string[][]]): void;
     renderElements(elements: any): void;

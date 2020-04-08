@@ -4,9 +4,9 @@ export declare class View implements IDOM {
     static getView(obj: IDOM): View;
     parentView?: ContainerView<View>;
     _position?: number;
-    get position(): number;
+    get position(): number | undefined;
     domctx: BuildDOMCtx;
-    protected _dom: HTMLElement;
+    protected _dom: HTMLElement | undefined;
     get domCreated(): boolean;
     get dom(): HTMLElement;
     get hidden(): boolean;
@@ -23,10 +23,10 @@ export declare class View implements IDOM {
     toggleClass(clsName: string, force?: boolean): void;
     appendView(view: View): any;
     getDOM(): HTMLElement;
-    _onactive: Action;
-    _onActiveCbs: Action<any>[];
-    get onactive(): Action<void>;
-    set onactive(val: Action<void>);
+    _onactive: Action | undefined;
+    _onActiveCbs: Action<any>[] | undefined;
+    get onactive(): Action<void> | undefined;
+    set onactive(val: Action<void> | undefined);
     handleKeyDown(e: KeyboardEvent, onactive: Action): void;
 }
 declare global {
@@ -49,16 +49,16 @@ export declare class ContainerView<T extends View> extends View {
     get length(): number;
     get(idx: number): T;
     map<TRet>(func: (lvi: T) => TRet): TRet[];
-    find(func: (lvi: T, idx: number) => any): T;
+    find(func: (lvi: T, idx: number) => any): T | null;
     forEach(func: (lvi: T, idx: number) => void): void;
 }
 /** DragManager is used to help exchange information between views */
 export declare var dragManager: {
     /** The item being dragged */
     _currentItem: any;
-    _currentArray: any[];
+    _currentArray: any[] | null;
     readonly currentItem: any;
-    readonly currentArray: any[];
+    readonly currentArray: any[] | null;
     onDragStart: Callbacks<Action<void>>;
     onDragEnd: Callbacks<Action<void>>;
     start(item: any): void;
@@ -68,7 +68,7 @@ export declare var dragManager: {
 export declare abstract class ListViewItem extends View implements ISelectable {
     get listview(): ListView<this>;
     get selectionHelper(): any;
-    get dragData(): string;
+    get dragData(): string | null;
     onDragover: ListView['onDragover'];
     onContextMenu: ListView['onContextMenu'];
     dragging?: boolean;
@@ -120,20 +120,20 @@ export declare class ListView<T extends ListViewItem = ListViewItem> extends Con
 }
 export interface ISelectable {
     selected: boolean;
-    position: number;
+    position?: number;
 }
 export declare class SelectionHelper<TItem extends ISelectable> {
     _enabled: boolean;
     get enabled(): boolean;
     set enabled(val: boolean);
     onEnabledChanged: Callbacks<Action<void>>;
-    itemProvider: ((pos: number) => TItem);
+    itemProvider: ((pos: number) => TItem) | null;
     ctrlForceSelect: boolean;
     selectedItems: TItem[];
     onSelectedItemsChanged: Callbacks<(action: "add" | "remove", item: TItem) => void>;
     get count(): number;
     /** For shift-click */
-    lastToggledItem: TItem;
+    lastToggledItem: TItem | null;
     /** Returns true if it's handled by the helper. */
     handleItemClicked(item: TItem, ev: MouseEvent): boolean;
     toggleItemSelection(item: TItem, force?: boolean): void;
@@ -170,9 +170,9 @@ export declare class LoadingIndicator extends View {
     private _textdom;
     get content(): string;
     set content(val: string);
-    onclick: (e: MouseEvent) => void;
+    onclick: ((e: MouseEvent) => void) | null;
     reset(): void;
-    error(err: any, retry: Action): void;
+    error(err: any, retry?: Action): void;
     action(func: () => Promise<void>): Promise<void>;
     createDom(): BuildDomExpr;
     postCreateDom(): void;
@@ -186,9 +186,9 @@ export declare class Overlay extends View {
 }
 export declare class EditableHelper {
     editing: boolean;
-    beforeEdit: string;
+    beforeEdit: string | null;
     element: HTMLElement;
-    onComplete: (newName: string) => void;
+    onComplete: ((newName: string) => void) | null;
     constructor(element: HTMLElement);
     startEdit(onComplete?: this['onComplete']): void;
     startEditAsync(): Promise<string>;
@@ -221,14 +221,15 @@ export declare class ContextMenu extends ListView {
     useOverlay: boolean;
     private _visible;
     get visible(): boolean;
-    overlay: Overlay;
+    overlay: Overlay | null;
     private _onclose;
     private _originalFocused;
     constructor(items?: MenuItem[]);
     show(arg: {
-        x?: number;
-        y?: number;
-        ev?: MouseEvent;
+        x: number;
+        y: number;
+    } | {
+        ev: MouseEvent;
     }): void;
     close(): void;
 }
@@ -304,13 +305,13 @@ export declare class InputView extends View {
     updateDom(): void;
 }
 export declare class TextView extends View {
-    get text(): string;
-    set text(val: string);
+    get text(): string | null;
+    set text(val: string | null);
 }
 export declare class ButtonView extends TextView {
     disabled: boolean;
-    get onclick(): Action<void>;
-    set onclick(val: Action<void>);
+    get onclick(): Action<void> | undefined;
+    set onclick(val: Action<void> | undefined);
     type: 'normal' | 'big';
     constructor(init?: Partial<ButtonView>);
     createDom(): BuildDomExpr;
@@ -329,7 +330,7 @@ export declare class LabeledInput extends View {
 }
 export declare class ToastsContainer extends View {
     static default: ToastsContainer;
-    parentDom: HTMLElement;
+    parentDom: HTMLElement | null;
     toasts: Toast[];
     createDom(): {
         tag: string;

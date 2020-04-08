@@ -1,10 +1,10 @@
 // file: I18n.ts
 
 export interface I18nData {
-    [lang: string]: {
-        [key: string]: string;
-    };
+    [lang: string]: LangObj;
 }
+
+export type LangObj = Record<string, string>;
 
 /** Internationalization (aka i18n) helper class */
 export class I18n {
@@ -16,7 +16,7 @@ export class I18n {
         return this.get2(key, arg) || key;
     }
     /** Get i18n string for `key`, return `null` when not found. */
-    get2(key, arg?: any[], lang?: string): string {
+    get2(key, arg?: any[], lang?: string): string | null {
         lang = lang || this.curLang;
         var langObj = this.data[lang];
         if (!langObj) {
@@ -44,7 +44,7 @@ export class I18n {
     }
     /** Fills data with an 2darray */
     add2dArray(array: [...string[][]]) {
-        const langObjs = [];
+        const langObjs: LangObj[] = [];
         const langs = array[0];
         for (const lang of langs) {
             langObjs.push(this.data[lang] = this.data[lang] || {});
@@ -85,9 +85,9 @@ export class I18n {
      * @param langs Available languages
      */
     static detectLanguage(langs: string[]) {
-        var cur: string;
+        var cur: string | null = null;
         var curIdx = -1;
-        var languages = [];
+        var languages: string[] = [];
         // ['en-US'] -> ['en-US', 'en']
         (navigator.languages || [navigator.language]).forEach(lang => {
             languages.push(lang);
@@ -101,7 +101,7 @@ export class I18n {
                 curIdx = idx;
             }
         });
-        return cur;
+        return cur || langs[0];
     }
 }
 
