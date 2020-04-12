@@ -1564,6 +1564,8 @@ define("viewlib", ["require", "exports", "utils", "I18n"], function (require, ex
                     this.overlay = new Overlay();
                     this.overlay.dom.style.background = 'rgba(0, 0, 0, .1)';
                     this.overlay.dom.addEventListener('mousedown', (ev) => {
+                        if (ev.eventPhase !== Event.AT_TARGET)
+                            return;
                         ev.preventDefault();
                         this.close();
                     });
