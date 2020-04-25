@@ -1119,16 +1119,15 @@ define("viewlib", ["require", "exports", "utils", "I18n"], function (require, ex
                     }
                     else {
                         if (items.indexOf(this) === -1) {
-                            if (this.position >= item.position)
-                                items = [...items].reverse();
+                            let newpos = this.position;
+                            if (arg.accept == 'move-after')
+                                newpos++;
                             for (const it of items) {
                                 if (it !== this) {
-                                    let newpos = this.position;
-                                    if (arg.accept == 'move-after' && newpos < it.position)
-                                        newpos++;
-                                    else if (arg.accept == 'move' && newpos > it.position)
+                                    if (newpos > it.position)
                                         newpos--;
                                     this.listview.move(it, newpos);
+                                    newpos++;
                                 }
                             }
                         }

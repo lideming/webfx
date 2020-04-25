@@ -287,7 +287,7 @@ export abstract class ListViewItem extends View implements ISelectable {
     private dragoverPlaceholder: [HTMLElement, 'move' | 'move-after'] | null = null;
     dragHandler(ev: DragEvent, type: string) {
         const item = dragManager.currentItem;
-        let items = dragManager.currentArray!;
+        let items = dragManager.currentArray! as ListViewItem[];
         const drop = type === 'drop';
         const arg: DragArg<ListViewItem> = {
             source: item, target: this,
@@ -305,13 +305,13 @@ export abstract class ListViewItem extends View implements ISelectable {
                     ev.dataTransfer!.dropEffect = 'move';
                 } else {
                     if (items.indexOf(this) === -1) {
-                        if (this.position! >= item.position!) items = [...items].reverse();
-                        for (const it of items as ListViewItem[]) {
+                        let newpos = this.position!;
+                        if (arg.accept == 'move-after') newpos++;
+                        for (const it of items) {
                             if (it !== this) {
-                                let newpos = this.position!;
-                                if (arg.accept == 'move-after' && newpos < it.position!) newpos++;
-                                else if (arg.accept == 'move' && newpos > it.position!) newpos--;
+                                if (newpos > it.position!) newpos--;
                                 this.listview.move(it, newpos);
+                                newpos++;
                             }
                         }
                     }
