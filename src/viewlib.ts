@@ -328,18 +328,19 @@ export abstract class ListViewItem extends View implements ISelectable {
             if (drop) onContextMenu(this, ev);
             else ev.preventDefault();
         }
-        if (type === 'dragenter' || type === 'dragleave' || drop) {
+        if (type === 'dragenter' || type == 'dragover' || type === 'dragleave' || drop) {
             if (type === 'dragenter') {
                 this.enterctr++;
             } else if (type === 'dragleave') {
                 this.enterctr--;
-            } else {
+            } else if (type === 'drop') {
                 this.enterctr = 0;
             }
             let hover = this.enterctr > 0;
             this.toggleClass('dragover', hover);
-            let placeholder = hover && !!arg && (arg.accept === 'move' || arg.accept === 'move-after') && arg.accept;
-            if (placeholder != this.dragoverPlaceholder?.[1] ?? false) {
+            arg.event.stopPropagation
+            let placeholder = hover && (arg.accept === 'move' || arg.accept === 'move-after') && arg.accept;
+            if (placeholder != (this.dragoverPlaceholder?.[1] ?? false)) {
                 this.dragoverPlaceholder?.[0].remove();
                 this.dragoverPlaceholder = null;
                 if (placeholder) {
@@ -347,8 +348,8 @@ export abstract class ListViewItem extends View implements ISelectable {
                         utils.buildDOM({ tag: 'div.dragover-placeholder' }) as HTMLElement,
                         placeholder
                     ];
-                    var before = this.dom;
-                    if (arg.accept === 'move-after') before = before.nextElementSibling as HTMLElement;
+                    var before = this.dom as Element;
+                    if (arg.accept === 'move-after') before = before.nextElementSibling!;
                     this.dom.parentElement!.insertBefore(this.dragoverPlaceholder[0], before);
                 }
             }
