@@ -1159,7 +1159,6 @@ define("viewlib", ["require", "exports", "utils", "I18n"], function (require, ex
                 }
                 let hover = this.enterctr > 0;
                 this.toggleClass('dragover', hover);
-                arg.event.stopPropagation;
                 let placeholder = hover && (arg.accept === 'move' || arg.accept === 'move-after') && arg.accept;
                 if (placeholder != ((_g = (_f = this.dragoverPlaceholder) === null || _f === void 0 ? void 0 : _f[1]) !== null && _g !== void 0 ? _g : false)) {
                     (_h = this.dragoverPlaceholder) === null || _h === void 0 ? void 0 : _h[0].remove();

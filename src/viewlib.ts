@@ -338,7 +338,6 @@ export abstract class ListViewItem extends View implements ISelectable {
             }
             let hover = this.enterctr > 0;
             this.toggleClass('dragover', hover);
-            arg.event.stopPropagation
             let placeholder = hover && (arg.accept === 'move' || arg.accept === 'move-after') && arg.accept;
             if (placeholder != (this.dragoverPlaceholder?.[1] ?? false)) {
                 this.dragoverPlaceholder?.[0].remove();
