@@ -284,7 +284,7 @@ export abstract class ListViewItem extends View implements ISelectable {
     }
     // https://stackoverflow.com/questions/7110353
     private enterctr = 0;
-    private dragoverPlaceholder: HTMLElement | null = null;
+    private dragoverPlaceholder: [HTMLElement, 'move' | 'move-after'] | null = null;
     dragHandler(ev: DragEvent, type: string) {
         const item = dragManager.currentItem;
         let items = dragManager.currentArray!;
@@ -338,16 +338,18 @@ export abstract class ListViewItem extends View implements ISelectable {
             }
             let hover = this.enterctr > 0;
             this.toggleClass('dragover', hover);
-            let placeholder = hover && !!arg && (arg.accept === 'move' || arg.accept === 'move-after');
-            if (placeholder != !!this.dragoverPlaceholder) {
+            let placeholder = hover && !!arg && (arg.accept === 'move' || arg.accept === 'move-after') && arg.accept;
+            if (placeholder != this.dragoverPlaceholder?.[1] ?? false) {
+                this.dragoverPlaceholder?.[0].remove();
+                this.dragoverPlaceholder = null;
                 if (placeholder) {
-                    this.dragoverPlaceholder = utils.buildDOM({ tag: 'div.dragover-placeholder' }) as HTMLElement;
+                    this.dragoverPlaceholder = [
+                        utils.buildDOM({ tag: 'div.dragover-placeholder' }) as HTMLElement,
+                        placeholder
+                    ];
                     var before = this.dom;
                     if (arg.accept === 'move-after') before = before.nextElementSibling as HTMLElement;
-                    this.dom.parentElement!.insertBefore(this.dragoverPlaceholder, before);
-                } else {
-                    this.dragoverPlaceholder!.remove();
-                    this.dragoverPlaceholder = null;
+                    this.dom.parentElement!.insertBefore(this.dragoverPlaceholder[0], before);
                 }
             }
         }
