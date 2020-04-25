@@ -1112,7 +1112,7 @@ define("viewlib", ["require", "exports", "utils", "I18n"], function (require, ex
                 if (((_a = this.listview) === null || _a === void 0 ? void 0 : _a.moveByDragging) && item.listview === this.listview) {
                     ev.preventDefault();
                     arg.accept = (items.indexOf(this) === -1) ? 'move' : true;
-                    if (arg.accept === 'move' && ev.clientX - this.dom.getBoundingClientRect().top > this.dom.offsetHeight / 2)
+                    if (arg.accept === 'move' && ev.clientY - this.dom.getBoundingClientRect().top > this.dom.offsetHeight / 2)
                         arg.accept = 'move-after';
                     if (!drop) {
                         ev.dataTransfer.dropEffect = 'move';
