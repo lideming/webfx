@@ -1037,8 +1037,10 @@ export class InputView extends View {
     }
     updateDom() {
         super.updateDom();
-        if (!this.multiline) (this.dom as HTMLInputElement).type = this.type;
-        (this.dom as HTMLInputElement).placeholder = this.placeholder;
+        if (this.dom instanceof HTMLInputElement) {
+            this.dom.type = this.type;
+            this.dom.placeholder = this.placeholder;
+        }
     }
 }
 

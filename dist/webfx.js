@@ -1851,9 +1851,10 @@ define("viewlib", ["require", "exports", "utils", "I18n"], function (require, ex
         }
         updateDom() {
             super.updateDom();
-            if (!this.multiline)
+            if (this.dom instanceof HTMLInputElement) {
                 this.dom.type = this.type;
-            this.dom.placeholder = this.placeholder;
+                this.dom.placeholder = this.placeholder;
+            }
         }
     }
     exports.InputView = InputView;

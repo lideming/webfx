@@ -1,6 +1,6 @@
 {
   "name": "@yuuza/webfx",
-  "version": "1.0.13",
+  "version": "1.0.14",
   "description": "",
   "main": "lib/webfx.js",
   "types": "lib/webfx.d.ts",
