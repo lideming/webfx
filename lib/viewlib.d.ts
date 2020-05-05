@@ -292,16 +292,14 @@ export declare class TabBtn extends View {
     updateDom(): void;
 }
 export declare class InputView extends View {
-    dom: HTMLInputElement;
+    dom: HTMLElement;
     multiline: boolean;
     type: string;
     placeholder: string;
     get value(): string;
     set value(val: string);
     constructor(init?: Partial<InputView>);
-    createDom(): {
-        tag: string;
-    };
+    createDom(): BuildDomExpr;
     updateDom(): void;
 }
 export declare class TextView extends View {

@@ -1022,23 +1022,23 @@ export class TabBtn extends View {
 }
 
 export class InputView extends View {
-    dom: HTMLInputElement;
+    dom: HTMLElement;
     multiline: boolean = false;
     type = 'text';
     placeholder = '';
-    get value() { return this.dom.value; }
-    set value(val) { this.dom.value = val; }
+    get value() { return (this.dom as HTMLInputElement).value; }
+    set value(val) { (this.dom as HTMLInputElement).value = val; }
     constructor(init?: Partial<InputView>) {
         super();
         utils.objectApply(this, init);
     }
-    createDom() {
+    createDom(): BuildDomExpr {
         return this.multiline ? { tag: 'textarea.input-text' } : { tag: 'input.input-text' };
     }
     updateDom() {
         super.updateDom();
-        if (!this.multiline) this.dom.type = this.type;
-        this.dom.placeholder = this.placeholder;
+        if (!this.multiline) (this.dom as HTMLInputElement).type = this.type;
+        (this.dom as HTMLInputElement).placeholder = this.placeholder;
     }
 }
 
