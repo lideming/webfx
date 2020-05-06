@@ -298,15 +298,16 @@ export abstract class ListViewItem extends View implements ISelectable {
         if (item instanceof ListViewItem) {
             if (this.listview?.moveByDragging && item.listview === this.listview) {
                 ev.preventDefault();
-                arg.accept = (items.indexOf(this) === -1) ? 'move' : true;
-                if (arg.accept === 'move' && ev.clientY - this.dom.getBoundingClientRect().top > this.dom.offsetHeight / 2)
-                    arg.accept = 'move-after';
+                const selfInside = (items.indexOf(this) >= 0);
+                const after = ev.clientY - this.dom.getBoundingClientRect().top > this.dom.offsetHeight / 2;
+                if (!(selfInside && drop))
+                    arg.accept = after ? 'move-after' : 'move';
                 if (!drop) {
                     ev.dataTransfer!.dropEffect = 'move';
                 } else {
                     if (items.indexOf(this) === -1) {
                         let newpos = this.position!;
-                        if (arg.accept == 'move-after') newpos++;
+                        if (after) newpos++;
                         for (const it of items) {
                             if (it !== this) {
                                 if (newpos > it.position!) newpos--;
