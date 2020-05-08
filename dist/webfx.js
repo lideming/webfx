@@ -113,18 +113,23 @@ define("I18n", ["require", "exports"], function (require, exports) {
     }
     exports.I18n = I18n;
     function createStringBuilder(i18n) {
+        var formatCache = new WeakMap();
         return function (literals, ...placeholders) {
             if (placeholders.length === 0) {
                 return i18n.get(literals[0]);
             }
-            // Generate format string from template string:
-            var formatString = '';
-            for (var i = 0; i < literals.length; i++) {
-                var lit = literals[i];
-                formatString += lit;
-                if (i < placeholders.length) {
-                    formatString += '{' + i + '}';
+            // Generate format string from template string if it's not cached:
+            let formatString = formatCache.get(literals);
+            if (formatString === undefined) {
+                formatString = '';
+                for (let i = 0; i < literals.length; i++) {
+                    const lit = literals[i];
+                    formatString += lit;
+                    if (i < placeholders.length) {
+                        formatString += '{' + i + '}';
+                    }
                 }
+                formatCache.set(literals, formatString);
             }
             var r = i18n.get(formatString);
             for (var i = 0; i < placeholders.length; i++) {
@@ -409,6 +414,11 @@ define("utils", ["require", "exports", "I18n"], function (require, exports, I18n
             var handle = setInterval(this.callback, time);
             this.cancelFunc = () => window.clearInterval(handle);
         }
+        animationFrame() {
+            this.tryCancel();
+            var handle = requestAnimationFrame(this.callback);
+            this.cancelFunc = () => cancelAnimationFrame(handle);
+        }
         tryCancel() {
             if (this.cancelFunc) {
                 this.cancelFunc();
@@ -558,6 +568,7 @@ define("utils", ["require", "exports", "I18n"], function (require, exports, I18n
     })();
     class SettingItem {
         constructor(key, type, initial) {
+            this.onRender = null;
             this.key = key;
             type = this.type = typeof type === 'string' ? SettingItem.types[type] : type;
             if (!type || !type.serialize || !type.deserialize)
@@ -572,14 +583,13 @@ define("utils", ["require", "exports", "I18n"], function (require, exports, I18n
         render(fn, dontRaiseNow) {
             if (!dontRaiseNow)
                 fn(this.data);
-            var oldFn = this.onRender;
-            var newFn = fn;
+            const oldFn = this.onRender;
+            const newFn = fn;
             if (oldFn)
                 fn = function (x) { oldFn(x); newFn(x); };
             this.onRender = fn;
             return this;
         }
-        ;
         bindToBtn(btn, prefix) {
             if (this.type !== SettingItem.types.bool)
                 throw new Error('only for bool type');
@@ -594,7 +604,6 @@ define("utils", ["require", "exports", "I18n"], function (require, exports, I18n
             btn.addEventListener('click', function () { thiz.toggle(); });
             return this;
         }
-        ;
         remove() {
             localStorage.removeItem(this.key);
         }
@@ -609,24 +618,20 @@ define("utils", ["require", "exports", "I18n"], function (require, exports, I18n
             if (!dontSave && this.key)
                 this.save();
         }
-        ;
         get() {
             return this.data;
         }
-        ;
         toggle() {
             if (this.type !== SettingItem.types.bool)
                 throw new Error('only for bool type');
             this.set((!this.data));
         }
-        ;
         loop(arr) {
             var curData = this.data;
             var oldIndex = arr.findIndex(function (x) { return x === curData; });
             var newData = arr[(oldIndex + 1) % arr.length];
             this.set(newData);
         }
-        ;
     }
     exports.SettingItem = SettingItem;
     SettingItem.types = {
@@ -645,24 +650,26 @@ define("utils", ["require", "exports", "I18n"], function (require, exports, I18n
     };
     class Callbacks {
         constructor() {
-            this.list = [];
+            this.list = null;
         }
         invoke(...args) {
-            this.list.forEach((x) => x.apply(this, args));
+            if (this.list)
+                this.list.forEach((x) => x.apply(this, args));
         }
         add(callback) {
+            if (!this.list)
+                this.list = [];
             this.list.push(callback);
             return callback;
         }
         remove(callback) {
-            this.list.remove(callback);
+            if (this.list)
+                this.list.remove(callback);
         }
     }
     exports.Callbacks = Callbacks;
     class Lazy {
         constructor(func) {
-            if (typeof func != 'function')
-                throw new Error('func is not a function');
             this._func = func;
             this._value = undefined;
         }
@@ -1000,6 +1007,7 @@ define("viewlib", ["require", "exports", "utils", "I18n"], function (require, ex
     class ListViewItem extends View {
         constructor() {
             super(...arguments);
+            this.dragging = undefined;
             this._selected = false;
             this.onSelectedChanged = new utils_1.Callbacks();
             // https://stackoverflow.com/questions/7110353
@@ -1183,6 +1191,8 @@ define("viewlib", ["require", "exports", "utils", "I18n"], function (require, ex
     class ListView extends ContainerView {
         constructor(container) {
             super(container);
+            // private items: Array<T> = [];
+            this.onItemClicked = null;
             /**
              * Allow user to drag an item.
              */
@@ -1192,6 +1202,12 @@ define("viewlib", ["require", "exports", "utils", "I18n"], function (require, ex
              */
             this.moveByDragging = false;
             this.selectionHelper = new SelectionHelper();
+            this.onItemMoved = null;
+            /**
+             * When dragover or drop
+             */
+            this.onDragover = null;
+            this.onContextMenu = null;
             this.selectionHelper.itemProvider = this.get.bind(this);
         }
         postCreateDom() {
@@ -1210,10 +1226,11 @@ define("viewlib", ["require", "exports", "utils", "I18n"], function (require, ex
             this.removeView(item);
         }
         move(item, newpos) {
+            var _a;
             item = this._ensureItem(item);
             this.remove(item, true);
             this.add(item, newpos);
-            this.onItemMoved(item, item.position);
+            (_a = this.onItemMoved) === null || _a === void 0 ? void 0 : _a.call(this, item, item.position);
         }
         /** Remove all items */
         removeAll() {
@@ -1312,6 +1329,13 @@ define("viewlib", ["require", "exports", "utils", "I18n"], function (require, ex
     class Section extends View {
         constructor(arg) {
             super();
+            this.titleView = new TextView({ tag: 'span.section-title' });
+            this.headerView = new View({
+                tag: 'div.section-header',
+                child: [
+                    this.titleView
+                ]
+            });
             this.ensureDom();
             if (arg) {
                 if (arg.title)
@@ -1327,18 +1351,12 @@ define("viewlib", ["require", "exports", "utils", "I18n"], function (require, ex
                 _ctx: this,
                 tag: 'div.section',
                 child: [
-                    {
-                        tag: 'div.section-header',
-                        child: [
-                            { tag: 'span.section-title', _key: 'titleDom' }
-                        ]
-                    }
-                    // content element(s) here
+                    this.headerView
                 ]
             };
         }
         setTitle(text) {
-            this.titleDom.textContent = text;
+            this.titleView.text = text;
         }
         setContent(view) {
             var dom = this.dom;
@@ -1354,7 +1372,7 @@ define("viewlib", ["require", "exports", "utils", "I18n"], function (require, ex
                 tabIndex: 0
             });
             view.onactive = arg.onclick;
-            this.titleDom.parentElement.appendChild(view.dom);
+            this.headerView.dom.appendChild(view.dom);
         }
     }
     exports.Section = Section;
@@ -1477,6 +1495,7 @@ define("viewlib", ["require", "exports", "utils", "I18n"], function (require, ex
             super();
             this.text = '';
             this.cls = 'normal';
+            this.onclick = null;
             utils_1.utils.objectApply(this, init);
         }
         createDom() {
@@ -1790,6 +1809,7 @@ define("viewlib", ["require", "exports", "utils", "I18n"], function (require, ex
             super(dom !== null && dom !== void 0 ? dom : document.body);
             this.bgOverlay = new Overlay();
             this.dialogCount = 0;
+            this._cancelFadeout = null;
         }
         onDialogShowing(dialog) {
             var _a;
@@ -1813,6 +1833,7 @@ define("viewlib", ["require", "exports", "utils", "I18n"], function (require, ex
             this.clickable = true;
             this.active = false;
             this.right = false;
+            this.onclick = null;
             this.onClick = new utils_1.Callbacks();
             utils_1.utils.objectApply(this, init);
         }

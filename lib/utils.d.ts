@@ -65,8 +65,9 @@ export declare class Timer {
     callback: () => void;
     cancelFunc: (() => void) | undefined;
     constructor(callback: () => void);
-    timeout(time: any): void;
-    interval(time: any): void;
+    timeout(time: number): void;
+    interval(time: number): void;
+    animationFrame(): void;
     tryCancel(): void;
 }
 export declare type PtrEvent = ({
@@ -118,7 +119,7 @@ export declare class SettingItem<T> {
     type: SiType<T>;
     data: T;
     isInitial: boolean;
-    onRender: (obj: T) => void;
+    onRender: Action<T> | null;
     constructor(key: string, type: 'bool' | 'str' | 'json' | SiType<T>, initial: T);
     readFromStorage(initial: T): void;
     render(fn: (obj: T) => void, dontRaiseNow?: boolean): this;
@@ -128,7 +129,7 @@ export declare class SettingItem<T> {
     set(data: T, dontSave?: boolean): void;
     get(): T;
     toggle(): void;
-    loop(arr: any): void;
+    loop(arr: any[]): void;
     static types: {
         bool: {
             serialize: (data: any) => "true" | "false";
@@ -149,7 +150,7 @@ interface SiType<T> {
     deserialize: (str: string) => T;
 }
 export declare class Callbacks<T extends AnyFunc = Action> {
-    list: T[];
+    private list;
     invoke(...args: Parameters<T>): void;
     add(callback: T): T;
     remove(callback: T): void;

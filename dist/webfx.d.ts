@@ -94,8 +94,9 @@ declare module "utils" {
         callback: () => void;
         cancelFunc: (() => void) | undefined;
         constructor(callback: () => void);
-        timeout(time: any): void;
-        interval(time: any): void;
+        timeout(time: number): void;
+        interval(time: number): void;
+        animationFrame(): void;
         tryCancel(): void;
     }
     export type PtrEvent = ({
@@ -147,7 +148,7 @@ declare module "utils" {
         type: SiType<T>;
         data: T;
         isInitial: boolean;
-        onRender: (obj: T) => void;
+        onRender: Action<T> | null;
         constructor(key: string, type: 'bool' | 'str' | 'json' | SiType<T>, initial: T);
         readFromStorage(initial: T): void;
         render(fn: (obj: T) => void, dontRaiseNow?: boolean): this;
@@ -157,7 +158,7 @@ declare module "utils" {
         set(data: T, dontSave?: boolean): void;
         get(): T;
         toggle(): void;
-        loop(arr: any): void;
+        loop(arr: any[]): void;
         static types: {
             bool: {
                 serialize: (data: any) => "true" | "false";
@@ -178,7 +179,7 @@ declare module "utils" {
         deserialize: (str: string) => T;
     }
     export class Callbacks<T extends AnyFunc = Action> {
-        list: T[];
+        private list;
         invoke(...args: Parameters<T>): void;
         add(callback: T): T;
         remove(callback: T): void;
@@ -327,7 +328,7 @@ declare module "viewlib" {
         event: DragEvent;
     }
     export class ListView<T extends ListViewItem = ListViewItem> extends ContainerView<T> implements Iterable<T> {
-        onItemClicked: (item: T) => void;
+        onItemClicked: null | ((item: T) => void);
         /**
          * Allow user to drag an item.
          */
@@ -337,12 +338,12 @@ declare module "viewlib" {
          */
         moveByDragging: boolean;
         selectionHelper: SelectionHelper<T>;
-        onItemMoved: (item: T, from: number) => void;
+        onItemMoved: null | ((item: T, from: number) => void);
         /**
          * When dragover or drop
          */
-        onDragover: (arg: DragArg<T>) => void;
-        onContextMenu: (item: ListViewItem, ev: MouseEvent) => void;
+        onDragover: null | ((arg: DragArg<T>) => void);
+        onContextMenu: null | ((item: ListViewItem, ev: MouseEvent) => void);
         constructor(container?: BuildDomExpr);
         protected postCreateDom(): void;
         add(item: T, pos?: number): void;
@@ -385,7 +386,8 @@ declare module "viewlib" {
         onclick: Action;
     };
     export class Section extends View {
-        titleDom: HTMLSpanElement;
+        titleView: TextView;
+        headerView: View;
         constructor(arg?: {
             title?: string;
             content?: IDOM;
@@ -432,7 +434,7 @@ declare module "viewlib" {
     export class MenuItem extends ListViewItem {
         text: string;
         cls: 'normal' | 'dangerous';
-        onclick: Action;
+        onclick: Action | null;
         constructor(init: Partial<MenuItem>);
         createDom(): BuildDomExpr;
         postCreateDom(): void;
@@ -510,7 +512,7 @@ declare module "viewlib" {
     export class DialogParent extends View {
         bgOverlay: Overlay;
         dialogCount: number;
-        _cancelFadeout: Action;
+        _cancelFadeout: Action | null;
         constructor(dom?: BuildDomExpr);
         onDialogShowing(dialog: Dialog): void;
         onDialogClosing(dialog: Dialog): void;
@@ -520,7 +522,7 @@ declare module "viewlib" {
         clickable: boolean;
         active: boolean;
         right: boolean;
-        onclick: Action;
+        onclick: Action | null;
         onClick: Callbacks<Action<void>>;
         constructor(init?: Partial<TabBtn>);
         createDom(): BuildDomExpr;

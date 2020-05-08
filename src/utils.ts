@@ -289,15 +289,20 @@ export class Timer {
         this.callback = callback;
         this.cancelFunc = undefined;
     }
-    timeout(time) {
+    timeout(time: number) {
         this.tryCancel();
         var handle = setTimeout(this.callback, time);
         this.cancelFunc = () => window.clearTimeout(handle);
     }
-    interval(time) {
+    interval(time: number) {
         this.tryCancel();
         var handle = setInterval(this.callback, time);
         this.cancelFunc = () => window.clearInterval(handle);
+    }
+    animationFrame() {
+        this.tryCancel();
+        var handle = requestAnimationFrame(this.callback);
+        this.cancelFunc = () => cancelAnimationFrame(handle);
     }
     tryCancel() {
         if (this.cancelFunc) {
@@ -483,7 +488,7 @@ export class SettingItem<T> {
     type: SiType<T>;
     data: T;
     isInitial: boolean;
-    onRender: (obj: T) => void;
+    onRender: Action<T> | null = null;
     constructor(key: string, type: 'bool' | 'str' | 'json' | SiType<T>, initial: T) {
         this.key = key;
         type = this.type = typeof type === 'string' ? SettingItem.types[type] : type;
@@ -497,12 +502,12 @@ export class SettingItem<T> {
     }
     render(fn: (obj: T) => void, dontRaiseNow?: boolean) {
         if (!dontRaiseNow) fn(this.data);
-        var oldFn = this.onRender;
-        var newFn = fn;
+        const oldFn = this.onRender;
+        const newFn = fn;
         if (oldFn) fn = function (x) { oldFn(x); newFn(x); };
         this.onRender = fn;
         return this;
-    };
+    }
     bindToBtn(btn: HTMLElement, prefix: string[]) {
         if (this.type as any !== SettingItem.types.bool) throw new Error('only for bool type');
         var span = document.createElement('span');
@@ -515,7 +520,7 @@ export class SettingItem<T> {
         var thiz = this;
         btn.addEventListener('click', function () { thiz.toggle(); });
         return this;
-    };
+    }
     remove() {
         localStorage.removeItem(this.key);
     }
@@ -528,20 +533,20 @@ export class SettingItem<T> {
         this.isInitial = false;
         this.onRender && this.onRender(data);
         if (!dontSave && this.key) this.save();
-    };
+    }
     get() {
         return this.data;
-    };
+    }
     toggle() {
         if (this.type as any !== SettingItem.types.bool) throw new Error('only for bool type');
         this.set((!(this.data as any)) as any);
-    };
-    loop(arr) {
+    }
+    loop(arr: any[]) {
         var curData = this.data;
         var oldIndex = arr.findIndex(function (x) { return x === curData; });
         var newData = arr[(oldIndex + 1) % arr.length];
         this.set(newData);
-    };
+    }
 
     static types = {
         bool: {
@@ -565,16 +570,19 @@ interface SiType<T> {
 }
 
 export class Callbacks<T extends AnyFunc = Action> {
-    list = [] as T[];
+    private list: T[] | null = null;
     invoke(...args: Parameters<T>) {
-        this.list.forEach((x) => x.apply(this, args));
+        if (this.list)
+            this.list.forEach((x) => x.apply(this, args));
     }
     add(callback: T) {
+        if (!this.list) this.list = [];
         this.list.push(callback);
         return callback;
     }
     remove(callback: T) {
-        this.list.remove(callback);
+        if (this.list)
+            this.list.remove(callback);
     }
 }
 
@@ -591,7 +599,6 @@ export class Lazy<T> {
         return this._value!;
     }
     constructor(func: Func<T>) {
-        if (typeof func != 'function') throw new Error('func is not a function');
         this._func = func;
         this._value = undefined;
     }

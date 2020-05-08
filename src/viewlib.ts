@@ -197,7 +197,7 @@ export abstract class ListViewItem extends View implements ISelectable {
     onDragover: ListView['onDragover'];
     onContextMenu: ListView['onContextMenu'];
 
-    dragging?: boolean;
+    dragging?: boolean = undefined;
 
     private _selected: boolean = false;
     public get selected(): boolean { return this._selected; }
@@ -365,7 +365,7 @@ interface DragArg<T> {
 
 export class ListView<T extends ListViewItem = ListViewItem> extends ContainerView<T> implements Iterable<T> {
     // private items: Array<T> = [];
-    onItemClicked: (item: T) => void;
+    onItemClicked: null | ((item: T) => void) = null;
     /**
      * Allow user to drag an item.
      */
@@ -377,12 +377,12 @@ export class ListView<T extends ListViewItem = ListViewItem> extends ContainerVi
 
     selectionHelper = new SelectionHelper<T>();
 
-    onItemMoved: (item: T, from: number) => void;
+    onItemMoved: null | ((item: T, from: number) => void) = null;
     /** 
      * When dragover or drop
      */
-    onDragover: (arg: DragArg<T>) => void;
-    onContextMenu: (item: ListViewItem, ev: MouseEvent) => void;
+    onDragover: null | ((arg: DragArg<T>) => void) = null;
+    onContextMenu: null | ((item: ListViewItem, ev: MouseEvent) => void) = null;
     constructor(container?: BuildDomExpr) {
         super(container);
         this.selectionHelper.itemProvider = this.get.bind(this);
@@ -404,7 +404,7 @@ export class ListView<T extends ListViewItem = ListViewItem> extends ContainerVi
         item = this._ensureItem(item);
         this.remove(item, true);
         this.add(item, newpos);
-        this.onItemMoved(item, item.position!);
+        this.onItemMoved?.(item, item.position!);
     }
     /** Remove all items */
     removeAll() {
@@ -443,7 +443,7 @@ export class SelectionHelper<TItem extends ISelectable> {
 
     ctrlForceSelect = false;
 
-    selectedItems = [] as TItem[];
+    selectedItems: TItem[] = [];
     onSelectedItemsChanged = new Callbacks<(action: 'add' | 'remove', item: TItem) => void>();
     get count() { return this.selectedItems.length; }
 
@@ -502,7 +502,13 @@ export class ItemActiveHelper<T extends View> {
 type SectionActionOptions = { text: string, onclick: Action; };
 
 export class Section extends View {
-    titleDom: HTMLSpanElement;
+    titleView = new TextView({ tag: 'span.section-title' });
+    headerView = new View({
+        tag: 'div.section-header',
+        child: [
+            this.titleView
+        ]
+    });
     constructor(arg?: { title?: string, content?: IDOM, actions?: SectionActionOptions[]; }) {
         super();
         this.ensureDom();
@@ -517,18 +523,12 @@ export class Section extends View {
             _ctx: this,
             tag: 'div.section',
             child: [
-                {
-                    tag: 'div.section-header',
-                    child: [
-                        { tag: 'span.section-title', _key: 'titleDom' }
-                    ]
-                }
-                // content element(s) here
+                this.headerView
             ]
         };
     }
     setTitle(text: string) {
-        this.titleDom.textContent = text;
+        this.titleView.text = text;
     }
     setContent(view: IDOM) {
         var dom = this.dom;
@@ -543,7 +543,7 @@ export class Section extends View {
             tabIndex: 0
         });
         view.onactive = arg.onclick;
-        this.titleDom.parentElement!.appendChild(view.dom);
+        this.headerView.dom.appendChild(view.dom);
     }
 }
 
@@ -662,7 +662,7 @@ export class EditableHelper {
 export class MenuItem extends ListViewItem {
     text: string = '';
     cls: 'normal' | 'dangerous' = 'normal';
-    onclick: Action;
+    onclick: Action | null = null;
     constructor(init: Partial<MenuItem>) {
         super();
         utils.objectApply(this, init);
@@ -972,7 +972,7 @@ export class Dialog extends View {
 export class DialogParent extends View {
     bgOverlay = new Overlay();
     dialogCount = 0;
-    _cancelFadeout: Action;
+    _cancelFadeout: Action | null = null;
 
     constructor(dom?: BuildDomExpr) {
         super(dom ?? document.body);
@@ -996,7 +996,7 @@ export class TabBtn extends View {
     clickable = true;
     active = false;
     right = false;
-    onclick: Action;
+    onclick: Action | null = null;
     onClick = new Callbacks<Action>();
     constructor(init?: Partial<TabBtn>) {
         super();

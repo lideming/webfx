@@ -91,7 +91,7 @@ interface DragArg<T> {
     event: DragEvent;
 }
 export declare class ListView<T extends ListViewItem = ListViewItem> extends ContainerView<T> implements Iterable<T> {
-    onItemClicked: (item: T) => void;
+    onItemClicked: null | ((item: T) => void);
     /**
      * Allow user to drag an item.
      */
@@ -101,12 +101,12 @@ export declare class ListView<T extends ListViewItem = ListViewItem> extends Con
      */
     moveByDragging: boolean;
     selectionHelper: SelectionHelper<T>;
-    onItemMoved: (item: T, from: number) => void;
+    onItemMoved: null | ((item: T, from: number) => void);
     /**
      * When dragover or drop
      */
-    onDragover: (arg: DragArg<T>) => void;
-    onContextMenu: (item: ListViewItem, ev: MouseEvent) => void;
+    onDragover: null | ((arg: DragArg<T>) => void);
+    onContextMenu: null | ((item: ListViewItem, ev: MouseEvent) => void);
     constructor(container?: BuildDomExpr);
     protected postCreateDom(): void;
     add(item: T, pos?: number): void;
@@ -149,7 +149,8 @@ declare type SectionActionOptions = {
     onclick: Action;
 };
 export declare class Section extends View {
-    titleDom: HTMLSpanElement;
+    titleView: TextView;
+    headerView: View;
     constructor(arg?: {
         title?: string;
         content?: IDOM;
@@ -196,7 +197,7 @@ export declare class EditableHelper {
 export declare class MenuItem extends ListViewItem {
     text: string;
     cls: 'normal' | 'dangerous';
-    onclick: Action;
+    onclick: Action | null;
     constructor(init: Partial<MenuItem>);
     createDom(): BuildDomExpr;
     postCreateDom(): void;
@@ -274,7 +275,7 @@ export declare class Dialog extends View {
 export declare class DialogParent extends View {
     bgOverlay: Overlay;
     dialogCount: number;
-    _cancelFadeout: Action;
+    _cancelFadeout: Action | null;
     constructor(dom?: BuildDomExpr);
     onDialogShowing(dialog: Dialog): void;
     onDialogClosing(dialog: Dialog): void;
@@ -284,7 +285,7 @@ export declare class TabBtn extends View {
     clickable: boolean;
     active: boolean;
     right: boolean;
-    onclick: Action;
+    onclick: Action | null;
     onClick: Callbacks<Action<void>>;
     constructor(init?: Partial<TabBtn>);
     createDom(): BuildDomExpr;

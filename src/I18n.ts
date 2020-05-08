@@ -106,19 +106,27 @@ export class I18n {
 }
 
 export function createStringBuilder(i18n: I18n) {
+    var formatCache = new WeakMap<TemplateStringsArray, string>();
+
     return function (literals: TemplateStringsArray, ...placeholders: any[]) {
         if (placeholders.length === 0) {
             return i18n.get(literals[0]);
         }
-        // Generate format string from template string:
-        var formatString = '';
-        for (var i = 0; i < literals.length; i++) {
-            var lit = literals[i];
-            formatString += lit;
-            if (i < placeholders.length) {
-                formatString += '{' + i + '}';
+
+        // Generate format string from template string if it's not cached:
+        let formatString = formatCache.get(literals);
+        if (formatString === undefined) {
+            formatString = '';
+            for (let i = 0; i < literals.length; i++) {
+                const lit = literals[i];
+                formatString += lit;
+                if (i < placeholders.length) {
+                    formatString += '{' + i + '}';
+                }
             }
+            formatCache.set(literals, formatString);
         }
+
         var r = i18n.get(formatString);
         for (var i = 0; i < placeholders.length; i++) {
             r = r.replace('{' + i + '}', placeholders[i]);
