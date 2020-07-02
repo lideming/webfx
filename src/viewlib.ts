@@ -311,7 +311,7 @@ export abstract class ListViewItem extends View implements ISelectable {
                         for (const it of items) {
                             if (it !== this) {
                                 if (newpos > it.position!) newpos--;
-                                this.listview.move(it, newpos);
+                                this.listview.move(it as this, newpos);
                                 newpos++;
                             }
                         }
@@ -451,7 +451,7 @@ export class SelectionHelper<TItem extends ISelectable> {
     lastToggledItem: TItem | null = null;
 
     /** Returns true if it's handled by the helper. */
-    handleItemClicked(item: TItem, ev: MouseEvent): boolean {
+    handleItemClicked(item: TItem, ev: MouseEvent | KeyboardEvent): boolean {
         if (!this.enabled) {
             if (!this.ctrlForceSelect || !ev.ctrlKey) return false;
             this.enabled = true;
