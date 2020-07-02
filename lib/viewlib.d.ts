@@ -55,7 +55,7 @@ export declare class ContainerView<T extends View> extends View {
 /** DragManager is used to help exchange information between views */
 export declare var dragManager: {
     /** The item being dragged */
-    _currentItem: any;
+    _currentItem: any | null;
     _currentArray: any[] | null;
     readonly currentItem: any;
     readonly currentArray: any[] | null;
@@ -67,7 +67,7 @@ export declare var dragManager: {
 };
 export declare abstract class ListViewItem extends View implements ISelectable {
     get listview(): ListView<this>;
-    get selectionHelper(): any;
+    get selectionHelper(): SelectionHelper<this>;
     get dragData(): string | null;
     onDragover: ListView['onDragover'];
     onContextMenu: ListView['onContextMenu'];
@@ -130,12 +130,12 @@ export declare class SelectionHelper<TItem extends ISelectable> {
     itemProvider: ((pos: number) => TItem) | null;
     ctrlForceSelect: boolean;
     selectedItems: TItem[];
-    onSelectedItemsChanged: Callbacks<(action: "add" | "remove", item: TItem) => void>;
+    onSelectedItemsChanged: Callbacks<(action: 'add' | 'remove', item: TItem) => void>;
     get count(): number;
     /** For shift-click */
     lastToggledItem: TItem | null;
     /** Returns true if it's handled by the helper. */
-    handleItemClicked(item: TItem, ev: MouseEvent): boolean;
+    handleItemClicked(item: TItem, ev: MouseEvent | KeyboardEvent): boolean;
     toggleItemSelection(item: TItem, force?: boolean): void;
 }
 export declare class ItemActiveHelper<T extends View> {

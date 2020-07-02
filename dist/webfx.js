@@ -7,10 +7,21 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __exportStar = (this && this.__exportStar) || function(m, exports) {
+    for (var p in m) if (p !== "default" && !exports.hasOwnProperty(p)) __createBinding(exports, m, p);
+};
 // file: I18n.ts
 define("I18n", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.I = exports.i18n = exports.createStringBuilder = exports.I18n = void 0;
     /** Internationalization (aka i18n) helper class */
     class I18n {
         constructor() {
@@ -146,8 +157,9 @@ define("I18n", ["require", "exports"], function (require, exports) {
 define("utils", ["require", "exports", "I18n"], function (require, exports, I18n_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.i18n = I18n_1.i18n;
-    exports.I = I18n_1.I;
+    exports.TextCompositionWatcher = exports.EventRegistrations = exports.DataUpdatingHelper = exports.CancelToken = exports.Semaphore = exports.Lazy = exports.Callbacks = exports.SettingItem = exports.BuildDOMCtx = exports.Timer = exports.utils = exports.I = exports.i18n = void 0;
+    Object.defineProperty(exports, "i18n", { enumerable: true, get: function () { return I18n_1.i18n; } });
+    Object.defineProperty(exports, "I", { enumerable: true, get: function () { return I18n_1.I; } });
     const _object_assign = Object.assign;
     const _object_hasOwnProperty = Object.prototype.hasOwnProperty;
     /** The name "utils" tells it all. */
@@ -821,6 +833,7 @@ define("utils", ["require", "exports", "I18n"], function (require, exports, I18n
 define("viewlib", ["require", "exports", "utils", "I18n"], function (require, exports, utils_1, I18n_2) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.MessageBox = exports.Toast = exports.ToastsContainer = exports.LabeledInput = exports.ButtonView = exports.TextView = exports.InputView = exports.TabBtn = exports.DialogParent = exports.Dialog = exports.ContextMenu = exports.MenuInfoItem = exports.MenuLinkItem = exports.MenuItem = exports.EditableHelper = exports.Overlay = exports.LoadingIndicator = exports.Section = exports.ItemActiveHelper = exports.SelectionHelper = exports.ListView = exports.ListViewItem = exports.dragManager = exports.ContainerView = exports.View = void 0;
     class View {
         constructor(dom) {
             this.parentView = undefined;
@@ -1318,6 +1331,8 @@ define("viewlib", ["require", "exports", "utils", "I18n"], function (require, ex
             utils_1.utils.objectApply(this, init);
         }
         set(item) {
+            if (this.current === item)
+                return;
             if (this.current)
                 this.funcSetActive(this.current, false);
             this.current = item;
@@ -2051,11 +2066,8 @@ define("viewlib", ["require", "exports", "utils", "I18n"], function (require, ex
 });
 define("webfx", ["require", "exports", "utils", "I18n", "viewlib"], function (require, exports, utils_2, I18n_3, viewlib_1) {
     "use strict";
-    function __export(m) {
-        for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
-    }
     Object.defineProperty(exports, "__esModule", { value: true });
-    __export(utils_2);
-    __export(I18n_3);
-    __export(viewlib_1);
+    __exportStar(utils_2, exports);
+    __exportStar(I18n_3, exports);
+    __exportStar(viewlib_1, exports);
 });
