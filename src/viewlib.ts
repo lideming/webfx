@@ -493,6 +493,7 @@ export class ItemActiveHelper<T extends View> {
         utils.objectApply(this, init);
     }
     set(item: T | null) {
+        if (this.current === item) return;
         if (this.current) this.funcSetActive(this.current, false);
         this.current = item;
         if (this.current) this.funcSetActive(this.current, true);
