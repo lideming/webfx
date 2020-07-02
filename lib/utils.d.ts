@@ -3,9 +3,9 @@ export { i18n, I };
 /** The name "utils" tells it all. */
 export declare var utils: {
     strPadLeft(str: string, len: number, ch?: string): string;
-    formatTime(sec: any): string;
+    formatTime(sec: number | any): string;
     fileSizeUnits: string[];
-    formatFileSize(size: any): string;
+    formatFileSize(size: number | any): string;
     formatDateTime(date: Date): string;
     numLimit(num: number, min: number, max: number): number;
     createName(nameFunc: (num: number) => string, existsFunc: (str: string) => boolean): string;
@@ -35,11 +35,11 @@ export declare var utils: {
     /** Fade out the element and remove it */
     fadeout(element: HTMLElement): {
         readonly finished: boolean;
-        onFinished(callback: Action<void>): void;
+        onFinished(callback: Action): void;
         cancel(): void;
     };
-    listenPointerEvents(element: HTMLElement, callback: (e: PtrEvent) => void | "track"): void;
-    addEvent<K extends "waiting" | "error" | "abort" | "cancel" | "progress" | "ended" | "change" | "input" | "select" | "fullscreenchange" | "fullscreenerror" | "animationcancel" | "animationend" | "animationiteration" | "animationstart" | "auxclick" | "blur" | "canplay" | "canplaythrough" | "click" | "close" | "contextmenu" | "cuechange" | "dblclick" | "drag" | "dragend" | "dragenter" | "dragexit" | "dragleave" | "dragover" | "dragstart" | "drop" | "durationchange" | "emptied" | "focus" | "focusin" | "focusout" | "gotpointercapture" | "invalid" | "keydown" | "keypress" | "keyup" | "load" | "loadeddata" | "loadedmetadata" | "loadstart" | "lostpointercapture" | "mousedown" | "mouseenter" | "mouseleave" | "mousemove" | "mouseout" | "mouseover" | "mouseup" | "pause" | "play" | "playing" | "pointercancel" | "pointerdown" | "pointerenter" | "pointerleave" | "pointermove" | "pointerout" | "pointerover" | "pointerup" | "ratechange" | "reset" | "resize" | "scroll" | "securitypolicyviolation" | "seeked" | "seeking" | "selectionchange" | "selectstart" | "stalled" | "submit" | "suspend" | "timeupdate" | "toggle" | "touchcancel" | "touchend" | "touchmove" | "touchstart" | "transitioncancel" | "transitionend" | "transitionrun" | "transitionstart" | "volumechange" | "wheel" | "copy" | "cut" | "paste">(element: HTMLElement, event: K, handler: (ev: HTMLElementEventMap[K]) => any): {
+    listenPointerEvents(element: HTMLElement, callback: (e: PtrEvent) => void | 'track'): void;
+    addEvent<K extends "waiting" | "error" | "abort" | "cancel" | "progress" | "ended" | "input" | "select" | "fullscreenchange" | "fullscreenerror" | "animationcancel" | "animationend" | "animationiteration" | "animationstart" | "auxclick" | "blur" | "canplay" | "canplaythrough" | "change" | "click" | "close" | "contextmenu" | "cuechange" | "dblclick" | "drag" | "dragend" | "dragenter" | "dragexit" | "dragleave" | "dragover" | "dragstart" | "drop" | "durationchange" | "emptied" | "focus" | "focusin" | "focusout" | "gotpointercapture" | "invalid" | "keydown" | "keypress" | "keyup" | "load" | "loadeddata" | "loadedmetadata" | "loadstart" | "lostpointercapture" | "mousedown" | "mouseenter" | "mouseleave" | "mousemove" | "mouseout" | "mouseover" | "mouseup" | "pause" | "play" | "playing" | "pointercancel" | "pointerdown" | "pointerenter" | "pointerleave" | "pointermove" | "pointerout" | "pointerover" | "pointerup" | "ratechange" | "reset" | "resize" | "scroll" | "securitypolicyviolation" | "seeked" | "seeking" | "selectionchange" | "selectstart" | "stalled" | "submit" | "suspend" | "timeupdate" | "toggle" | "touchcancel" | "touchend" | "touchmove" | "touchstart" | "transitioncancel" | "transitionend" | "transitionrun" | "transitionstart" | "volumechange" | "wheel" | "copy" | "cut" | "paste">(element: HTMLElement, event: K, handler: (ev: HTMLElementEventMap[K]) => any): {
         remove: () => void;
     };
     arrayRemove<T_1>(array: T_1[], val: T_1): void;
@@ -47,8 +47,8 @@ export declare var utils: {
     arrayMap<T_3, TRet>(arr: Iterable<T_3>, func: (item: T_3, idx: number) => TRet): TRet[];
     arrayForeach<T_4>(arr: Iterable<T_4>, func: (item: T_4, idx: number) => void): void;
     arrayFind<T_5>(arr: Iterable<T_5>, func: (item: T_5, idx: number) => any): T_5 | null;
-    arraySum<T_6>(arr: Iterable<T_6>, func: (item: T_6) => number | null | undefined): number;
-    objectApply<T_7>(obj: Partial<T_7>, kv?: Partial<T_7> | undefined, keys?: (keyof T_7)[] | undefined): Partial<T_7>;
+    arraySum<T_7>(arr: Iterable<T_7>, func: (item: T_7) => number | null | undefined): number;
+    objectApply<T_8>(obj: Partial<T_8>, kv?: Partial<T_8> | undefined, keys?: (keyof T_8)[] | undefined): Partial<T_8>;
     mod(a: number, b: number): number;
     readBlobAsDataUrl(blob: Blob): Promise<string>;
 };
