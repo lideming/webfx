@@ -40,7 +40,9 @@ export var utils = new class Utils {
 
     formatDateTime(date: Date) {
         var now = new Date();
-        var sameday = date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth() && date.getDate() === now.getDate();
+        var sameday = date.getFullYear() === now.getFullYear()
+                    && date.getMonth() === now.getMonth()
+                    && date.getDate() === now.getDate();
         return sameday ? date.toLocaleTimeString() : date.toLocaleString();
     }
 
@@ -181,7 +183,8 @@ export var utils = new class Utils {
         });
     }
 
-    addEvent<K extends keyof HTMLElementEventMap>(element: HTMLElement, event: K, handler: (ev: HTMLElementEventMap[K]) => any) {
+    addEvent<K extends keyof HTMLElementEventMap>(element: HTMLElement, event: K,
+                                                  handler: (ev: HTMLElementEventMap[K]) => any) {
         element.addEventListener(event, handler);
         return {
             remove: () => element.removeEventListener(event, handler)
