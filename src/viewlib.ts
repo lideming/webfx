@@ -183,6 +183,7 @@ export var dragManager = new class DragManager {
     }
     end() {
         this._currentItem = null;
+        this._currentArray = null;
         console.log('drag end');
         this.onDragEnd.invoke();
     }

@@ -194,7 +194,9 @@ define("utils", ["require", "exports", "I18n"], function (require, exports, I18n
         }
         formatDateTime(date) {
             var now = new Date();
-            var sameday = date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth() && date.getDate() === now.getDate();
+            var sameday = date.getFullYear() === now.getFullYear()
+                && date.getMonth() === now.getMonth()
+                && date.getDate() === now.getDate();
             return sameday ? date.toLocaleTimeString() : date.toLocaleString();
         }
         numLimit(num, min, max) {
@@ -1013,6 +1015,7 @@ define("viewlib", ["require", "exports", "utils", "I18n"], function (require, ex
         }
         end() {
             this._currentItem = null;
+            this._currentArray = null;
             console.log('drag end');
             this.onDragEnd.invoke();
         }
