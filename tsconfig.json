@@ -2,7 +2,7 @@
     "files": ["src/webfx.ts"],
     "compilerOptions": {
         "declaration": true,
-        "module": "CommonJS",
+        "module": "ES2015",
         "target": "ES2015",
         "jsx": "preserve",
         "lib": ["dom", "es2015"],

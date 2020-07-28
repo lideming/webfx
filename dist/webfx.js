@@ -1,27 +1,10 @@
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __exportStar = (this && this.__exportStar) || function(m, exports) {
-    for (var p in m) if (p !== "default" && !exports.hasOwnProperty(p)) __createBinding(exports, m, p);
-};
-// file: I18n.ts
-define("I18n", ["require", "exports"], function (require, exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.I = exports.i18n = exports.createStringBuilder = exports.I18n = void 0;
+(function (global, factory) {
+    typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
+    typeof define === 'function' && define.amd ? define(['exports'], factory) :
+    (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.webfx = {}));
+}(this, (function (exports) { 'use strict';
+
+    // file: I18n.ts
     /** Internationalization (aka i18n) helper class */
     class I18n {
         constructor() {
@@ -122,7 +105,6 @@ define("I18n", ["require", "exports"], function (require, exports) {
             return cur || langs[0];
         }
     }
-    exports.I18n = I18n;
     function createStringBuilder(i18n) {
         var formatCache = new WeakMap();
         return function (literals, ...placeholders) {
@@ -149,21 +131,23 @@ define("I18n", ["require", "exports"], function (require, exports) {
             return r;
         };
     }
-    exports.createStringBuilder = createStringBuilder;
-    exports.i18n = new I18n();
-    exports.I = createStringBuilder(exports.i18n);
-});
-// file: utils.ts
-define("utils", ["require", "exports", "I18n"], function (require, exports, I18n_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.TextCompositionWatcher = exports.EventRegistrations = exports.DataUpdatingHelper = exports.CancelToken = exports.Semaphore = exports.Lazy = exports.Callbacks = exports.SettingItem = exports.BuildDOMCtx = exports.Timer = exports.utils = exports.I = exports.i18n = void 0;
-    Object.defineProperty(exports, "i18n", { enumerable: true, get: function () { return I18n_1.i18n; } });
-    Object.defineProperty(exports, "I", { enumerable: true, get: function () { return I18n_1.I; } });
+    var i18n = new I18n();
+    const I = createStringBuilder(i18n);
+
+    // file: utils.ts
+    var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+        function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+        return new (P || (P = Promise))(function (resolve, reject) {
+            function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+            function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+            function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+            step((generator = generator.apply(thisArg, _arguments || [])).next());
+        });
+    };
     const _object_assign = Object.assign;
     const _object_hasOwnProperty = Object.prototype.hasOwnProperty;
     /** The name "utils" tells it all. */
-    exports.utils = new class Utils {
+    var utils = new class Utils {
         constructor() {
             // Time & formatting utils:
             this.fileSizeUnits = ['B', 'KB', 'MB', 'GB'];
@@ -411,7 +395,7 @@ define("utils", ["require", "exports", "I18n"], function (require, exports, I18n
         }
     };
     Array.prototype.remove = function (item) {
-        exports.utils.arrayRemove(this, item);
+        utils.arrayRemove(this, item);
     };
     class Timer {
         constructor(callback) {
@@ -440,8 +424,7 @@ define("utils", ["require", "exports", "I18n"], function (require, exports, I18n
             }
         }
     }
-    exports.Timer = Timer;
-    exports.utils.Timer = Timer;
+    utils.Timer = Timer;
     class BuildDOMCtx {
         constructor(dict) {
             this.dict = dict !== null && dict !== void 0 ? dict : {};
@@ -494,8 +477,7 @@ define("utils", ["require", "exports", "I18n"], function (require, exports, I18n
             }
         }
     }
-    exports.BuildDOMCtx = BuildDOMCtx;
-    exports.utils.buildDOM = (() => {
+    utils.buildDOM = (() => {
         var createElementFromTag = function (tag) {
             var reg = /[#\.^]?[\w\-]+/y;
             var match;
@@ -563,9 +545,7 @@ define("utils", ["require", "exports", "I18n"], function (require, exports, I18n
                     else if (key === 'update' && typeof val === 'function') {
                         ctx.addUpdateAction(['update', node, val]);
                     }
-                    else if (key === 'init') {
-                        // no-op
-                    }
+                    else if (key === 'init') ;
                     else {
                         node[key] = val;
                     }
@@ -647,7 +627,6 @@ define("utils", ["require", "exports", "I18n"], function (require, exports, I18n
             this.set(newData);
         }
     }
-    exports.SettingItem = SettingItem;
     SettingItem.types = {
         bool: {
             serialize: function (data) { return data ? 'true' : 'false'; },
@@ -681,7 +660,6 @@ define("utils", ["require", "exports", "I18n"], function (require, exports, I18n
                 this.list.remove(callback);
         }
     }
-    exports.Callbacks = Callbacks;
     class Lazy {
         constructor(func) {
             this._func = func;
@@ -697,13 +675,12 @@ define("utils", ["require", "exports", "I18n"], function (require, exports, I18n
             return this._value;
         }
     }
-    exports.Lazy = Lazy;
     class Semaphore {
         constructor(init) {
             this.queue = new Array();
             this.maxCount = 1;
             this.runningCount = 0;
-            exports.utils.objectApply(this, init);
+            utils.objectApply(this, init);
         }
         enter() {
             if (this.runningCount === this.maxCount) {
@@ -742,7 +719,6 @@ define("utils", ["require", "exports", "I18n"], function (require, exports, I18n
             });
         }
     }
-    exports.Semaphore = Semaphore;
     /** Just like CancellationToken[Source] on .NET */
     class CancelToken {
         constructor() {
@@ -760,7 +736,6 @@ define("utils", ["require", "exports", "I18n"], function (require, exports, I18n
                 throw new Error("operation cancelled.");
         }
     }
-    exports.CancelToken = CancelToken;
     class DataUpdatingHelper {
         update(newData) {
             const oldData = this.items;
@@ -799,7 +774,6 @@ define("utils", ["require", "exports", "I18n"], function (require, exports, I18n
         updateItem(old, data) { }
         removeItem(obj) { }
     }
-    exports.DataUpdatingHelper = DataUpdatingHelper;
     class EventRegistrations {
         constructor() {
             this.list = [];
@@ -816,7 +790,6 @@ define("utils", ["require", "exports", "I18n"], function (require, exports, I18n
             }
         }
     }
-    exports.EventRegistrations = EventRegistrations;
     class TextCompositionWatcher {
         constructor(dom) {
             this.isCompositing = false;
@@ -829,18 +802,22 @@ define("utils", ["require", "exports", "I18n"], function (require, exports, I18n
             });
         }
     }
-    exports.TextCompositionWatcher = TextCompositionWatcher;
-});
-// file: viewlib.ts
-define("viewlib", ["require", "exports", "utils", "I18n"], function (require, exports, utils_1, I18n_2) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.MessageBox = exports.Toast = exports.ToastsContainer = exports.LabeledInput = exports.ButtonView = exports.TextView = exports.InputView = exports.TabBtn = exports.DialogParent = exports.Dialog = exports.ContextMenu = exports.MenuInfoItem = exports.MenuLinkItem = exports.MenuItem = exports.EditableHelper = exports.Overlay = exports.LoadingIndicator = exports.Section = exports.ItemActiveHelper = exports.SelectionHelper = exports.ListView = exports.ListViewItem = exports.dragManager = exports.ContainerView = exports.View = void 0;
+
+    // file: viewlib.ts
+    var __awaiter$1 = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+        function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+        return new (P || (P = Promise))(function (resolve, reject) {
+            function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+            function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+            function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+            step((generator = generator.apply(thisArg, _arguments || [])).next());
+        });
+    };
     class View {
         constructor(dom) {
             this.parentView = undefined;
             this._position = undefined;
-            this.domctx = new utils_1.BuildDOMCtx();
+            this.domctx = new BuildDOMCtx();
             this._dom = undefined;
             this._onactive = undefined;
             this._onActiveCbs = undefined;
@@ -863,7 +840,7 @@ define("viewlib", ["require", "exports", "utils", "I18n"], function (require, ex
             }
         }
         domExprCreated(r) {
-            this._dom = utils_1.utils.buildDOM(r, this.domctx);
+            this._dom = utils.buildDOM(r, this.domctx);
             this.postCreateDom();
             this.updateDom();
         }
@@ -879,11 +856,11 @@ define("viewlib", ["require", "exports", "utils", "I18n"], function (require, ex
         }
         /** Assign key-values and call `updateDom()` */
         updateWith(kv) {
-            utils_1.utils.objectApply(this, kv);
+            utils.objectApply(this, kv);
             this.updateDom();
         }
         toggleClass(clsName, force) {
-            utils_1.utils.toggleClass(this.dom, clsName, force);
+            utils.toggleClass(this.dom, clsName, force);
         }
         appendView(view) { return this.dom.appendView(view); }
         getDOM() { return this.dom; }
@@ -917,7 +894,6 @@ define("viewlib", ["require", "exports", "utils", "I18n"], function (require, ex
             }
         }
     }
-    exports.View = View;
     HTMLElement.prototype.getDOM = function () { return this; };
     Node.prototype.appendView = function (view) {
         this.appendChild(view.dom);
@@ -982,19 +958,18 @@ define("viewlib", ["require", "exports", "utils", "I18n"], function (require, ex
         get(idx) {
             return this.items[idx];
         }
-        map(func) { return utils_1.utils.arrayMap(this, func); }
-        find(func) { return utils_1.utils.arrayFind(this, func); }
-        forEach(func) { return utils_1.utils.arrayForeach(this, func); }
+        map(func) { return utils.arrayMap(this, func); }
+        find(func) { return utils.arrayFind(this, func); }
+        forEach(func) { return utils.arrayForeach(this, func); }
     }
-    exports.ContainerView = ContainerView;
     /** DragManager is used to help exchange information between views */
-    exports.dragManager = new class DragManager {
+    var dragManager = new class DragManager {
         constructor() {
             /** The item being dragged */
             this._currentItem = null;
             this._currentArray = null;
-            this.onDragStart = new utils_1.Callbacks();
-            this.onDragEnd = new utils_1.Callbacks();
+            this.onDragStart = new Callbacks();
+            this.onDragEnd = new Callbacks();
         }
         get currentItem() { var _a, _b, _c; return (_c = (_a = this._currentItem) !== null && _a !== void 0 ? _a : (_b = this._currentArray) === null || _b === void 0 ? void 0 : _b[0]) !== null && _c !== void 0 ? _c : null; }
         ;
@@ -1025,7 +1000,7 @@ define("viewlib", ["require", "exports", "utils", "I18n"], function (require, ex
             super(...arguments);
             this.dragging = undefined;
             this._selected = false;
-            this.onSelectedChanged = new utils_1.Callbacks();
+            this.onSelectedChanged = new Callbacks();
             // https://stackoverflow.com/questions/7110353
             this.enterctr = 0;
             this.dragoverPlaceholder = null;
@@ -1098,13 +1073,13 @@ define("viewlib", ["require", "exports", "utils", "I18n"], function (require, ex
                 else {
                     arr = [this];
                 }
-                exports.dragManager.startArray(arr);
+                dragManager.startArray(arr);
                 ev.dataTransfer.setData('text/plain', arr.map(x => x.dragData).join('\r\n'));
                 arr.forEach(x => x.dom.style.opacity = '.5');
             });
             this.dom.addEventListener('dragend', (ev) => {
-                var arr = exports.dragManager.currentArray;
-                exports.dragManager.end();
+                var arr = dragManager.currentArray;
+                dragManager.end();
                 ev.preventDefault();
                 arr.forEach(x => x.dom.style.opacity = '');
             });
@@ -1123,8 +1098,8 @@ define("viewlib", ["require", "exports", "utils", "I18n"], function (require, ex
         }
         dragHandler(ev, type) {
             var _a, _b, _c, _d, _e, _f, _g, _h;
-            const item = exports.dragManager.currentItem;
-            let items = exports.dragManager.currentArray;
+            const item = dragManager.currentItem;
+            let items = dragManager.currentArray;
             const drop = type === 'drop';
             const arg = {
                 source: item, target: this,
@@ -1190,7 +1165,7 @@ define("viewlib", ["require", "exports", "utils", "I18n"], function (require, ex
                     this.dragoverPlaceholder = null;
                     if (placeholder) {
                         this.dragoverPlaceholder = [
-                            utils_1.utils.buildDOM({ tag: 'div.dragover-placeholder' }),
+                            utils.buildDOM({ tag: 'div.dragover-placeholder' }),
                             placeholder
                         ];
                         var before = this.dom;
@@ -1203,7 +1178,6 @@ define("viewlib", ["require", "exports", "utils", "I18n"], function (require, ex
         }
         ;
     }
-    exports.ListViewItem = ListViewItem;
     class ListView extends ContainerView {
         constructor(container) {
             super(container);
@@ -1256,22 +1230,21 @@ define("viewlib", ["require", "exports", "utils", "I18n"], function (require, ex
         /** Remove all items and all DOM children */
         clear() {
             this.removeAll();
-            utils_1.utils.clearChildren(this.dom);
+            utils.clearChildren(this.dom);
         }
         ReplaceChild(dom) {
             this.clear();
             this.dom.appendChild(dom.getDOM());
         }
     }
-    exports.ListView = ListView;
     class SelectionHelper {
         constructor() {
             this._enabled = false;
-            this.onEnabledChanged = new utils_1.Callbacks();
+            this.onEnabledChanged = new Callbacks();
             this.itemProvider = null;
             this.ctrlForceSelect = false;
             this.selectedItems = [];
-            this.onSelectedItemsChanged = new utils_1.Callbacks();
+            this.onSelectedItemsChanged = new Callbacks();
             /** For shift-click */
             this.lastToggledItem = null;
         }
@@ -1326,12 +1299,11 @@ define("viewlib", ["require", "exports", "utils", "I18n"], function (require, ex
                 this.enabled = false;
         }
     }
-    exports.SelectionHelper = SelectionHelper;
     class ItemActiveHelper {
         constructor(init) {
             this.funcSetActive = (item, val) => item.toggleClass('active', val);
             this.current = null;
-            utils_1.utils.objectApply(this, init);
+            utils.objectApply(this, init);
         }
         set(item) {
             if (this.current === item)
@@ -1343,7 +1315,6 @@ define("viewlib", ["require", "exports", "utils", "I18n"], function (require, ex
                 this.funcSetActive(this.current, true);
         }
     }
-    exports.ItemActiveHelper = ItemActiveHelper;
     class Section extends View {
         constructor(arg) {
             super();
@@ -1393,14 +1364,13 @@ define("viewlib", ["require", "exports", "utils", "I18n"], function (require, ex
             this.headerView.dom.appendChild(view.dom);
         }
     }
-    exports.Section = Section;
     class LoadingIndicator extends View {
         constructor(init) {
             super();
             this._status = 'running';
             this.onclick = null;
             if (init)
-                utils_1.utils.objectApply(this, init);
+                utils.objectApply(this, init);
         }
         get state() { return this._status; }
         set state(val) {
@@ -1411,19 +1381,19 @@ define("viewlib", ["require", "exports", "utils", "I18n"], function (require, ex
         set content(val) { this._text = val; this.ensureDom(); this._textdom.textContent = val; }
         reset() {
             this.state = 'running';
-            this.content = utils_1.I `Loading`;
+            this.content = I `Loading`;
             this.onclick = null;
         }
         error(err, retry) {
             this.state = 'error';
-            this.content = utils_1.I `Oh no! Something just goes wrong:` + '\r\n' + err;
+            this.content = I `Oh no! Something just goes wrong:` + '\r\n' + err;
             if (retry) {
-                this.content += '\r\n' + utils_1.I `[Click here to retry]`;
+                this.content += '\r\n' + I `[Click here to retry]`;
             }
             this.onclick = retry;
         }
         action(func) {
-            return __awaiter(this, void 0, void 0, function* () {
+            return __awaiter$1(this, void 0, void 0, function* () {
                 try {
                     yield func();
                 }
@@ -1447,7 +1417,6 @@ define("viewlib", ["require", "exports", "utils", "I18n"], function (require, ex
             this.reset();
         }
     }
-    exports.LoadingIndicator = LoadingIndicator;
     class Overlay extends View {
         createDom() {
             return { tag: 'div.overlay' };
@@ -1461,7 +1430,6 @@ define("viewlib", ["require", "exports", "utils", "I18n"], function (require, ex
             return this;
         }
     }
-    exports.Overlay = Overlay;
     class EditableHelper {
         constructor(element) {
             this.editing = false;
@@ -1475,8 +1443,8 @@ define("viewlib", ["require", "exports", "utils", "I18n"], function (require, ex
             this.editing = true;
             var ele = this.element;
             var beforeEdit = this.beforeEdit = ele.textContent;
-            utils_1.utils.toggleClass(ele, 'editing', true);
-            var input = utils_1.utils.buildDOM({
+            utils.toggleClass(ele, 'editing', true);
+            var input = utils.buildDOM({
                 tag: 'input', type: 'text', value: beforeEdit
             });
             while (ele.firstChild)
@@ -1487,34 +1455,33 @@ define("viewlib", ["require", "exports", "utils", "I18n"], function (require, ex
             var stopEdit = () => {
                 var _a;
                 this.editing = false;
-                utils_1.utils.toggleClass(ele, 'editing', false);
+                utils.toggleClass(ele, 'editing', false);
                 events.forEach(x => x.remove());
                 input.remove();
                 (_a = this.onComplete) === null || _a === void 0 ? void 0 : _a.call(this, input.value);
                 onComplete === null || onComplete === void 0 ? void 0 : onComplete(input.value);
             };
             var events = [
-                utils_1.utils.addEvent(input, 'keydown', (evv) => {
+                utils.addEvent(input, 'keydown', (evv) => {
                     if (evv.code === 'Enter') {
                         stopEdit();
                         evv.preventDefault();
                     }
                 }),
-                utils_1.utils.addEvent(input, 'focusout', (evv) => { stopEdit(); }),
+                utils.addEvent(input, 'focusout', (evv) => { stopEdit(); }),
             ];
         }
         startEditAsync() {
             return new Promise((resolve) => this.startEdit(resolve));
         }
     }
-    exports.EditableHelper = EditableHelper;
     class MenuItem extends ListViewItem {
         constructor(init) {
             super();
             this.text = '';
             this.cls = 'normal';
             this.onclick = null;
-            utils_1.utils.objectApply(this, init);
+            utils.objectApply(this, init);
         }
         createDom() {
             return {
@@ -1543,13 +1510,12 @@ define("viewlib", ["require", "exports", "utils", "I18n"], function (require, ex
             }
         }
     }
-    exports.MenuItem = MenuItem;
     class MenuLinkItem extends MenuItem {
         constructor(init) {
             super(init);
             this.link = '';
             this.download = '';
-            utils_1.utils.objectApply(this, init);
+            utils.objectApply(this, init);
         }
         createDom() {
             var dom = super.createDom();
@@ -1563,12 +1529,11 @@ define("viewlib", ["require", "exports", "utils", "I18n"], function (require, ex
             this.dom.download = this.download;
         }
     }
-    exports.MenuLinkItem = MenuLinkItem;
     class MenuInfoItem extends MenuItem {
         constructor(init) {
             super(init);
             this.text = '';
-            utils_1.utils.objectApply(this, init);
+            utils.objectApply(this, init);
         }
         createDom() {
             return {
@@ -1580,7 +1545,6 @@ define("viewlib", ["require", "exports", "utils", "I18n"], function (require, ex
             this.dom.textContent = this.text;
         }
     }
-    exports.MenuInfoItem = MenuInfoItem;
     class ContextMenu extends ListView {
         constructor(items) {
             super({ tag: 'div.context-menu', tabIndex: 0 });
@@ -1657,24 +1621,23 @@ define("viewlib", ["require", "exports", "utils", "I18n"], function (require, ex
                 (_c = (_b = this._originalFocused) === null || _b === void 0 ? void 0 : _b['focus']) === null || _c === void 0 ? void 0 : _c.call(_b);
                 this._originalFocused = null;
                 if (this.overlay)
-                    utils_1.utils.fadeout(this.overlay.dom);
-                utils_1.utils.fadeout(this.dom);
+                    utils.fadeout(this.overlay.dom);
+                utils.fadeout(this.dom);
             }
         }
     }
-    exports.ContextMenu = ContextMenu;
     class Dialog extends View {
         constructor() {
             super();
             this.content = new ContainerView({ tag: 'div.dialog-content' });
             this.shown = false;
             this.btnTitle = new TabBtn({ active: true, clickable: false });
-            this.btnClose = new TabBtn({ text: utils_1.I `Close`, right: true });
+            this.btnClose = new TabBtn({ text: I `Close`, right: true });
             this.title = 'Dialog';
             this.allowClose = true;
             this.showCloseButton = true;
-            this.onShown = new utils_1.Callbacks();
-            this.onClose = new utils_1.Callbacks();
+            this.onShown = new Callbacks();
+            this.onClose = new Callbacks();
             this.focusTrap = new View({ tag: 'div.focustrap', tabIndex: 0 });
             this.btnClose.onClick.add(() => this.allowClose && this.close());
         }
@@ -1733,7 +1696,7 @@ define("viewlib", ["require", "exports", "utils", "I18n"], function (require, ex
             // title bar pointer event handler:
             {
                 let offset;
-                utils_1.utils.listenPointerEvents(this.domheader, (e) => {
+                utils.listenPointerEvents(this.domheader, (e) => {
                     if (e.action === 'down') {
                         if (e.ev.target !== this.domheader && e.ev.target !== this.btnTitle.dom)
                             return;
@@ -1749,8 +1712,8 @@ define("viewlib", ["require", "exports", "utils", "I18n"], function (require, ex
                     else if (e.action === 'move') {
                         e.ev.preventDefault();
                         const rect = this.overlay.dom.getBoundingClientRect();
-                        const pageX = utils_1.utils.numLimit(e.point.pageX, rect.left, rect.right);
-                        const pageY = utils_1.utils.numLimit(e.point.pageY, rect.top, rect.bottom);
+                        const pageX = utils.numLimit(e.point.pageX, rect.left, rect.right);
+                        const pageY = utils.numLimit(e.point.pageY, rect.top, rect.bottom);
                         this.setOffset(pageX - offset.x, pageY - offset.y);
                     }
                 });
@@ -1809,7 +1772,7 @@ define("viewlib", ["require", "exports", "utils", "I18n"], function (require, ex
                 return;
             this.shown = false;
             this.onClose.invoke();
-            this._cancelFadeout = utils_1.utils.fadeout(this.overlay.dom).cancel;
+            this._cancelFadeout = utils.fadeout(this.overlay.dom).cancel;
             Dialog.defaultParent.onDialogClosing(this);
         }
         waitClose() {
@@ -1821,7 +1784,6 @@ define("viewlib", ["require", "exports", "utils", "I18n"], function (require, ex
             });
         }
     }
-    exports.Dialog = Dialog;
     class DialogParent extends View {
         constructor(dom) {
             super(dom !== null && dom !== void 0 ? dom : document.body);
@@ -1839,11 +1801,10 @@ define("viewlib", ["require", "exports", "utils", "I18n"], function (require, ex
         }
         onDialogClosing(dialog) {
             if (--this.dialogCount === 0) {
-                this._cancelFadeout = utils_1.utils.fadeout(this.bgOverlay.dom).cancel;
+                this._cancelFadeout = utils.fadeout(this.bgOverlay.dom).cancel;
             }
         }
     }
-    exports.DialogParent = DialogParent;
     class TabBtn extends View {
         constructor(init) {
             super();
@@ -1852,8 +1813,8 @@ define("viewlib", ["require", "exports", "utils", "I18n"], function (require, ex
             this.active = false;
             this.right = false;
             this.onclick = null;
-            this.onClick = new utils_1.Callbacks();
-            utils_1.utils.objectApply(this, init);
+            this.onClick = new Callbacks();
+            utils.objectApply(this, init);
         }
         createDom() {
             return {
@@ -1875,14 +1836,13 @@ define("viewlib", ["require", "exports", "utils", "I18n"], function (require, ex
             this.dom.style.float = this.right ? 'right' : 'left';
         }
     }
-    exports.TabBtn = TabBtn;
     class InputView extends View {
         constructor(init) {
             super();
             this.multiline = false;
             this.type = 'text';
             this.placeholder = '';
-            utils_1.utils.objectApply(this, init);
+            utils.objectApply(this, init);
         }
         get value() { return this.dom.value; }
         set value(val) { this.dom.value = val; }
@@ -1897,18 +1857,16 @@ define("viewlib", ["require", "exports", "utils", "I18n"], function (require, ex
             }
         }
     }
-    exports.InputView = InputView;
     class TextView extends View {
         get text() { return this.dom.textContent; }
         set text(val) { this.dom.textContent = val; }
     }
-    exports.TextView = TextView;
     class ButtonView extends TextView {
         constructor(init) {
             super();
             this.disabled = false;
             this.type = 'normal';
-            utils_1.utils.objectApply(this, init);
+            utils.objectApply(this, init);
             this.updateDom();
         }
         get onclick() { return this.onactive; }
@@ -1922,14 +1880,13 @@ define("viewlib", ["require", "exports", "utils", "I18n"], function (require, ex
             this.toggleClass('btn-big', this.type === 'big');
         }
     }
-    exports.ButtonView = ButtonView;
     class LabeledInput extends View {
         constructor(init) {
             super();
             this.label = '';
             this.type = 'text';
             this.input = new InputView();
-            utils_1.utils.objectApply(this, init);
+            utils.objectApply(this, init);
         }
         get dominput() { return this.input.dom; }
         get value() { return this.dominput.value; }
@@ -1950,7 +1907,6 @@ define("viewlib", ["require", "exports", "utils", "I18n"], function (require, ex
             this.input.domCreated && this.input.updateDom();
         }
     }
-    exports.LabeledInput = LabeledInput;
     class ToastsContainer extends View {
         constructor() {
             super(...arguments);
@@ -1978,15 +1934,14 @@ define("viewlib", ["require", "exports", "utils", "I18n"], function (require, ex
             this.dom.remove();
         }
     }
-    exports.ToastsContainer = ToastsContainer;
     ToastsContainer.default = new ToastsContainer();
     class Toast extends View {
         constructor(init) {
             super();
             this.text = '';
             this.shown = false;
-            this.timer = new utils_1.Timer(() => this.close());
-            utils_1.utils.objectApply(this, init);
+            this.timer = new Timer(() => this.close());
+            utils.objectApply(this, init);
             if (!this.container)
                 this.container = ToastsContainer.default;
         }
@@ -2005,7 +1960,7 @@ define("viewlib", ["require", "exports", "utils", "I18n"], function (require, ex
             if (!this.shown)
                 return;
             this.shown = false;
-            utils_1.utils.fadeout(this.dom)
+            utils.fadeout(this.dom)
                 .onFinished(() => this.container.removeToast(this));
         }
         createDom() {
@@ -2020,7 +1975,6 @@ define("viewlib", ["require", "exports", "utils", "I18n"], function (require, ex
             return toast;
         }
     }
-    exports.Toast = Toast;
     class MessageBox extends Dialog {
         constructor() {
             super(...arguments);
@@ -2030,7 +1984,7 @@ define("viewlib", ["require", "exports", "utils", "I18n"], function (require, ex
         }
         addResultBtns(results) {
             for (const r of results) {
-                this.addBtnWithResult(new TabBtn({ text: I18n_2.i18n.get('msgbox_' + r), right: true }), r);
+                this.addBtnWithResult(new TabBtn({ text: i18n.get('msgbox_' + r), right: true }), r);
             }
             return this;
         }
@@ -2058,19 +2012,55 @@ define("viewlib", ["require", "exports", "utils", "I18n"], function (require, ex
             return this;
         }
         showAndWaitResult() {
-            return __awaiter(this, void 0, void 0, function* () {
+            return __awaiter$1(this, void 0, void 0, function* () {
                 this.show();
                 yield this.waitClose();
                 return this.result;
             });
         }
     }
+
+    exports.BuildDOMCtx = BuildDOMCtx;
+    exports.ButtonView = ButtonView;
+    exports.Callbacks = Callbacks;
+    exports.CancelToken = CancelToken;
+    exports.ContainerView = ContainerView;
+    exports.ContextMenu = ContextMenu;
+    exports.DataUpdatingHelper = DataUpdatingHelper;
+    exports.Dialog = Dialog;
+    exports.DialogParent = DialogParent;
+    exports.EditableHelper = EditableHelper;
+    exports.EventRegistrations = EventRegistrations;
+    exports.I = I;
+    exports.I18n = I18n;
+    exports.InputView = InputView;
+    exports.ItemActiveHelper = ItemActiveHelper;
+    exports.LabeledInput = LabeledInput;
+    exports.Lazy = Lazy;
+    exports.ListView = ListView;
+    exports.ListViewItem = ListViewItem;
+    exports.LoadingIndicator = LoadingIndicator;
+    exports.MenuInfoItem = MenuInfoItem;
+    exports.MenuItem = MenuItem;
+    exports.MenuLinkItem = MenuLinkItem;
     exports.MessageBox = MessageBox;
-});
-define("webfx", ["require", "exports", "utils", "I18n", "viewlib"], function (require, exports, utils_2, I18n_3, viewlib_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    __exportStar(utils_2, exports);
-    __exportStar(I18n_3, exports);
-    __exportStar(viewlib_1, exports);
-});
+    exports.Overlay = Overlay;
+    exports.Section = Section;
+    exports.SelectionHelper = SelectionHelper;
+    exports.Semaphore = Semaphore;
+    exports.SettingItem = SettingItem;
+    exports.TabBtn = TabBtn;
+    exports.TextCompositionWatcher = TextCompositionWatcher;
+    exports.TextView = TextView;
+    exports.Timer = Timer;
+    exports.Toast = Toast;
+    exports.ToastsContainer = ToastsContainer;
+    exports.View = View;
+    exports.createStringBuilder = createStringBuilder;
+    exports.dragManager = dragManager;
+    exports.i18n = i18n;
+    exports.utils = utils;
+
+    Object.defineProperty(exports, '__esModule', { value: true });
+
+})));
