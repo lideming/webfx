@@ -4,12 +4,16 @@
   "description": "",
   "main": "index.js",
   "types": "index.d.ts",
+  "browser": "dist/webfx.min.js",
   "scripts": {
-    "build": "tsc && rollup index.js --file dist/webfx.js --format umd --name webfx --context this",
+    "build": "tsc && rollup -c",
     "test": "echo \"Error: no test specified\" && exit 1",
     "prepack": "npm run build"
   },
   "author": "",
   "license": "MIT",
-  "dependencies": {}
+  "dependencies": {},
+  "devDependencies": {
+    "rollup-plugin-terser": "^6.1.0"
+  }
 }
