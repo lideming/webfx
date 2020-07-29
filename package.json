@@ -6,7 +6,8 @@
   "types": "index.d.ts",
   "scripts": {
     "build": "tsc && rollup index.js --file dist/webfx.js --format umd --name webfx",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepack": "npm run build"
   },
   "author": "",
   "license": "MIT",
