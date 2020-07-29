@@ -1,7 +1,7 @@
 // file: viewlib.ts
 
-import { BuildDomExpr, utils, Action, I, Callbacks, BuildDomNode, Timer, BuildDOMCtx, IDOM } from "./utils";
-import { i18n } from "./I18n";
+import { BuildDomExpr, utils, Action, Callbacks, BuildDomNode, Timer, BuildDOMCtx, IDOM } from "./utils";
+import { I, i18n } from "./I18n";
 
 export class View implements IDOM {
     constructor(dom?: BuildDomExpr) {

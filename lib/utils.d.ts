@@ -1,5 +1,3 @@
-import { i18n, I } from "./I18n";
-export { i18n, I };
 /** The name "utils" tells it all. */
 export declare var utils: {
     strPadLeft(str: string, len: number, ch?: string): string;
@@ -114,6 +112,7 @@ export declare class BuildDOMCtx {
     static executeAction(a: BuildDOMUpdateAction): void;
 }
 declare type BuildDOMUpdateAction = ['text', Node, Func<string>] | ['hidden', HTMLElement, Func<boolean>] | ['update', HTMLElement, Action<HTMLElement>];
+export declare const buildDOM: typeof utils['buildDOM'];
 export declare class SettingItem<T> {
     key: string;
     type: SiType<T>;
@@ -204,3 +203,4 @@ export declare class TextCompositionWatcher {
     isCompositing: boolean;
     constructor(dom: IDOM);
 }
+export {};

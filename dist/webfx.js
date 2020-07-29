@@ -4,138 +4,8 @@
     (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.webfx = {}));
 }(this, (function (exports) { 'use strict';
 
-    // file: I18n.ts
-    /** Internationalization (aka i18n) helper class */
-    class I18n {
-        constructor() {
-            this.data = {};
-            this.curLang = 'en';
-            this.missing = new Map();
-        }
-        /** Get i18n string for `key`, return `key` when not found. */
-        get(key, arg) {
-            return this.get2(key, arg) || key;
-        }
-        /** Get i18n string for `key`, return `null` when not found. */
-        get2(key, arg, lang) {
-            lang = lang || this.curLang;
-            var langObj = this.data[lang];
-            if (!langObj) {
-                console.log('i18n missing lang: ' + lang);
-                return null;
-            }
-            var r = langObj[key];
-            if (!r) {
-                if (!this.missing.has(key)) {
-                    this.missing.set(key, 1);
-                    console.log('i18n missing key: ' + key);
-                }
-                return null;
-            }
-            if (arg) {
-                for (const key in arg) {
-                    if (arg.hasOwnProperty(key)) {
-                        const val = arg[key];
-                        r = r.replace('{' + key + '}', val);
-                        // Note that it only replaces the first occurrence.
-                    }
-                }
-            }
-            return r;
-        }
-        /** Fills data with an 2darray */
-        add2dArray(array) {
-            const langObjs = [];
-            const langs = array[0];
-            for (const lang of langs) {
-                langObjs.push(this.data[lang] = this.data[lang] || {});
-            }
-            for (let i = 1; i < array.length; i++) {
-                const line = array[i];
-                const key = line[0];
-                for (let j = 0; j < line.length; j++) {
-                    const val = line[j];
-                    langObjs[j][key] = val;
-                }
-            }
-        }
-        renderElements(elements) {
-            console.log('i18n elements rendering');
-            elements.forEach(x => {
-                for (const node of x.childNodes) {
-                    if (node.nodeType === Node.TEXT_NODE) {
-                        // console.log('node', node);
-                        var r = this.get2(node.beforeI18n || node.textContent);
-                        if (r) {
-                            node.beforeI18n = node.beforeI18n || node.textContent;
-                            node.textContent = r;
-                        }
-                        else {
-                            if (node.beforeI18n) {
-                                node.textContent = node.beforeI18n;
-                            }
-                            console.log('missing key for node', node);
-                        }
-                    }
-                }
-            });
-        }
-        /**
-         * Detect the best available language using
-         * the user language preferences provided by the browser.
-         * @param langs Available languages
-         */
-        static detectLanguage(langs) {
-            var cur = null;
-            var curIdx = -1;
-            var languages = [];
-            // ['en-US'] -> ['en-US', 'en']
-            (navigator.languages || [navigator.language]).forEach(lang => {
-                languages.push(lang);
-                if (lang.indexOf('-') > 0)
-                    languages.push(lang.substr(0, lang.indexOf('-')));
-            });
-            langs.forEach((l) => {
-                var idx = languages.indexOf(l);
-                if (!cur || (idx !== -1 && idx < curIdx)) {
-                    cur = l;
-                    curIdx = idx;
-                }
-            });
-            return cur || langs[0];
-        }
-    }
-    function createStringBuilder(i18n) {
-        var formatCache = new WeakMap();
-        return function (literals, ...placeholders) {
-            if (placeholders.length === 0) {
-                return i18n.get(literals[0]);
-            }
-            // Generate format string from template string if it's not cached:
-            let formatString = formatCache.get(literals);
-            if (formatString === undefined) {
-                formatString = '';
-                for (let i = 0; i < literals.length; i++) {
-                    const lit = literals[i];
-                    formatString += lit;
-                    if (i < placeholders.length) {
-                        formatString += '{' + i + '}';
-                    }
-                }
-                formatCache.set(literals, formatString);
-            }
-            var r = i18n.get(formatString);
-            for (var i = 0; i < placeholders.length; i++) {
-                r = r.replace('{' + i + '}', placeholders[i]);
-            }
-            return r;
-        };
-    }
-    var i18n = new I18n();
-    const I = createStringBuilder(i18n);
-
     // file: utils.ts
-    var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+    var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
         function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
         return new (P || (P = Promise))(function (resolve, reject) {
             function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -477,7 +347,7 @@
             }
         }
     }
-    utils.buildDOM = (() => {
+    const buildDOM = utils.buildDOM = (() => {
         var createElementFromTag = function (tag) {
             var reg = /[#\.^]?[\w\-]+/y;
             var match;
@@ -803,8 +673,138 @@
         }
     }
 
+    // file: I18n.ts
+    /** Internationalization (aka i18n) helper class */
+    class I18n {
+        constructor() {
+            this.data = {};
+            this.curLang = 'en';
+            this.missing = new Map();
+        }
+        /** Get i18n string for `key`, return `key` when not found. */
+        get(key, arg) {
+            return this.get2(key, arg) || key;
+        }
+        /** Get i18n string for `key`, return `null` when not found. */
+        get2(key, arg, lang) {
+            lang = lang || this.curLang;
+            var langObj = this.data[lang];
+            if (!langObj) {
+                console.log('i18n missing lang: ' + lang);
+                return null;
+            }
+            var r = langObj[key];
+            if (!r) {
+                if (!this.missing.has(key)) {
+                    this.missing.set(key, 1);
+                    console.log('i18n missing key: ' + key);
+                }
+                return null;
+            }
+            if (arg) {
+                for (const key in arg) {
+                    if (arg.hasOwnProperty(key)) {
+                        const val = arg[key];
+                        r = r.replace('{' + key + '}', val);
+                        // Note that it only replaces the first occurrence.
+                    }
+                }
+            }
+            return r;
+        }
+        /** Fills data with an 2darray */
+        add2dArray(array) {
+            const langObjs = [];
+            const langs = array[0];
+            for (const lang of langs) {
+                langObjs.push(this.data[lang] = this.data[lang] || {});
+            }
+            for (let i = 1; i < array.length; i++) {
+                const line = array[i];
+                const key = line[0];
+                for (let j = 0; j < line.length; j++) {
+                    const val = line[j];
+                    langObjs[j][key] = val;
+                }
+            }
+        }
+        renderElements(elements) {
+            console.log('i18n elements rendering');
+            elements.forEach(x => {
+                for (const node of x.childNodes) {
+                    if (node.nodeType === Node.TEXT_NODE) {
+                        // console.log('node', node);
+                        var r = this.get2(node.beforeI18n || node.textContent);
+                        if (r) {
+                            node.beforeI18n = node.beforeI18n || node.textContent;
+                            node.textContent = r;
+                        }
+                        else {
+                            if (node.beforeI18n) {
+                                node.textContent = node.beforeI18n;
+                            }
+                            console.log('missing key for node', node);
+                        }
+                    }
+                }
+            });
+        }
+        /**
+         * Detect the best available language using
+         * the user language preferences provided by the browser.
+         * @param langs Available languages
+         */
+        static detectLanguage(langs) {
+            var cur = null;
+            var curIdx = -1;
+            var languages = [];
+            // ['en-US'] -> ['en-US', 'en']
+            (navigator.languages || [navigator.language]).forEach(lang => {
+                languages.push(lang);
+                if (lang.indexOf('-') > 0)
+                    languages.push(lang.substr(0, lang.indexOf('-')));
+            });
+            langs.forEach((l) => {
+                var idx = languages.indexOf(l);
+                if (!cur || (idx !== -1 && idx < curIdx)) {
+                    cur = l;
+                    curIdx = idx;
+                }
+            });
+            return cur || langs[0];
+        }
+    }
+    function createStringBuilder(i18n) {
+        var formatCache = new WeakMap();
+        return function (literals, ...placeholders) {
+            if (placeholders.length === 0) {
+                return i18n.get(literals[0]);
+            }
+            // Generate format string from template string if it's not cached:
+            let formatString = formatCache.get(literals);
+            if (formatString === undefined) {
+                formatString = '';
+                for (let i = 0; i < literals.length; i++) {
+                    const lit = literals[i];
+                    formatString += lit;
+                    if (i < placeholders.length) {
+                        formatString += '{' + i + '}';
+                    }
+                }
+                formatCache.set(literals, formatString);
+            }
+            var r = i18n.get(formatString);
+            for (var i = 0; i < placeholders.length; i++) {
+                r = r.replace('{' + i + '}', placeholders[i]);
+            }
+            return r;
+        };
+    }
+    var i18n = new I18n();
+    const I = createStringBuilder(i18n);
+
     // file: viewlib.ts
-    var __awaiter$1 = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+    var __awaiter$1 = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
         function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
         return new (P || (P = Promise))(function (resolve, reject) {
             function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -2056,6 +2056,7 @@
     exports.Toast = Toast;
     exports.ToastsContainer = ToastsContainer;
     exports.View = View;
+    exports.buildDOM = buildDOM;
     exports.createStringBuilder = createStringBuilder;
     exports.dragManager = dragManager;
     exports.i18n = i18n;

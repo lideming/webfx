@@ -5,7 +5,7 @@
   "main": "index.js",
   "types": "index.d.ts",
   "scripts": {
-    "build": "tsc && rollup index.js --file dist/webfx.js --format umd --name webfx",
+    "build": "tsc && rollup index.js --file dist/webfx.js --format umd --name webfx --context this",
     "test": "echo \"Error: no test specified\" && exit 1",
     "prepack": "npm run build"
   },

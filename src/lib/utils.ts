@@ -1,9 +1,5 @@
 // file: utils.ts
 
-import { i18n, I } from "./I18n";
-
-export { i18n, I };
-
 const _object_assign = Object.assign;
 const _object_hasOwnProperty = Object.prototype.hasOwnProperty;
 
@@ -415,7 +411,7 @@ type BuildDOMUpdateAction =
     | ['hidden', HTMLElement, Func<boolean>]
     | ['update', HTMLElement, Action<HTMLElement>];
 
-utils.buildDOM = (() => {
+export const buildDOM: typeof utils['buildDOM'] = utils.buildDOM = (() => {
     var createElementFromTag = function (tag: BuildDomTag): HTMLElement {
         var reg = /[#\.^]?[\w\-]+/y;
         var match;
