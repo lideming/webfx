@@ -2,10 +2,10 @@
   "name": "@yuuza/webfx",
   "version": "1.1.0",
   "description": "",
-  "main": "lib/webfx.js",
-  "types": "lib/webfx.d.ts",
+  "main": "index.js",
+  "types": "index.d.ts",
   "scripts": {
-    "build": "tsc && rollup lib/webfx.js --file dist/webfx.js --format umd --name webfx",
+    "build": "tsc && rollup index.js --file dist/webfx.js --format umd --name webfx",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",

@@ -1,5 +1,5 @@
 {
-    "files": ["src/webfx.ts"],
+    "files": ["src/index.ts"],
     "compilerOptions": {
         "declaration": true,
         "module": "ES2015",
@@ -9,7 +9,7 @@
         "sourceMap": false,
         "downlevelIteration": true,
         "strictNullChecks": true,
-        "outDir": "lib"
+        "outDir": "."
     },
     "exclude": [
         "node_modules",
