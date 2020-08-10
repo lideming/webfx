@@ -14,6 +14,7 @@
   "license": "MIT",
   "dependencies": {},
   "devDependencies": {
+    "rollup-plugin-sourcemaps": "^0.6.2",
     "rollup-plugin-terser": "^6.1.0"
   }
 }

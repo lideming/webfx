@@ -6,7 +6,7 @@
         "target": "ES2015",
         "jsx": "preserve",
         "lib": ["dom", "es2015"],
-        "sourceMap": false,
+        "sourceMap": true,
         "downlevelIteration": true,
         "strictNullChecks": true,
         "outDir": "."
