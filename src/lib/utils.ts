@@ -571,12 +571,11 @@ interface SiType<T> {
 export class Callbacks<T extends AnyFunc = Action> {
     private list: T[] | null = null;
     invoke(...args: Parameters<T>) {
-        if (this.list)
-            this.list.forEach((x) => x.apply(this, args));
+        this.list?.forEach((x) => x.apply(this, args));
     }
     add(callback: T) {
-        if (!this.list) this.list = [];
-        this.list.push(callback);
+        if (!this.list) this.list = [callback];
+        else this.list.push(callback);
         return callback;
     }
     remove(callback: T) {

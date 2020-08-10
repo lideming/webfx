@@ -516,13 +516,14 @@
             this.list = null;
         }
         invoke(...args) {
-            if (this.list)
-                this.list.forEach((x) => x.apply(this, args));
+            var _a;
+            (_a = this.list) === null || _a === void 0 ? void 0 : _a.forEach((x) => x.apply(this, args));
         }
         add(callback) {
             if (!this.list)
-                this.list = [];
-            this.list.push(callback);
+                this.list = [callback];
+            else
+                this.list.push(callback);
             return callback;
         }
         remove(callback) {
@@ -1552,19 +1553,34 @@
             this.useOverlay = true;
             this._visible = false;
             this.overlay = null;
-            this._onclose = null;
+            this.onClose = new Callbacks();
             this._originalFocused = null;
             items === null || items === void 0 ? void 0 : items.forEach(x => this.add(x));
         }
         get visible() { return this._visible; }
         ;
+        postCreateDom() {
+            super.postCreateDom();
+            this.dom.addEventListener('focusout', (e) => {
+                !this.dom.contains(e.relatedTarget) && this.close();
+            });
+            this.dom.addEventListener('keydown', (e) => {
+                if (e.code === 'Escape') {
+                    e.preventDefault();
+                    this.close();
+                }
+            });
+        }
         show(arg) {
+            if (this._visible) {
+                console.warn("[ContextMenu] show() called when it's already visible.");
+                return;
+            }
             if ('ev' in arg)
                 arg = {
                     x: arg.ev.pageX,
                     y: arg.ev.pageY
                 };
-            this.close();
             this._visible = true;
             if (this.useOverlay) {
                 if (!this.overlay) {
@@ -1585,21 +1601,6 @@
             }
             this._originalFocused = document.activeElement;
             this.dom.focus();
-            var onfocusout = (e) => {
-                !this.dom.contains(e.relatedTarget) && this.close();
-            };
-            var onkeydown = (e) => {
-                if (e.code === 'Escape') {
-                    e.preventDefault();
-                    this.close();
-                }
-            };
-            this.dom.addEventListener('focusout', onfocusout);
-            this.dom.addEventListener('keydown', onkeydown);
-            this._onclose = () => {
-                this.dom.removeEventListener('focusout', onfocusout);
-                this.dom.removeEventListener('keydown', onkeydown);
-            };
             var width = this.dom.offsetWidth, height = this.dom.offsetHeight;
             if (arg.x + width > document.body.offsetWidth)
                 arg.x -= width;
@@ -1613,12 +1614,11 @@
             this.dom.style.top = arg.y + 'px';
         }
         close() {
-            var _a, _b, _c;
+            var _a, _b;
             if (this._visible) {
                 this._visible = false;
-                (_a = this._onclose) === null || _a === void 0 ? void 0 : _a.call(this);
-                this._onclose = null;
-                (_c = (_b = this._originalFocused) === null || _b === void 0 ? void 0 : _b['focus']) === null || _c === void 0 ? void 0 : _c.call(_b);
+                this.onClose.invoke();
+                (_b = (_a = this._originalFocused) === null || _a === void 0 ? void 0 : _a['focus']) === null || _b === void 0 ? void 0 : _b.call(_a);
                 this._originalFocused = null;
                 if (this.overlay)
                     utils.fadeout(this.overlay.dom);

@@ -223,9 +223,10 @@ export declare class ContextMenu extends ListView {
     private _visible;
     get visible(): boolean;
     overlay: Overlay | null;
-    private _onclose;
+    onClose: Callbacks<Action<void>>;
     private _originalFocused;
     constructor(items?: MenuItem[]);
+    postCreateDom(): void;
     show(arg: {
         x: number;
         y: number;
