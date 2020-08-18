@@ -237,8 +237,25 @@ export abstract class ListViewItem extends View implements ISelectable {
                 }
                 ev.preventDefault();
             } else if (this.listview && (ev.code === 'ArrowUp' || ev.code === 'ArrowDown')) {
-                var offset = ev.code === 'ArrowUp' ? -1 : 1;
-                var item = this.listview.get(this.position! + offset);
+                const direction = ev.code === 'ArrowUp' ? -1 : 1;
+                const item = this.listview.get(this.position! + direction);
+                if (item) {
+                    item.dom.focus();
+                    ev.preventDefault();
+                }
+            } else if (this.listview && (ev.code === 'PageUp' || ev.code === 'PageDown')) {
+                const dir = ev.code === 'PageUp' ? -1 : 1;
+                const scrollBox = this.listview.scrollBox;
+                const targetY = dir > 0 ? (this.dom.offsetTop + scrollBox.offsetHeight)
+                                        : (this.dom.offsetTop + this.dom.offsetHeight - scrollBox.offsetHeight);
+                const len = this.listview.length;
+                let item = this;
+                while (dir > 0 ? (targetY > item.dom.offsetTop + item.dom.offsetHeight)
+                               : (targetY < item.dom.offsetTop)) {
+                    const nextIdx = item.position! + dir;
+                    if (nextIdx < 0 || nextIdx >= len) break;
+                    item = this.listview.get(nextIdx);
+            }
                 if (item) {
                     item.dom.focus();
                     ev.preventDefault();
@@ -377,6 +394,11 @@ export class ListView<T extends ListViewItem = ListViewItem> extends ContainerVi
     moveByDragging = false;
 
     selectionHelper = new SelectionHelper<T>();
+
+    private _scrollBox: HTMLElement | null = null;
+
+    get scrollBox() { return this._scrollBox || this.dom; }
+    set scrollBox(val: HTMLElement) { this._scrollBox = val; }
 
     onItemMoved: null | ((item: T, from: number) => void) = null;
     /** 
