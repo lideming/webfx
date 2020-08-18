@@ -55,7 +55,7 @@ export class View implements IDOM {
     appendView(view: View) { return this.dom.appendView(view); }
     getDOM() { return this.dom; }
 
-    _onactive: Action | undefined = undefined;
+    _onactive: Action<MouseEvent> | undefined = undefined;
     _onActiveCbs: Action<any>[] | undefined = undefined;
     get onactive() { return this._onactive; }
     set onactive(val) {
@@ -63,7 +63,7 @@ export class View implements IDOM {
             if (val) {
                 this._onActiveCbs = [
                     (e: MouseEvent) => {
-                        this._onactive!();
+                        this._onactive!(e);
                     },
                     (e: KeyboardEvent) => {
                         this.handleKeyDown(e, this._onactive!);
@@ -80,9 +80,13 @@ export class View implements IDOM {
         this._onactive = val;
     }
 
-    handleKeyDown(e: KeyboardEvent, onactive: Action) {
+    handleKeyDown(e: KeyboardEvent, onactive: Action<MouseEvent | null>) {
         if (e.code === 'Enter') {
-            onactive();
+            const rect = this.dom.getBoundingClientRect();
+            onactive(new MouseEvent('click', {
+                clientX: rect.x, clientY: rect.y,
+                relatedTarget: this.dom
+            }));
             e.preventDefault();
         }
     }
@@ -255,7 +259,7 @@ export abstract class ListViewItem extends View implements ISelectable {
                     const nextIdx = item.position! + dir;
                     if (nextIdx < 0 || nextIdx >= len) break;
                     item = this.listview.get(nextIdx);
-            }
+                }
                 if (item) {
                     item.dom.focus();
                     ev.preventDefault();
@@ -523,7 +527,7 @@ export class ItemActiveHelper<T extends View> {
     }
 }
 
-type SectionActionOptions = { text: string, onclick: Action; };
+type SectionActionOptions = { text: string, onclick: Action<MouseEvent>; };
 
 export class Section extends View {
     titleView = new TextView({ tag: 'span.section-title' });
@@ -686,7 +690,7 @@ export class EditableHelper {
 export class MenuItem extends ListViewItem {
     text: string = '';
     cls: 'normal' | 'dangerous' = 'normal';
-    onclick: Action | null = null;
+    onclick: Action<MouseEvent> | null = null;
     constructor(init: Partial<MenuItem>) {
         super();
         utils.objectApply(this, init);
@@ -699,11 +703,11 @@ export class MenuItem extends ListViewItem {
     }
     postCreateDom() {
         super.postCreateDom();
-        this.onactive = () => {
+        this.onactive = (ev) => {
             if (this.parentView instanceof ContextMenu) {
                 if (!this.parentView.keepOpen) this.parentView.close();
             }
-            this.onclick?.();
+            this.onclick?.(ev);
         };
     }
     private _lastcls;
@@ -806,12 +810,14 @@ export class ContextMenu extends ListView {
         this._originalFocused = document.activeElement;
         this.dom.focus();
         var width = this.dom.offsetWidth, height = this.dom.offsetHeight;
-        if (arg.x + width > document.body.offsetWidth) arg.x -= width;
-        if (arg.y + height > document.body.offsetHeight) arg.y -= height;
-        if (arg.x < 0) arg.x = 0;
-        if (arg.y < 0) arg.y = 0;
-        this.dom.style.left = arg.x + 'px';
-        this.dom.style.top = arg.y + 'px';
+        var x = arg.x, y = arg.y;
+        if (x + width > document.body.offsetWidth) x -= width;
+        if (y + height > document.body.offsetHeight) y -= height;
+        if (x < 0) x = 0;
+        if (y < 0) y = 0;
+        this.dom.style.left = x + 'px';
+        this.dom.style.top = y + 'px';
+        this.dom.style.transformOrigin = `${arg.x - x}px ${arg.y - y}px`;
     }
     close() {
         if (this._visible) {
@@ -964,20 +970,30 @@ export class Dialog extends View {
         this.setOffset(0, 0);
         this.overlay.setCenterChild(true);
     }
-    show() {
+    show(ev?: MouseEvent) {
         if (this.shown) return;
         this.shown = true;
         this._cancelFadeout?.();
         this.ensureDom();
         Dialog.defaultParent.onDialogShowing(this);
+        this.setTransformOrigin(ev);
         this.dom.focus();
         (this.autoFocus || this).dom.focus();
         this.onShown.invoke();
+    }
+    setTransformOrigin(ev?: MouseEvent) {
+        if (ev) {
+            const rect = this.dom.getBoundingClientRect();
+            this.dom.style.transformOrigin = `${ev.x - rect.x}px ${ev.y - rect.y}px`;
+        } else {
+            this.dom.style.transformOrigin = '';
+        }
     }
     private _cancelFadeout: Action;
     close() {
         if (!this.shown) return;
         this.shown = false;
+        this.setTransformOrigin(undefined);
         this.onClose.invoke();
         this._cancelFadeout = utils.fadeout(this.overlay.dom).cancel;
         Dialog.defaultParent.onDialogClosing(this);
@@ -1019,8 +1035,8 @@ export class TabBtn extends View {
     clickable = true;
     active = false;
     right = false;
-    onclick: Action | null = null;
-    onClick = new Callbacks<Action>();
+    onclick: Action<MouseEvent> | null = null;
+    onClick = new Callbacks<Action<MouseEvent>>();
     constructor(init?: Partial<TabBtn>) {
         super();
         utils.objectApply(this, init);
@@ -1031,9 +1047,9 @@ export class TabBtn extends View {
         };
     }
     postCreateDom() {
-        this.onactive = () => {
-            this.onclick?.();
-            this.onClick.invoke();
+        this.onactive = (ev) => {
+            this.onclick?.(ev);
+            this.onClick.invoke(ev);
         };
     }
     updateDom() {
