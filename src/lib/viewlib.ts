@@ -1062,7 +1062,6 @@ export class TabBtn extends View {
 }
 
 export class InputView extends View {
-    dom: HTMLElement;
     multiline: boolean = false;
     type = 'text';
     placeholder = '';
