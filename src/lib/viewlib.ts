@@ -260,10 +260,13 @@ export abstract class ListViewItem extends View implements ISelectable {
                     if (nextIdx < 0 || nextIdx >= len) break;
                     item = this.listview.get(nextIdx);
                 }
-                if (item) {
+                if (item && item !== this) {
                     item.dom.focus();
                     ev.preventDefault();
                 }
+            } else if (this.listview && (ev.code === 'Home' || ev.code === 'End')) {
+                this.listview.get(ev.code == 'Home' ? 0 : (this.listview.length - 1)).dom.focus();
+                ev.preventDefault();
             }
         });
         this.dom.addEventListener('contextmenu', (ev) => {
