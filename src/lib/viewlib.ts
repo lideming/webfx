@@ -267,6 +267,8 @@ export abstract class ListViewItem extends View implements ISelectable {
             } else if (this.listview && (ev.code === 'Home' || ev.code === 'End')) {
                 this.listview.get(ev.code == 'Home' ? 0 : (this.listview.length - 1)).dom.focus();
                 ev.preventDefault();
+            } else if (this.listview && this.listview.selectionHelper.handleItemKeyDown(this, ev)) {
+                // noop
             }
         });
         this.dom.addEventListener('contextmenu', (ev) => {
@@ -415,7 +417,7 @@ export class ListView<T extends ListViewItem = ListViewItem> extends ContainerVi
     onContextMenu: null | ((item: ListViewItem, ev: MouseEvent) => void) = null;
     constructor(container?: BuildDomExpr) {
         super(container);
-        this.selectionHelper.itemProvider = this.get.bind(this);
+        this.selectionHelper.itemProvider = this;
     }
     protected postCreateDom() {
         super.postCreateDom();
@@ -469,7 +471,10 @@ export class SelectionHelper<TItem extends ISelectable> {
     }
     onEnabledChanged = new Callbacks();
 
-    itemProvider: ((pos: number) => TItem) | null = null;
+    itemProvider: null | {
+        get: (pos: number) => TItem;
+        length: number;
+    } = null;
 
     ctrlForceSelect = false;
 
@@ -491,13 +496,28 @@ export class SelectionHelper<TItem extends ISelectable> {
             var start = item.position!, end = this.lastToggledItem.position!;
             if (start > end) [start, end] = [end, start];
             for (let i = start; i <= end; i++) {
-                this.toggleItemSelection(this.itemProvider(i), toSelect);
+                this.toggleItemSelection(this.itemProvider.get(i), toSelect);
             }
             this.lastToggledItem = item;
         } else {
             this.toggleItemSelection(item);
         }
+        ev.preventDefault();
         return true;
+    }
+
+    /** Returns true if it's handled by the helper. */
+    handleItemKeyDown(item: TItem, ev: KeyboardEvent): boolean {
+        if (!this.enabled) return false;
+        if (this.itemProvider && ev.ctrlKey && ev.code === 'KeyA') {
+            const len = this.itemProvider.length;
+            for (let i = 0; i < len; i++) {
+                this.toggleItemSelection(this.itemProvider.get(i), true);
+            }
+            ev.preventDefault();
+            return true;
+        }
+        return false;
     }
 
     toggleItemSelection(item: TItem, force?: boolean) {
