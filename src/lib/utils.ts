@@ -133,7 +133,7 @@ export var utils = new class Utils {
         };
     }
 
-    listenPointerEvents(element: HTMLElement, callback: (e: PtrEvent) => void | 'track') {
+    listenPointerEvents(element: HTMLElement, callback: (e: PtrEvent) => void | 'track', options?: AddEventListenerOptions) {
         element.addEventListener('mousedown', function (e) {
             if (callback({ type: 'mouse', ev: e, point: e, action: 'down' }) === 'track') {
                 var mousemove = function (e: MouseEvent) {
@@ -147,7 +147,7 @@ export var utils = new class Utils {
                 document.addEventListener('mousemove', mousemove, true);
                 document.addEventListener('mouseup', mouseup, true);
             }
-        });
+        }, options);
         var touchDown = false;
         element.addEventListener('touchstart', function (e) {
             var ct = e.changedTouches[0];
@@ -173,10 +173,10 @@ export var utils = new class Utils {
                         action: touchDown ? 'move' : 'up'
                     });
                 };
-                element.addEventListener('touchmove', touchmove);
-                element.addEventListener('touchend', touchend);
+                element.addEventListener('touchmove', touchmove, options);
+                element.addEventListener('touchend', touchend, options);
             }
-        });
+        }, options);
     }
 
     addEvent<K extends keyof HTMLElementEventMap>(element: HTMLElement, event: K,
