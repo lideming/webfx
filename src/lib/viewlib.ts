@@ -251,11 +251,11 @@ export abstract class ListViewItem extends View implements ISelectable {
                 const dir = ev.code === 'PageUp' ? -1 : 1;
                 const scrollBox = this.listview.scrollBox;
                 const targetY = dir > 0 ? (this.dom.offsetTop + scrollBox.offsetHeight)
-                                        : (this.dom.offsetTop + this.dom.offsetHeight - scrollBox.offsetHeight);
+                    : (this.dom.offsetTop + this.dom.offsetHeight - scrollBox.offsetHeight);
                 const len = this.listview.length;
                 let item = this;
                 while (dir > 0 ? (targetY > item.dom.offsetTop + item.dom.offsetHeight)
-                               : (targetY < item.dom.offsetTop)) {
+                    : (targetY < item.dom.offsetTop)) {
                     const nextIdx = item.position! + dir;
                     if (nextIdx < 0 || nextIdx >= len) break;
                     item = this.listview.get(nextIdx);
@@ -1258,5 +1258,64 @@ export class MessageBox extends Dialog {
         this.show();
         await this.waitClose();
         return this.result;
+    }
+}
+
+export class ViewToggle<T extends keyof any> {
+    items: Record<T, View | View[]>;
+    shownKeys: T[] = [];
+    toggleMode: 'display' | 'hidden' | 'remove' = 'remove';
+    container: View | null = null;
+    constructor(init?: Partial<ViewToggle<T>>) {
+        utils.objectApply(this, init);
+        this.setShownKeys(this.shownKeys);
+    }
+    add(key: T, view: View) {
+        const oldVal = this.items[key];
+        if (oldVal) {
+            if (oldVal instanceof Array) {
+                (this.items[key] as View[]).push(view);
+            } else {
+                this.items[key] = [oldVal as View, view];
+            }
+        } else {
+            this.items[key] = view;
+        }
+        this.toggleView(view, this.shownKeys.indexOf(key) >= 0);
+    }
+    setShownKeys(keys: T[]) {
+        this.shownKeys = keys;
+        const items = this.items;
+        for (const key in items) {
+            const show = keys.indexOf(key) >= 0;
+            if (Object.prototype.hasOwnProperty.call(items, key)) {
+                const val = items[key];
+                if (val) {
+                    if (val instanceof Array) {
+                        for (const v of val) {
+                            this.toggleView(v, show);
+                        }
+                    } else if (val) {
+                        this.toggleView(val as View, show);
+                    }
+                }
+            }
+        }
+    }
+    toggleView(view: View, show: boolean, mode?: ViewToggle<T>['toggleMode']) {
+        if (!mode) mode = this.toggleMode;
+        if (mode == 'display') {
+            view.dom.style.display = show ? '' : 'none';
+        } else if (mode == 'hidden') {
+            view.dom.hidden = !show;
+        } else if (mode == 'remove') {
+            if (show) {
+                this.container!.appendView(view);
+            } else {
+                view.dom.remove();
+            }
+        } else {
+            throw new Error('Unknown toggle mode');
+        }
     }
 }
