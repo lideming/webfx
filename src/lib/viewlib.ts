@@ -1170,6 +1170,32 @@ export class LabeledInput extends LabeledInputBase<InputView> {
     }
 }
 
+export namespace FlagsInput {
+    export class FlagsInput extends ContainerView<Flag> {
+        constructor(flags?: string[] | Flag[]) {
+            super();
+            flags?.forEach(f => {
+                var flag = f instanceof Flag ? f : new Flag({ text: Object.prototype.toString.call(f) })
+                this.addView(flag);
+            });
+        }
+        createDom() {
+            return { tag: 'div.flags-input' };
+        }
+    }
+
+    export class Flag extends TextView {
+        get parentInput() { return this.parentView as (FlagsInput | undefined); }
+        constructor(init?: Partial<Flag>) {
+            super();
+            utils.objectApply(this, init);
+        }
+        createDom() {
+            return { tag: 'div.flags-input-item' };
+        }
+    }
+}
+
 export class ToastsContainer extends View {
     static default: ToastsContainer = new ToastsContainer();
     parentDom: HTMLElement | null = null;
