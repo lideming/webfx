@@ -1131,14 +1131,11 @@ export class ButtonView extends TextView {
     }
 }
 
-export class LabeledInput extends View {
+export class LabeledInputBase<T extends View> extends View {
     label: string = '';
-    type = 'text';
-    input = new InputView();
+    input: T;
     get dominput(): HTMLInputElement { return this.input.dom as any; }
-    get value() { return this.dominput.value; }
-    set value(val) { this.dominput.value = val; }
-    constructor(init?: Partial<LabeledInput>) {
+    constructor(init?: Partial<LabeledInputBase<T>>) {
         super();
         utils.objectApply(this, init);
     }
@@ -1154,8 +1151,22 @@ export class LabeledInput extends View {
     }
     updateDom() {
         super.updateDom();
-        this.input.type = this.type;
         this.input.domCreated && this.input.updateDom();
+    }
+}
+
+export class LabeledInput extends LabeledInputBase<InputView> {
+    type: string;
+    get value() { return this.dominput.value; }
+    set value(val) { this.dominput.value = val; }
+    constructor(init?: Partial<LabeledInput>) {
+        super();
+        utils.objectApply(this, init);
+        if (!this.input) this.input = new InputView();
+    }
+    updateDom() {
+        this.input.type = this.type;
+        super.updateDom();
     }
 }
 
