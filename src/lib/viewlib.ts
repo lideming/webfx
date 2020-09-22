@@ -2,6 +2,16 @@
 
 import { BuildDomExpr, utils, Action, Callbacks, BuildDomNode, Timer, BuildDOMCtx, IDOM } from "./utils";
 import { I, i18n } from "./I18n";
+import css from "../style.css";
+
+export function getWebfxCss() { return css; }
+let cssInjected = false;
+export function injectWebfxCss() {
+    if (!cssInjected) {
+        utils.injectCss(getWebfxCss(), {tag: 'style.webfx-injected-style'});
+        cssInjected = true;
+    }
+}
 
 export class View implements IDOM {
     constructor(dom?: BuildDomExpr) {
