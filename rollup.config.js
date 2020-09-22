@@ -21,7 +21,23 @@ function transformSourcemapPath() {
     };
 }
 
-export default {
+function myCss() {
+    return {
+        name: 'my-css-loader',
+        /** @param {string} code */
+        transform(code, id) {
+            if (id.endsWith('.css')) {
+                code = code.replace(/\r?\n[ \t]*/g, '');
+                return {
+                    code: 'export default ' + JSON.stringify(code),
+                    map: { mappings: '' }
+                };
+            }
+        }
+    };
+}
+
+export default [{
     input: 'index.js',
     output: [
         {
@@ -38,7 +54,24 @@ export default {
         }
     ],
     plugins: [
+        sourcemaps(),
+        myCss()
+    ],
+    context: 'this'
+}, {
+    input: 'lib/webfxcore.js',
+    output: [
+        {
+            file: 'dist/webfxcore.min.js',
+            format: 'umd',
+            name: 'utils',
+            sourcemap: true,
+            sourcemapPathTransform: transformSourcemapPath(),
+            plugins: [terser()]
+        }
+    ],
+    plugins: [
         sourcemaps()
     ],
     context: 'this'
-};
+}];

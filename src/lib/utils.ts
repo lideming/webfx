@@ -187,6 +187,10 @@ export var utils = new class Utils {
         };
     }
 
+    injectCss(css: string, options?: { tag: string }) {
+        document.head.appendChild(utils.buildDOM({ tag: options?.tag ?? 'style', text: css }));
+    }
+
     arrayRemove<T>(array: T[], val: T) {
         for (let i = 0; i < array.length; i++) {
             if (array[i] === val) {
