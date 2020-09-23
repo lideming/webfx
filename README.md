@@ -28,7 +28,7 @@ Add webfx to your web page:
 <script src="https://cdn.jsdelivr.net/npm/@yuuza/webfx@1.5.0/dist/webfx.min.js"></script>
 ```
 
-Or if you don't need the viewlib;
+Or if you don't need the viewlib:
 
 ```html
 <script src="https://cdn.jsdelivr.net/npm/@yuuza/webfx@1.5.0/dist/webfxcore.min.js"></script>
