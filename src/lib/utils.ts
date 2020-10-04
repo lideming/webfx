@@ -500,7 +500,7 @@ export const buildDOM: typeof utils['buildDOM'] = utils.buildDOM = (() => {
 
 export function jsxFactory(tag: string | { new(any): IDOM }, attrs: Record<any, any>, ...childs: any) {
     if (typeof tag === 'string') {
-        return buildDOM({ tag, child: childs, className: attrs?.class, ...attrs })
+        return { tag, child: childs, className: attrs?.class, ...attrs }
     } else {
         var view = new tag(attrs);
         if (childs) for (const it of childs) {
