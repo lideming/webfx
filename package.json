@@ -1,6 +1,6 @@
 {
   "name": "@yuuza/webfx",
-  "version": "1.5.2",
+  "version": "1.5.3",
   "description": "",
   "main": "index.js",
   "types": "index.d.ts",
@@ -16,7 +16,8 @@
     "src/",
     "index.js",
     "index.d.ts",
-    "index.js.map"
+    "index.js.map",
+    "style.css"
   ],
   "author": "",
   "license": "MIT",
