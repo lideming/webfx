@@ -440,18 +440,26 @@ textarea.input-text {
 
 .toasts-container {
     position: absolute;
-    bottom: 5px;
-    right: 5px;
+    bottom: 0;
+    right: 0;
+    padding: 5px;
     width: 300px;
     z-index: 10001;
+    overflow: hidden;
 }
 
 .toast {
     margin: 5px;
     padding: 10px;
     border-radius: 5px;
-    box-shadow: 0 0 12px var(--color-shadow);
+    box-shadow: 0 0 10px var(--color-shadow);
     background: var(--color-bg);
     white-space: pre-wrap;
     animation: showing-right .3s;
+}
+
+.fading-out {
+    transition: opacity .3s;
+    opacity: 0;
+    pointer-events: none;
 }
