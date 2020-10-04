@@ -37,8 +37,8 @@ export var utils = new class Utils {
     formatDateTime(date: Date) {
         var now = new Date();
         var sameday = date.getFullYear() === now.getFullYear()
-                    && date.getMonth() === now.getMonth()
-                    && date.getDate() === now.getDate();
+            && date.getMonth() === now.getMonth()
+            && date.getDate() === now.getDate();
         return sameday ? date.toLocaleTimeString() : date.toLocaleString();
     }
 
@@ -81,7 +81,9 @@ export var utils = new class Utils {
             child: ['Name: ', { tag: 'span.name', textContent: name } ],
         })
      */
-    buildDOM: <T extends BuildDomReturn = BuildDomReturn>(tree: BuildDomExpr, ctx?: BuildDOMCtx) => T;
+    buildDOM: <T extends BuildDomReturn = BuildDomReturn>(tree: BuildDomExpr, ctx?: BuildDOMCtx) => T = null as any;
+
+    jsxFactory: typeof jsxFactory = null as any;
 
     /** Remove all children from the node */
     clearChildren(node: Node) {
@@ -180,7 +182,7 @@ export var utils = new class Utils {
     }
 
     addEvent<K extends keyof HTMLElementEventMap>(element: HTMLElement, event: K,
-                                                  handler: (ev: HTMLElementEventMap[K]) => any) {
+        handler: (ev: HTMLElementEventMap[K]) => any) {
         element.addEventListener(event, handler);
         return {
             remove: () => element.removeEventListener(event, handler)
@@ -343,6 +345,7 @@ export type BuildDomExpr = string | BuildDomNode | HTMLElement | Node | IDOM;
 
 export interface IDOM {
     getDOM(): HTMLElement;
+    addChild(child: IDOM): void;
 }
 
 export type BuildDomTag = string;
@@ -438,6 +441,16 @@ export const buildDOM: typeof utils['buildDOM'] = utils.buildDOM = (() => {
     var buildDomCore = function (obj: BuildDomExpr, ttl: number, ctx: BuildDOMCtx): BuildDomReturn {
         if (ttl-- < 0) throw new Error('ran out of TTL');
         if (typeof (obj) === 'string') { return document.createTextNode(obj); }
+        if (typeof obj === 'function') {
+            const val = (obj as any)();
+            if (!val || typeof val !== 'object') {
+                const node = document.createTextNode(val);
+                ctx?.addUpdateAction(['text', node, obj]);
+                return node;
+            } else {
+                throw new Error('Unexpected function return value');
+            }
+        }
         if (Node && obj instanceof Node) return obj as Node;
         if ('getDOM' in obj) return obj.getDOM();
         const tag = (obj as BuildDomNode).tag;
@@ -485,6 +498,19 @@ export const buildDOM: typeof utils['buildDOM'] = utils.buildDOM = (() => {
     };
 })();
 
+export function jsxFactory(tag: string | { new(any): IDOM }, attrs: Record<any, any>, ...childs: any) {
+    if (typeof tag === 'string') {
+        return buildDOM({ tag, child: childs, className: attrs?.class, ...attrs })
+    } else {
+        var view = new tag(attrs);
+        if (childs) for (const it of childs) {
+            view.addChild(it);
+        }
+        return view;
+    }
+}
+
+utils.jsxFactory = jsxFactory;
 
 export class SettingItem<T> {
     key: string;

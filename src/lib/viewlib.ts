@@ -64,6 +64,13 @@ export class View implements IDOM {
     }
     appendView(view: View) { return this.dom.appendView(view); }
     getDOM() { return this.dom; }
+    addChild(child: IDOM) {
+        if (child instanceof View) {
+            this.appendView(child);
+        } else {
+            this.dom.appendChild(child.getDOM());
+        }
+    }
 
     _onactive: Action<MouseEvent> | undefined = undefined;
     _onActiveCbs: Action<any>[] | undefined = undefined;
@@ -108,10 +115,15 @@ declare global {
     }
     interface HTMLElement {
         getDOM(): HTMLElement;
+        addChild(child: IDOM): void;
     }
 }
 
 HTMLElement.prototype.getDOM = function () { return this; };
+
+HTMLElement.prototype.addChild = function (child) {
+    this.appendChild(child.getDOM());
+}
 
 Node.prototype.appendView = function (this: Node, view: View) {
     this.appendChild(view.dom);
