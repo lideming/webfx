@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Counter - webfx demo</title>
+    <script src="../dist/webfx.min.js"></script>
+    <style>
+        .btn.inline {
+            display: inline;
+        }
+    </style>
+</head>
+
+<body>
+
+    <script>
+        var { utils, View, Toast, ButtonView } = webfx;
+
+        webfx.injectWebfxCss();
+
+        // buildDOM API
+        document.body.appendChild(webfx.buildDOM({
+            tag: 'p', text: 'This is a webfx demo.'
+        }));
+
+        // View
+        class CounterView extends View {
+            constructor() {
+                super();
+                this.counter = 0;
+            }
+            createDom() {
+                return {
+                    tag: 'div.counter',
+                    child: [
+                        "You've click ",
+                        {
+                            tag: 'div.btn.inline',
+                            text: 'this button',
+                            onclick: () => this.updateWith({ counter: this.counter + 1 })
+                        },
+                        " for ",
+                        () => this.counter,
+                        " time(s)."
+                    ]
+                }
+            }
+            postCreateDom() {
+                super.postCreateDom();
+            }
+            updateDom() {
+                super.updateDom();
+            }
+        }
+        document.body.appendView(new CounterView());
+
+        document.body.appendView(new ButtonView({
+            text: 'Show toast',
+            onclick: () => Toast.show("This is a toast!", 3000)
+        }));
+    </script>
+</body>
+
+</html>
