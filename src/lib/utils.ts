@@ -370,7 +370,7 @@ export class BuildDOMCtx {
     constructor(dict?: BuildDOMCtx['dict'] | {}) {
         this.dict = dict ?? {};
     }
-    static EnsureCtx(ctxOrDict: BuildDOMCtx | {}, origctx: BuildDOMCtx): BuildDOMCtx {
+    static EnsureCtx(ctxOrDict: BuildDOMCtx | {}, origctx: BuildDOMCtx | null): BuildDOMCtx {
         var ctx: BuildDOMCtx;
         if (ctxOrDict instanceof BuildDOMCtx) ctx = ctxOrDict;
         else ctx = new BuildDOMCtx(ctxOrDict);
@@ -414,126 +414,128 @@ export class BuildDOMCtx {
 }
 
 type BuildDOMUpdateAction =
-    ['text', Node, Func<string>]
+    | ['text', Node, Func<string>]
     | ['hidden', HTMLElement, Func<boolean>]
     | ['update', HTMLElement, Action<HTMLElement>];
 
-export const buildDOM: typeof utils['buildDOM'] = utils.buildDOM = (() => {
-    var createElementFromTag = function (tag: BuildDomTag): HTMLElement {
-        var reg = /[#\.^]?[\w\-]+/y;
-        var match;
-        var ele;
-        while (match = reg.exec(tag)) {
-            var val = match[0];
-            var ch = val[0];
-            if (ch === '.') {
-                ele.classList.add(val.substr(1));
-            } else if (ch === '#') {
-                ele.id = val.substr(1);
-            } else {
-                if (ele) throw new Error('unexpected multiple tags');
-                ele = document.createElement(val);
-            }
-        }
-        return ele;
-    };
 
-    var buildDomCore = function (obj: BuildDomExpr, ttl: number, ctx: BuildDOMCtx): BuildDomReturn {
-        if (ttl-- < 0) throw new Error('ran out of TTL');
-        if (typeof (obj) === 'string') { return document.createTextNode(obj); }
-        if (typeof obj === 'function') {
-            const val = (obj as any)();
-            if (!val || typeof val !== 'object') {
-                const node = document.createTextNode(val);
-                ctx?.addUpdateAction(['text', node, obj]);
-                return node;
-            } else {
-                throw new Error('Unexpected function return value');
-            }
-        }
-        if (Node && obj instanceof Node) return obj as Node;
-        if ('getDOMExpr' in obj) obj = obj.getDOMExpr();
-        else if ('getDOM' in obj) return obj.getDOM();
-        const tag = (obj as BuildDomNode).tag;
-        if (!tag) throw new Error('no tag');
-        var node = createElementFromTag(tag);
-        if (obj['_ctx']) ctx = BuildDOMCtx.EnsureCtx(obj['_ctx'], ctx);
-        for (var key in obj as any) {
-            if (obj.hasOwnProperty(key)) {
-                var val = obj[key];
-                handleKey(key, val, node, ctx, ttl)
-            }
-        }
-        const init = obj['init'];
-        if (init) init(node);
-
-        return node;
-    };
-
-    var handleKey = function (key: string, val: any, node: HTMLElement, ctx: BuildDOMCtx, ttl: number) {
-        if (key === 'child') {
-            if (val instanceof Array) {
-                val.forEach(function (x) {
-                    node.appendChild(buildDomCore(x, ttl, ctx));
-                });
-            } else {
-                node.appendChild(buildDomCore(val, ttl, ctx));
-            }
-        } else if (key === '_key') {
-            ctx.setDict(val, node);
-        } else if (key === 'text') {
-            if (typeof val === 'function') {
-                ctx.addUpdateAction(['text', node, val]);
-            } else {
-                node.textContent = val;
-            }
-        } else if (key === 'hidden' && typeof val === 'function') {
-            ctx.addUpdateAction(['hidden', node, val]);
-        } else if (key === 'update' && typeof val === 'function') {
-            ctx.addUpdateAction(['update', node, val]);
-        } else if (key === 'init') {
-            // no-op
+var createElementFromTag = function (tag: BuildDomTag): HTMLElement {
+    var reg = /[#\.^]?[\w\-]+/y;
+    var match;
+    var ele;
+    while (match = reg.exec(tag)) {
+        var val = match[0];
+        var ch = val[0];
+        if (ch === '.') {
+            ele.classList.add(val.substr(1));
+        } else if (ch === '#') {
+            ele.id = val.substr(1);
         } else {
-            node[key] = val;
+            if (ele) throw new Error('unexpected multiple tags');
+            ele = document.createElement(val);
         }
     }
+    return ele;
+};
 
-    return function (obj: BuildDomExpr, ctx: BuildDOMCtx): any {
-        return buildDomCore(obj, 32, ctx);
-    };
-})();
+var buildDomCore = function (obj: BuildDomExpr, ttl: number, ctx: BuildDOMCtx | null): BuildDomReturn {
+    if (ttl-- < 0) throw new Error('ran out of TTL');
+    if (typeof (obj) === 'string') { return document.createTextNode(obj); }
+    if (typeof obj === 'function') {
+        const val = (obj as any)();
+        if (!val || typeof val !== 'object') {
+            const node = document.createTextNode(val);
+            ctx?.addUpdateAction(['text', node, obj]);
+            return node;
+        } else {
+            throw new Error('Unexpected function return value');
+        }
+    }
+    if (Node && obj instanceof Node) return obj as Node;
+    if (obj instanceof JsxNode) return obj.buildDom(ctx, ttl);
+    if ('getDOM' in obj) return obj.getDOM();
+    const tag = (obj as BuildDomNode).tag;
+    if (!tag) throw new Error('no tag');
+    var node = createElementFromTag(tag);
+    if (obj['_ctx']) ctx = BuildDOMCtx.EnsureCtx(obj['_ctx'], ctx);
+    for (var key in obj as any) {
+        if (obj.hasOwnProperty(key)) {
+            var val = obj[key];
+            buildDOMHandleKey(key, val, node, ctx, ttl);
+        }
+    }
+    const init = obj['init'];
+    if (init) init(node);
+
+    return node;
+};
+
+var buildDOMHandleKey = function (key: string, val: any, node: HTMLElement, ctx: BuildDOMCtx | null, ttl: number) {
+    if (key === 'child') {
+        if (val instanceof Array) {
+            val.forEach(function (x) {
+                node.appendChild(buildDomCore(x, ttl, ctx));
+            });
+        } else {
+            node.appendChild(buildDomCore(val, ttl, ctx));
+        }
+    } else if (key === '_key') {
+        ctx!.setDict(val, node);
+    } else if (key === 'text') {
+        if (typeof val === 'function') {
+            ctx!.addUpdateAction(['text', node, val]);
+        } else {
+            node.textContent = val;
+        }
+    } else if (key === 'hidden' && typeof val === 'function') {
+        ctx!.addUpdateAction(['hidden', node, val]);
+    } else if (key === 'update' && typeof val === 'function') {
+        ctx!.addUpdateAction(['update', node, val]);
+    } else if (key === 'init') {
+        // no-op
+    } else {
+        node[key] = val;
+    }
+}
+
+export const buildDOM: typeof utils['buildDOM'] = utils.buildDOM = function (obj: BuildDomExpr, ctx: BuildDOMCtx): any {
+    return buildDomCore(obj, 32, ctx);
+};
 
 class JsxNode implements IDOM {
-    tag: string;
-    attrs: Record<any, any>;
-    child: any[];
-    constructor(tag: string, attrs: Record<any, any>, childs: any[]) {
+    tag: string | IDOM;
+    attrs: Record<any, any> | undefined;
+    child: any[] | undefined;
+    constructor(tag: any, attrs: Record<any, any> | undefined, childs: any[] | undefined) {
         this.tag = tag;
         this.attrs = attrs;
         this.child = childs;
     }
     getDOM(): HTMLElement {
-        return buildDOM(this.getDOMExpr());
+        return this.buildDom(null, 64) as any;
+    }
+    private _getDOMExpr(): BuildDomExpr {
+        return { tag: this.tag as string, child: this.child, className: this.attrs?.class, ...this.attrs }
+    }
+    buildDom(ctx: BuildDOMCtx | null, ttl: number) {
+        if (ttl-- < 0) throw new Error('ran out of TTL');
+        if (typeof this.tag === 'string') return buildDomCore(this._getDOMExpr(), ttl, ctx);
+        if (this.child) for (const it of this.child) {
+            this.tag.addChild(buildDomCore(it, ttl, ctx) as IDOM);
+        }
+        return this.tag.getDOM();
     }
     addChild(child: IDOM): void {
         if (this.child == null) this.child = [];
         this.child.push(child);
-    }
-    getDOMExpr(): BuildDomExpr {
-        return { tag: this.tag, child: this.child, className: this.attrs?.class, ...this.attrs }
     }
 }
 
 export function jsxFactory(tag: string | { new(any): IDOM }, attrs: Record<any, any>, ...childs: any) {
     if (typeof tag === 'string') {
         return new JsxNode(tag, attrs, childs);
-        return { tag, child: childs, className: attrs?.class, ...attrs }
     } else {
-        var view = new tag(attrs);
-        if (childs) for (const it of childs) {
-            view.addChild(it);
-        }
-        return view;
+        return new JsxNode(new tag(attrs), undefined, childs);
     }
 }
 

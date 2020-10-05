@@ -68,7 +68,7 @@ export class View implements IDOM {
         if (child instanceof View) {
             this.appendView(child);
         } else {
-            this.dom.appendChild(child.getDOM());
+            this.dom.appendChild(utils.buildDOM(child));
         }
     }
 
@@ -122,7 +122,7 @@ declare global {
 HTMLElement.prototype.getDOM = function () { return this; };
 
 HTMLElement.prototype.addChild = function (child) {
-    this.appendChild(child.getDOM());
+    this.appendChild(utils.buildDOM(child));
 }
 
 Node.prototype.appendView = function (this: Node, view: View) {
