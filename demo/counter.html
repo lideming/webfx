@@ -6,23 +6,43 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Counter - webfx demo</title>
     <script src="../dist/webfx.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.11.6/babel.min.js"></script>
     <style>
-        .btn.inline {
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: sans-serif;
+            margin: 20px;
+            padding: 0;
+            font-size: 20px;
+        }
+
+        .card {
+            margin: 30px 0;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, .3);
+        }
+
+        .btn.inline,
+        .buttons .btn {
             display: inline;
+            margin: 0 5px;
         }
     </style>
 </head>
 
 <body>
 
-    <script>
+    <script data-presets="es2015,react">
         var { utils, View, Toast, ButtonView } = webfx;
 
         webfx.injectWebfxCss();
 
         // buildDOM API
         document.body.appendChild(webfx.buildDOM({
-            tag: 'p', text: 'This is a webfx demo.'
+            tag: 'h1', text: 'webfx demo'
         }));
 
         // View
@@ -33,34 +53,67 @@
             }
             createDom() {
                 return {
-                    tag: 'div.counter',
+                    tag: 'div.counter.card',
                     child: [
-                        "You've click ",
+                        "You've click",
                         {
                             tag: 'div.btn.inline',
                             text: 'this button',
                             onclick: () => this.updateWith({ counter: this.counter + 1 })
                         },
-                        " for ",
+                        "for ",
                         () => this.counter,
-                        " time(s)."
+                        " time",
+                        () => this.counter > 1 ? 's' : '',
+                        '.'
                     ]
                 }
             }
-            postCreateDom() {
-                super.postCreateDom();
-            }
-            updateDom() {
-                super.updateDom();
-            }
+            // postCreateDom() {
+            //     super.postCreateDom();
+            // }
+            // updateDom() {
+            //     super.updateDom();
+            // }
         }
         document.body.appendView(new CounterView());
 
-        document.body.appendView(new ButtonView({
-            text: 'Show toast',
-            onclick: () => Toast.show("This is a toast!", 3000)
+        document.body.appendView(new View({
+            tag: 'div.buttons.card',
+            child: [
+                new ButtonView({
+                    text: 'Show toast',
+                    onclick: () => Toast.show("This is a toast!", 3000)
+                }),
+                new ButtonView({
+                    text: 'Show context menu',
+                    onclick: (ev) => {
+                        var m = new webfx.ContextMenu();
+                        for (let i = 1; i <= 5; i++) {
+                            m.add(new webfx.MenuItem({
+                                text: 'Show toast ' + i, onclick: () => {
+                                    Toast.show(`This is toast ${i}!`, 3000)
+                                }
+                            }));
+                        }
+                        m.show({ev});
+                    }
+                }),
+                new ButtonView({
+                    text: 'Show dialog',
+                    onclick: (ev) => {
+                        var d = new webfx.Dialog();
+                        d.title = 'A dialog';
+                        d.addContent(new View({
+                            tag: 'p', text: 'Dialog content'
+                        }))
+                        d.show(ev);
+                    }
+                })
+            ]
         }));
     </script>
+    <script type="text/jsx" src="./counter.jsx"></script>
 </body>
 
 </html>
