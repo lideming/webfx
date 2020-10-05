@@ -686,6 +686,10 @@ export class Overlay extends View {
         this.toggleClass('nobg', nobg);
         return this;
     }
+    setFixed(fixed: boolean) {
+        this.toggleClass('fixed', fixed);
+        return this;
+    }
 }
 
 export class EditableHelper {
@@ -833,13 +837,13 @@ export class ContextMenu extends ListView {
             return;
         }
         if ('ev' in arg) arg = {
-            x: arg.ev.pageX,
-            y: arg.ev.pageY
+            x: arg.ev.clientX,
+            y: arg.ev.clientY
         };
         this._visible = true;
         if (this.useOverlay) {
             if (!this.overlay) {
-                this.overlay = new Overlay();
+                this.overlay = new Overlay().setFixed(true);
                 this.overlay.dom.style.background = 'rgba(0, 0, 0, .1)';
                 this.overlay.dom.addEventListener('mousedown', (ev) => {
                     if (ev.eventPhase !== Event.AT_TARGET) return;
@@ -855,9 +859,16 @@ export class ContextMenu extends ListView {
         this._originalFocused = document.activeElement;
         this.dom.focus();
         var width = this.dom.offsetWidth, height = this.dom.offsetHeight;
+        var parentWidth = document.body.offsetWidth;
+        var parentHeight = document.body.offsetHeight;
+        if (this.useOverlay) {
+            const overlayDom = this.overlay!.dom;
+            parentWidth = overlayDom.offsetWidth;
+            parentHeight = overlayDom.offsetHeight;
+        }
         var x = arg.x, y = arg.y;
-        if (x + width > document.body.offsetWidth) x -= width;
-        if (y + height > document.body.offsetHeight) y -= height;
+        if (x + width > parentWidth) x -= width;
+        if (y + height > parentHeight) y -= height;
         if (x < 0) x = 0;
         if (y < 0) y = 0;
         this.dom.style.left = x + 'px';
@@ -894,7 +905,14 @@ export class Dialog extends View {
 
     focusTrap = new View({ tag: 'div.focustrap', tabIndex: 0 });
 
-    static defaultParent: DialogParent;
+    static _defaultParent: DialogParent | null = null;
+    static get defaultParent(): DialogParent {
+        if (!Dialog._defaultParent) Dialog._defaultParent = new DialogParent();
+        return Dialog._defaultParent;
+    }
+    static set defaultParent(val) {
+        Dialog._defaultParent = val;
+    }
 
     get width() { return this.dom.style.width; }
     set width(val) { this.dom.style.width = val; }

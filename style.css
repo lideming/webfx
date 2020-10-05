@@ -228,6 +228,10 @@ a.item {
     will-change: transform;
 }
 
+.overlay.fixed {
+    position: fixed;
+}
+
 .overlay.nobg {
     background: none;
     will-change: auto;
@@ -289,6 +293,15 @@ a.item {
 
 .dialog-bottom {
     padding: 5px 10px;
+}
+
+@keyframes dialogin {
+    0% {
+        transform: scale(.85);
+    }
+    100% {
+        transform: scale(1);
+    }
 }
 
 .input-label {
