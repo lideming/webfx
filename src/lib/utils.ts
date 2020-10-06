@@ -84,6 +84,7 @@ export var utils = new class Utils {
     buildDOM: <T extends BuildDomReturn = BuildDomReturn>(tree: BuildDomExpr, ctx?: BuildDOMCtx) => T = null as any;
 
     jsxFactory: typeof jsxFactory = null as any;
+    jsx: typeof jsxFactory = null as any;
 
     /** Remove all children from the node */
     clearChildren(node: Node) {
@@ -539,7 +540,7 @@ export function jsxFactory(tag: string | { new(any): IDOM }, attrs: Record<any, 
     }
 }
 
-utils.jsxFactory = jsxFactory;
+export const jsx = utils.jsx = utils.jsxFactory = jsxFactory;
 
 export class SettingItem<T> {
     key: string;

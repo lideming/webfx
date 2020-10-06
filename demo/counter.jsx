@@ -1,9 +1,8 @@
 
 (function () {
+    /** @jsx webfx.jsx */
 
     var { utils, View, Toast, ButtonView } = webfx;
-    var React = { createElement: webfx.jsxFactory };
-    // (Or configure the compiler to use 'webfx.jsxFactory' directly)
 
     document.body.appendChild(webfx.buildDOM(
         <h2>JSX</h2>
