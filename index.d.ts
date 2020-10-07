@@ -19,6 +19,5 @@
     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
     SOFTWARE.
 ************************************************* */
-
-export * from "./utils";
-export * from "./I18n";
+export * from "./lib/webfxcore";
+export * from "./lib/viewlib";
