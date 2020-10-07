@@ -25,13 +25,15 @@ Created for [MusicCloud](https://github.com/lideming/MusicCloud).
 Add webfx to your web page:
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@yuuza/webfx@1.5.0/dist/webfx.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@yuuza/webfx@1.5.4/dist/webfx.min.js"></script>
 ```
 
 Or if you don't need the viewlib:
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@yuuza/webfx@1.5.0/dist/webfxcore.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@yuuza/webfx@1.5.4/dist/webfxcore.min.js"></script>
 ```
+
+[Demo](https://gh.yuuza.net/webfx/demo/counter.html) ([Source code](https://github.com/lideming/webfx/blob/master/demo/counter.html))
 
 (TBD)
