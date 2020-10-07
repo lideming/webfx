@@ -1,0 +1,29 @@
+{
+  "name": "@yuuza/webfx",
+  "version": "1.5.4",
+  "description": "",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "browser": "dist/webfx.min.js",
+  "scripts": {
+    "build": "tsc && rollup -c",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepack": "npm run build"
+  },
+  "files": [
+    "dist/",
+    "lib/",
+    "src/",
+    "index.js",
+    "index.d.ts",
+    "index.js.map",
+    "style.css"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {
+    "rollup-plugin-sourcemaps": "^0.6.2",
+    "rollup-plugin-terser": "^6.1.0"
+  }
+}
