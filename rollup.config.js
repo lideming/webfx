@@ -24,6 +24,12 @@ function transformSourcemapPath() {
 function myCss() {
     return {
         name: 'my-css-loader',
+        resolveId(id) {
+            if (id.endsWith('.css')) {
+                return "style.css";
+            }
+            return null;
+        },
         /** @param {string} code */
         transform(code, id) {
             if (id.endsWith('.css')) {
@@ -37,8 +43,26 @@ function myCss() {
     };
 }
 
+function myVersion() {
+    return {
+        name: "version",
+        resolveId(src) {
+            if (src === './version') {
+                return src;
+            }
+            return null;
+        },
+        load(id) {
+            if (id === './version') {
+                return `export const version = ${JSON.stringify(require("./package.json").version)}`;
+            }
+            return null;
+        }
+    };
+}
+
 export default [{
-    input: 'index.js',
+    input: 'build/index.js',
     output: [
         {
             file: 'dist/webfx.js',
@@ -59,11 +83,12 @@ export default [{
     ],
     plugins: [
         sourcemaps(),
-        myCss()
+        myVersion(),
+        myCss(),
     ],
     context: 'this'
 }, {
-    input: 'lib/webfxcore.js',
+    input: 'build/webfxcore.js',
     output: [
         {
             file: 'dist/webfxcore.min.js',
@@ -75,7 +100,8 @@ export default [{
         }
     ],
     plugins: [
-        sourcemaps()
+        sourcemaps(),
+        myVersion(),
     ],
     context: 'this'
 }];

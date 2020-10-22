@@ -20,5 +20,5 @@
     SOFTWARE.
 ************************************************* */
 
-export * from "./lib/webfxcore";
+export * from "./webfxcore";
 export * from "./lib/viewlib";

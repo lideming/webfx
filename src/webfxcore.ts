@@ -20,5 +20,7 @@
     SOFTWARE.
 ************************************************* */
 
-export * from "./utils";
-export * from "./I18n";
+export * from "./lib/utils";
+export * from "./lib/I18n";
+
+export * from "./version";
