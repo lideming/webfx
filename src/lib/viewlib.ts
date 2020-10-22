@@ -111,17 +111,15 @@ export class View implements IDOM {
 
 declare global {
     interface Node {
+        getDOM(): this;
         appendView(view: View);
-    }
-    interface HTMLElement {
-        getDOM(): HTMLElement;
         addChild(child: IDOM): void;
     }
 }
 
-HTMLElement.prototype.getDOM = function () { return this; };
+Node.prototype.getDOM = function () { return this; };
 
-HTMLElement.prototype.addChild = function (child) {
+Node.prototype.addChild = function (child) {
     this.appendChild(utils.buildDOM(child));
 }
 

@@ -439,8 +439,7 @@ var createElementFromTag = function (tag: BuildDomTag): HTMLElement {
     return ele;
 };
 
-var buildDomCore = function (obj: BuildDomExpr, ttl: number, ctx: BuildDOMCtx | null): BuildDomReturn {
-    if (ttl-- < 0) throw new Error('ran out of TTL');
+function tryHandleValues(obj: BuildDomExpr, ctx: BuildDOMCtx | null) {
     if (typeof (obj) === 'string') { return document.createTextNode(obj); }
     if (typeof obj === 'function') {
         const val = (obj as any)();
@@ -453,8 +452,15 @@ var buildDomCore = function (obj: BuildDomExpr, ttl: number, ctx: BuildDOMCtx | 
         }
     }
     if (Node && obj instanceof Node) return obj as Node;
+    return null;
+}
+
+var buildDomCore = function (obj: BuildDomExpr, ttl: number, ctx: BuildDOMCtx | null): BuildDomReturn {
+    if (ttl-- < 0) throw new Error('ran out of TTL');
+    var r = tryHandleValues(obj, ctx);
+    if (r) return r;
     if (obj instanceof JsxNode) return obj.buildDom(ctx, ttl);
-    if ('getDOM' in obj) return obj.getDOM();
+    if ('getDOM' in (obj as any)) return (obj as any).getDOM();
     const tag = (obj as BuildDomNode).tag;
     if (!tag) throw new Error('no tag');
     var node = createElementFromTag(tag);
@@ -488,6 +494,8 @@ var buildDOMHandleKey = function (key: string, val: any, node: HTMLElement, ctx:
         } else {
             node.textContent = val;
         }
+    } else if (key === 'class') {
+        node.className = val;
     } else if (key === 'hidden' && typeof val === 'function') {
         ctx!.addUpdateAction(['hidden', node, val]);
     } else if (key === 'update' && typeof val === 'function') {
@@ -503,8 +511,8 @@ export const buildDOM: typeof utils['buildDOM'] = utils.buildDOM = function (obj
     return buildDomCore(obj, 32, ctx);
 };
 
-class JsxNode implements IDOM {
-    tag: string | IDOM;
+export class JsxNode<T extends IDOM> implements IDOM {
+    tag: T | string;
     attrs: Record<any, any> | undefined;
     child: any[] | undefined;
     constructor(tag: any, attrs: Record<any, any> | undefined, childs: any[] | undefined) {
@@ -516,15 +524,19 @@ class JsxNode implements IDOM {
         return this.buildDom(null, 64) as any;
     }
     private _getDOMExpr(): BuildDomExpr {
-        return { tag: this.tag as string, child: this.child, className: this.attrs?.class, ...this.attrs }
+        return { tag: this.tag as string, child: this.child, ...this.attrs }
     }
     buildDom(ctx: BuildDOMCtx | null, ttl: number) {
+        return this.buildView(ctx, ttl).getDOM();
+    }
+    buildView(ctx: BuildDOMCtx | null, ttl: number)
+        : T extends IDOM ? T : T extends keyof HTMLElementTagNameMap ? HTMLElementTagNameMap[T] : HTMLElement {
         if (ttl-- < 0) throw new Error('ran out of TTL');
-        if (typeof this.tag === 'string') return buildDomCore(this._getDOMExpr(), ttl, ctx);
+        if (typeof this.tag === 'string') return buildDomCore(this._getDOMExpr(), ttl, ctx) as any;
         if (this.child) for (const it of this.child) {
-            this.tag.addChild(buildDomCore(it, ttl, ctx) as IDOM);
+            (this.tag as IDOM).addChild(jsxBuildCore(it, ttl, ctx) as any);
         }
-        return this.tag.getDOM();
+        return this.tag as any;
     }
     addChild(child: IDOM): void {
         if (this.child == null) this.child = [];
@@ -532,11 +544,28 @@ class JsxNode implements IDOM {
     }
 }
 
-export function jsxFactory(tag: string | { new(any): IDOM }, attrs: Record<any, any>, ...childs: any) {
-    if (typeof tag === 'string') {
-        return new JsxNode(tag, attrs, childs);
+export function jsxBuildCore(node: JsxNode<any> | BuildDomExpr, ttl: number, ctx: BuildDOMCtx | null) {
+    if (ttl-- < 0) throw new Error('ran out of TTL');
+    var r = tryHandleValues(node, ctx);
+    if (r) return r;
+    if (node instanceof JsxNode) {
+        return node.buildView(ctx, ttl);
     } else {
-        return new JsxNode(new tag(attrs), undefined, childs);
+        throw new Error("Unknown node type");
+    }
+}
+
+export function jsxBuild<T extends IDOM>(node: JsxNode<T>, ctx?: BuildDOMCtx): T {
+    return jsxBuildCore(node, 64, ctx || new BuildDOMCtx());
+}
+
+export function jsxFactory<T extends string | { new(arg): IDOM }>(tag: T, attrs: Record<any, any>, ...childs: any)
+    : T extends keyof HTMLElementTagNameMap ? HTMLElementTagNameMap[T] 
+    : T extends {new (arg): infer U} ? U extends IDOM ? JsxNode<U> : never : never {
+    if (typeof tag === 'string') {
+        return new JsxNode(tag, attrs, childs) as any;
+    } else {
+        return new JsxNode(new (tag as any)(attrs), undefined, childs) as any;
     }
 }
 
