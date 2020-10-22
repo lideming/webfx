@@ -382,9 +382,7 @@
         }
         return ele;
     };
-    var buildDomCore = function (obj, ttl, ctx) {
-        if (ttl-- < 0)
-            throw new Error('ran out of TTL');
+    function tryHandleValues(obj, ctx) {
         if (typeof (obj) === 'string') {
             return document.createTextNode(obj);
         }
@@ -401,6 +399,14 @@
         }
         if (Node && obj instanceof Node)
             return obj;
+        return null;
+    }
+    var buildDomCore = function (obj, ttl, ctx) {
+        if (ttl-- < 0)
+            throw new Error('ran out of TTL');
+        var r = tryHandleValues(obj, ctx);
+        if (r)
+            return r;
         if (obj instanceof JsxNode)
             return obj.buildDom(ctx, ttl);
         if ('getDOM' in obj)
@@ -444,6 +450,9 @@
                 node.textContent = val;
             }
         }
+        else if (key === 'class') {
+            node.className = val;
+        }
         else if (key === 'hidden' && typeof val === 'function') {
             ctx.addUpdateAction(['hidden', node, val]);
         }
@@ -468,25 +477,43 @@
             return this.buildDom(null, 64);
         }
         _getDOMExpr() {
-            var _a;
-            return Object.assign({ tag: this.tag, child: this.child, className: (_a = this.attrs) === null || _a === void 0 ? void 0 : _a.class }, this.attrs);
+            return Object.assign({ tag: this.tag, child: this.child }, this.attrs);
         }
         buildDom(ctx, ttl) {
+            return this.buildView(ctx, ttl).getDOM();
+        }
+        buildView(ctx, ttl) {
             if (ttl-- < 0)
                 throw new Error('ran out of TTL');
             if (typeof this.tag === 'string')
                 return buildDomCore(this._getDOMExpr(), ttl, ctx);
             if (this.child)
                 for (const it of this.child) {
-                    this.tag.addChild(buildDomCore(it, ttl, ctx));
+                    this.tag.addChild(jsxBuildCore(it, ttl, ctx));
                 }
-            return this.tag.getDOM();
+            return this.tag;
         }
         addChild(child) {
             if (this.child == null)
                 this.child = [];
             this.child.push(child);
         }
+    }
+    function jsxBuildCore(node, ttl, ctx) {
+        if (ttl-- < 0)
+            throw new Error('ran out of TTL');
+        var r = tryHandleValues(node, ctx);
+        if (r)
+            return r;
+        if (node instanceof JsxNode) {
+            return node.buildView(ctx, ttl);
+        }
+        else {
+            throw new Error("Unknown node type");
+        }
+    }
+    function jsxBuild(node, ctx) {
+        return jsxBuildCore(node, 64, ctx || new BuildDOMCtx());
     }
     function jsxFactory(tag, attrs, ...childs) {
         if (typeof tag === 'string') {
@@ -984,8 +1011,8 @@
             }
         }
     }
-    HTMLElement.prototype.getDOM = function () { return this; };
-    HTMLElement.prototype.addChild = function (child) {
+    Node.prototype.getDOM = function () { return this; };
+    Node.prototype.addChild = function (child) {
         this.appendChild(utils.buildDOM(child));
     };
     Node.prototype.appendView = function (view) {
@@ -2302,6 +2329,7 @@
     exports.I18n = I18n;
     exports.InputView = InputView;
     exports.ItemActiveHelper = ItemActiveHelper;
+    exports.JsxNode = JsxNode;
     exports.LabeledInput = LabeledInput;
     exports.LabeledInputBase = LabeledInputBase;
     exports.Lazy = Lazy;
@@ -2332,6 +2360,8 @@
     exports.i18n = i18n;
     exports.injectWebfxCss = injectWebfxCss;
     exports.jsx = jsx;
+    exports.jsxBuild = jsxBuild;
+    exports.jsxBuildCore = jsxBuildCore;
     exports.jsxFactory = jsxFactory;
     exports.utils = utils;
 

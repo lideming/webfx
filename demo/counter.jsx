@@ -15,7 +15,7 @@
         }
         createDom() {
             return <div class="counter card">
-                JSX: You've click
+                You've click
                 <div class="btn inline" onclick={() => this.updateWith({ counter: this.counter + 1 })}>
                     this button
                 </div>
