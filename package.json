@@ -2,7 +2,8 @@
   "name": "@yuuza/webfx",
   "version": "1.5.5",
   "description": "",
-  "main": "index.js",
+  "main": "dist/webfx.js",
+  "module": "dist/webfx.esm.js",
   "types": "index.d.ts",
   "browser": "dist/webfx.min.js",
   "scripts": {

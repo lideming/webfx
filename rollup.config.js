@@ -45,6 +45,10 @@ export default [{
             format: 'umd',
             name: 'webfx'
         }, {
+            file: 'dist/webfx.esm.js',
+            format: 'es',
+            name: 'webfx'
+        }, {
             file: 'dist/webfx.min.js',
             format: 'umd',
             name: 'webfx',
