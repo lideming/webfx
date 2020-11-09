@@ -111,6 +111,9 @@ export function createStringBuilder(i18n: I18n) {
     var arrBuilder = createArrayBuilder(i18n);
 
     return function (literals: TemplateStringsArray, ...placeholders: any[]) {
+        if (placeholders.length === 0) {
+            return i18n.get(literals[0]);
+        }
         return arrBuilder(literals, ...placeholders).join('');
     }
 }
