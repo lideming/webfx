@@ -106,17 +106,25 @@ export class I18n {
 }
 
 export function createStringBuilder(i18n: I18n) {
-    var formatCache = new WeakMap<TemplateStringsArray, string>();
+    var arrBuilder = createArrayBuilder(i18n);
 
     return function (literals: TemplateStringsArray, ...placeholders: any[]) {
+        return arrBuilder(literals, placeholders).join('');
+    }
+}
+
+export function createArrayBuilder(i18n: I18n) {
+    var formatCache = new WeakMap<TemplateStringsArray, (string | number)[]>();
+
+    return function <T extends any[]>(literals: TemplateStringsArray, ...placeholders: T): (string | T)[] {
         if (placeholders.length === 0) {
-            return i18n.get(literals[0]);
+            return [i18n.get(literals[0])];
         }
 
         // Generate format string from template string if it's not cached:
-        let formatString = formatCache.get(literals);
-        if (formatString === undefined) {
-            formatString = '';
+        let parsed = formatCache.get(literals);
+        if (parsed === undefined) {
+            let formatString = '';
             for (let i = 0; i < literals.length; i++) {
                 const lit = literals[i];
                 formatString += lit;
@@ -124,15 +132,41 @@ export function createStringBuilder(i18n: I18n) {
                     formatString += '{' + i + '}';
                 }
             }
-            formatCache.set(literals, formatString);
+            parsed = parseTemplate(i18n.get(formatString));
+            formatCache.set(literals, parsed);
         }
 
-        var r = i18n.get(formatString);
-        for (var i = 0; i < placeholders.length; i++) {
-            r = r.replace('{' + i + '}', placeholders[i]);
-        }
-        return r;
+        return parsed.map(x => typeof x == 'number' ? placeholders[x] : x);
     }
+}
+
+function parseTemplate(template: string): (string | number)[] {
+    const result: (string | number)[] = [];
+    let state = 0; // 0: normal / 1: after '{' / 2: after '}' / 3: after '{' and numbers
+    let buf = '';
+    for (let i = 0; i < template.length; i++) {
+        const ch = template[i];
+        switch (ch) {
+            case '{':
+                if (state == 0) state = 1;
+                else if (state == 1) { state = 0; buf += '{'; }
+                else throw new Error(`Expected number, got '${ch}' at ${i}`);
+                break;
+            case '}':
+                if (state == 3) { state = 0; result.push(+buf); buf = ''; }
+                else if (state == 0) { state = 2; }
+                else if (state == 2) { state = 0; buf += '}'; }
+                else throw new Error(`Expected number, got '${ch}' at ${i}`);
+                break;
+            default:
+                if (state == 2) throw new Error(`Expected '}', got '${ch}' at ${i}`);
+                else if (state == 1) { state = 3; if (buf) result.push(buf); buf = ''; }
+                buf += ch;
+        }
+    }
+    if (state != 0) throw new Error("Unexpected end of template string");
+    if (buf) result.push(buf);
+    return result;
 }
 
 export var i18n = new I18n();
