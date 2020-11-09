@@ -116,8 +116,8 @@ export function createStringBuilder(i18n: I18n) {
 }
 
 export function createArrayBuilder(i18n: I18n) {
-    var formatCache = new WeakMap<TemplateStringsArray, String>();
-    var parseCache = new WeakMap<String, (string | number)[]>();
+    var formatCache = new WeakMap<TemplateStringsArray, string>();
+    var parseCache = new Map<string, (string | number)[]>();
 
     return function <T extends any[]>(literals: TemplateStringsArray, ...placeholders: T): (string | T)[] {
         if (placeholders.length === 0) {
@@ -135,14 +135,15 @@ export function createArrayBuilder(i18n: I18n) {
                     format += '{' + i + '}';
                 }
             }
-            format = new String(format);
             formatCache.set(literals, format);
         }
 
-        // Also cache parsed template:
-        let parsed = parseCache.get(format);
+        const translatedFormat = i18n.get(format);
+
+        // Also cache parsed template
+        let parsed = parseCache.get(translatedFormat);
         if (parsed === undefined) {
-            parsed = parseTemplate(format.toString());
+            parsed = parseTemplate(translatedFormat);
         }
 
         return parsed.map(x => typeof x == 'number' ? placeholders[x] : x);
