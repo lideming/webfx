@@ -1,5 +1,7 @@
 // file: I18n.ts
 
+import { FlagsInput } from "./viewlib";
+
 export interface I18nData {
     [lang: string]: LangObj;
 }
@@ -114,7 +116,8 @@ export function createStringBuilder(i18n: I18n) {
 }
 
 export function createArrayBuilder(i18n: I18n) {
-    var formatCache = new WeakMap<TemplateStringsArray, (string | number)[]>();
+    var formatCache = new WeakMap<TemplateStringsArray, String>();
+    var parseCache = new WeakMap<String, (string | number)[]>();
 
     return function <T extends any[]>(literals: TemplateStringsArray, ...placeholders: T): (string | T)[] {
         if (placeholders.length === 0) {
@@ -122,18 +125,24 @@ export function createArrayBuilder(i18n: I18n) {
         }
 
         // Generate format string from template string if it's not cached:
-        let parsed = formatCache.get(literals);
-        if (parsed === undefined) {
-            let formatString = '';
+        let format = formatCache.get(literals);
+        if (format === undefined) {
+            format = '';
             for (let i = 0; i < literals.length; i++) {
                 const lit = literals[i];
-                formatString += lit;
+                format += lit;
                 if (i < placeholders.length) {
-                    formatString += '{' + i + '}';
+                    format += '{' + i + '}';
                 }
             }
-            parsed = parseTemplate(i18n.get(formatString));
-            formatCache.set(literals, parsed);
+            format = new String(format);
+            formatCache.set(literals, format);
+        }
+
+        // Also cache parsed template:
+        let parsed = parseCache.get(format);
+        if (parsed === undefined) {
+            parsed = parseTemplate(format.toString());
         }
 
         return parsed.map(x => typeof x == 'number' ? placeholders[x] : x);
