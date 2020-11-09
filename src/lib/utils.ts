@@ -534,7 +534,11 @@ export class JsxNode<T extends IDOM> implements IDOM {
         if (ttl-- < 0) throw new Error('ran out of TTL');
         if (typeof this.tag === 'string') return buildDomCore(this._getDOMExpr(), ttl, ctx) as any;
         if (this.child) for (const it of this.child) {
-            (this.tag as IDOM).addChild(jsxBuildCore(it, ttl, ctx) as any);
+            if (it instanceof Array) {
+                it.forEach(it => (this.tag as IDOM).addChild(jsxBuildCore(it, ttl, ctx) as any));
+            } else {
+                (this.tag as IDOM).addChild(jsxBuildCore(it, ttl, ctx) as any);
+            }
         }
         return this.tag as any;
     }
@@ -560,8 +564,8 @@ export function jsxBuild<T extends IDOM>(node: JsxNode<T>, ctx?: BuildDOMCtx): T
 }
 
 export function jsxFactory<T extends string | { new(arg): IDOM }>(tag: T, attrs: Record<any, any>, ...childs: any)
-    : T extends keyof HTMLElementTagNameMap ? HTMLElementTagNameMap[T] 
-    : T extends {new (arg): infer U} ? U extends IDOM ? JsxNode<U> : never : never {
+    : T extends keyof HTMLElementTagNameMap ? HTMLElementTagNameMap[T]
+    : T extends { new(arg): infer U } ? U extends IDOM ? JsxNode<U> : never : never {
     if (typeof tag === 'string') {
         return new JsxNode(tag, attrs, childs) as any;
     } else {

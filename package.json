@@ -1,6 +1,6 @@
 {
   "name": "@yuuza/webfx",
-  "version": "1.5.10",
+  "version": "1.5.11",
   "description": "",
   "main": "dist/webfx.js",
   "module": "dist/webfx.esm.js",
