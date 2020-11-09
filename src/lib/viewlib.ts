@@ -13,7 +13,7 @@ export function injectWebfxCss() {
     }
 }
 
-export class View implements IDOM {
+export class View<T extends HTMLElement = HTMLElement> implements IDOM {
     constructor(dom?: BuildDomExpr) {
         if (dom) this.domExprCreated(dom);
     }
@@ -25,7 +25,7 @@ export class View implements IDOM {
     get position() { return this._position; }
 
     domctx = new BuildDOMCtx();
-    protected _dom: HTMLElement | undefined = undefined;
+    protected _dom: T | undefined = undefined;
     public get domCreated() { return !!this._dom; }
     public get dom() {
         this.ensureDom();
@@ -40,7 +40,7 @@ export class View implements IDOM {
         }
     }
     private domExprCreated(r: BuildDomExpr) {
-        this._dom = utils.buildDOM(r, this.domctx) as HTMLElement;
+        this._dom = utils.buildDOM(r, this.domctx) as T;
         this.postCreateDom();
         this.updateDom();
     }
