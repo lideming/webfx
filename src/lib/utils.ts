@@ -480,8 +480,14 @@ var buildDomCore = function (obj: BuildDomExpr, ttl: number, ctx: BuildDOMCtx | 
 var buildDOMHandleKey = function (key: string, val: any, node: HTMLElement, ctx: BuildDOMCtx | null, ttl: number) {
     if (key === 'child') {
         if (val instanceof Array) {
-            val.forEach(function (x) {
-                node.appendChild(buildDomCore(x, ttl, ctx));
+            val.forEach(function (val) {
+                if (val instanceof Array) {
+                    val.forEach(function (val) {
+                        node.appendChild(buildDomCore(val, ttl, ctx));
+                    });
+                } else {
+                    node.appendChild(buildDomCore(val, ttl, ctx));
+                }
             });
         } else {
             node.appendChild(buildDomCore(val, ttl, ctx));
