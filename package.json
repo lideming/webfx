@@ -4,7 +4,7 @@
   "description": "",
   "main": "dist/webfx.js",
   "module": "dist/webfx.esm.js",
-  "types": "src/index.ts",
+  "types": "build/index.d.ts",
   "browser": "dist/webfx.min.js",
   "scripts": {
     "build": "tsc && rollup -c",
@@ -13,7 +13,7 @@
   },
   "files": [
     "dist/",
-    "src/",
+    "build/**/*.d.ts",
     "style.css"
   ],
   "author": "",
