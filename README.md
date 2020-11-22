@@ -10,15 +10,19 @@ Created for [MusicCloud](https://github.com/lideming/MusicCloud).
   + Utilities
 * `i18n.ts`
   + Internationalization (i18n) helper
+* `view.ts`
+  + The core of a very simple (MVVM?) framework
 * `viewlib.ts`
-  + Very simple (MVVM?) framework with some views
+  + Some `View`s (Button, Input, ListView, Menu, Dialog, Toast, etc.)
 * `style.css`
   + CSS for the viewlib
 * `dist/`
   * `webfx.js`
-    + Js bundle for browsers (and there is a `.min.js` version)
+    + A bundle for browsers (and there is a `.min.js` version)
   * `webfxcore.min.js`
-    + A much smaller js bundle without the viewlib and style
+    + Another bundle without the viewlib and style (it is much smaller)
+  * `webfx.esm.js`
+    + A bundle as a ES module
 
 ## Getting Started
 
