@@ -476,3 +476,15 @@ textarea.input-text {
     opacity: 0;
     pointer-events: none;
 }
+
+.anchor-bottom {
+    transform: translate(-50%, -100%);
+}
+
+.tooltip {
+    position: absolute;
+    background: var(--color-bg);
+    box-shadow: 0 0 5px var(--color-shadow);
+    border-radius: 5px;
+    padding: .2em .25em;
+}

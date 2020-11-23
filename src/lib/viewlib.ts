@@ -9,7 +9,7 @@ export function getWebfxCss() { return css; }
 let cssInjected = false;
 export function injectWebfxCss() {
     if (!cssInjected) {
-        utils.injectCss(getWebfxCss(), {tag: 'style.webfx-injected-style'});
+        utils.injectCss(getWebfxCss(), { tag: 'style.webfx-injected-style' });
         cssInjected = true;
     }
 }
@@ -826,10 +826,6 @@ export class Dialog extends View {
             });
         }
 
-        this.dom.addEventListener('resize', () => {
-            if (this.dom.style.width)
-                this.width = this.dom.style.width;
-        });
         this.focusTrap.dom.addEventListener('focus', (ev) => {
             this.dom.focus();
         });
@@ -1223,5 +1219,52 @@ export class ViewToggle<T extends keyof any> {
         } else {
             throw new Error('Unknown toggle mode');
         }
+    }
+}
+
+export class ToolTip extends TextView {
+    createDom() {
+        return {
+            tag: 'div.tooltip'
+        }
+    }
+    private _shown = false;
+    get shown() { return this._shown; }
+    show(options: PositionOptions & {
+        parent?: HTMLElement, timeout?: number
+    }) {
+        if (this.shown) return;
+        this._shown = true;
+        this._cancelClose?.();
+        let { parent = document.body, timeout } = options;
+        const dom = this.dom;
+        setPosition(dom, options);
+        parent.appendChild(dom);
+    }
+    private _cancelClose: Action | null = null;
+    close() {
+        if (!this.shown) return;
+        this._shown = false;
+        this._cancelClose = utils.fadeout(this.dom).cancel;
+    }
+}
+
+export interface PositionOptions {
+    x?: number;
+    y?: number;
+    anchor?: 'bottom';
+}
+
+function setPosition(dom: HTMLElement, options: PositionOptions) {
+    let { x = 0, y = 0, anchor = 'bottom' } = options;
+    dom.style.left = x + 'px';
+    dom.style.top = y + 'px';
+    if (!dom.classList.contains('anchor-' + anchor)) {
+        dom.classList.forEach(x => {
+            if (x.startsWith('anchor-')) {
+                dom.classList.remove(x);
+            }
+        });
+        dom.classList.add('anchor-' + anchor);
     }
 }
