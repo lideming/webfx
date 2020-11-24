@@ -115,24 +115,28 @@
             return force;
         }
         /** Fade out the element and remove it */
-        fadeout(element) {
-            element.classList.add('fading-out');
+        fadeout(element, options) {
+            const { className = 'fading-out', duration = 500, waitTransition = true } = options || {};
+            element.classList.add(className);
             var cb = null;
             var end = () => {
                 if (!end)
                     return; // use a random variable as flag ;)
                 end = null;
-                element.removeEventListener('transitionend', onTransitionend);
-                element.classList.remove('fading-out');
+                if (waitTransition)
+                    element.removeEventListener('transitionend', onTransitionend);
+                element.classList.remove(className);
                 element.remove();
                 cb && cb();
             };
-            var onTransitionend = function (e) {
-                if (e.eventPhase === Event.AT_TARGET)
-                    end();
-            };
-            element.addEventListener('transitionend', onTransitionend);
-            setTimeout(end, 350); // failsafe
+            if (waitTransition) {
+                var onTransitionend = function (e) {
+                    if (e.eventPhase === Event.AT_TARGET)
+                        end();
+                };
+                element.addEventListener('transitionend', onTransitionend);
+            }
+            setTimeout(end, duration); // failsafe
             return {
                 get finished() { return !end; },
                 onFinished(callback) {
@@ -145,7 +149,8 @@
             };
         }
         listenPointerEvents(element, callback, options) {
-            element.addEventListener('mousedown', function (e) {
+            var touchDown = false;
+            var mouseDown = function (e) {
                 if (callback({ type: 'mouse', ev: e, point: e, action: 'down' }) === 'track') {
                     var mousemove = function (e) {
                         callback({ type: 'mouse', ev: e, point: e, action: 'move' });
@@ -158,9 +163,8 @@
                     document.addEventListener('mousemove', mousemove, true);
                     document.addEventListener('mouseup', mouseup, true);
                 }
-            }, options);
-            var touchDown = false;
-            element.addEventListener('touchstart', function (e) {
+            };
+            var touchStart = function (e) {
                 var ct = e.changedTouches[0];
                 var ret = callback({
                     type: 'touch', touch: 'start', ev: e, point: ct,
@@ -187,12 +191,26 @@
                     element.addEventListener('touchmove', touchmove, options);
                     element.addEventListener('touchend', touchend, options);
                 }
-            }, options);
+            };
+            element.addEventListener('mousedown', mouseDown, options);
+            element.addEventListener('touchstart', touchStart, options);
+            return {
+                remove: () => {
+                    element.removeEventListener('mousedown', mouseDown, options);
+                    element.removeEventListener('touchstart', touchStart, options);
+                }
+            };
         }
-        addEvent(element, event, handler) {
+        listenEvent(element, event, handler) {
             element.addEventListener(event, handler);
             return {
                 remove: () => element.removeEventListener(event, handler)
+            };
+        }
+        listenEvents(element, events, handler) {
+            events.forEach(event => element.addEventListener(event, handler));
+            return {
+                remove: () => events.forEach(event => element.removeEventListener(event, handler))
             };
         }
         injectCss(css, options) {
@@ -550,6 +568,54 @@
             this.dom.addEventListener('compositionend', (ev) => {
                 this.isCompositing = false;
             });
+        }
+    }
+    class InputStateTracker {
+        constructor(dom) {
+            this.dom = dom;
+            this.state = {
+                mouseDown: false,
+                mouseIn: false,
+                focusIn: false,
+            };
+            this._removeEvents = null;
+            this._removePointerEvents = null;
+            this.onChanged = new Callbacks();
+            this._removeEvents = utils.listenEvents(dom, ['mouseenter', 'mouseleave', 'focusin', 'focusout'], (e) => {
+                switch (e.type) {
+                    case 'mouseenter':
+                        this.stateChanged('mouseIn', true);
+                        break;
+                    case 'mouseleave':
+                        this.stateChanged('mouseIn', false);
+                        break;
+                    case 'focusin':
+                        this.stateChanged('focusIn', true);
+                        break;
+                    case 'focusout':
+                        this.stateChanged('focusIn', false);
+                        break;
+                }
+            }).remove;
+            this._removePointerEvents = utils.listenPointerEvents(dom, (e) => {
+                if (e.action == 'down') {
+                    this.stateChanged('mouseDown', true);
+                    return 'track';
+                }
+                else if (e.action == 'up') {
+                    this.stateChanged('mouseDown', false);
+                }
+            }).remove;
+        }
+        stateChanged(state, val) {
+            this.state[state] = val;
+            this.onChanged.invoke(state);
+        }
+        removeListeners() {
+            var _a, _b;
+            (_a = this._removeEvents) === null || _a === void 0 ? void 0 : _a.call(this);
+            (_b = this._removePointerEvents) === null || _b === void 0 ? void 0 : _b.call(this);
+            this._removePointerEvents = this._removeEvents = null;
         }
     }
 
@@ -1706,13 +1772,13 @@
                 onComplete === null || onComplete === void 0 ? void 0 : onComplete(input.value);
             };
             var events = [
-                utils.addEvent(input, 'keydown', (evv) => {
+                utils.listenEvent(input, 'keydown', (evv) => {
                     if (evv.code === 'Enter') {
                         stopEdit();
                         evv.preventDefault();
                     }
                 }),
-                utils.addEvent(input, 'focusout', (evv) => { stopEdit(); }),
+                utils.listenEvent(input, 'focusout', (evv) => { stopEdit(); }),
             ];
         }
         startEditAsync() {
@@ -2391,6 +2457,7 @@
         constructor() {
             super(...arguments);
             this._shown = false;
+            this._timer = new Timer(() => this.close());
             this._cancelClose = null;
         }
         createDom() {
@@ -2406,15 +2473,18 @@
             this._shown = true;
             (_a = this._cancelClose) === null || _a === void 0 ? void 0 : _a.call(this);
             let { parent = document.body, timeout } = options;
+            if (timeout)
+                this._timer.timeout(timeout);
             const dom = this.dom;
             setPosition(dom, options);
             parent.appendChild(dom);
         }
-        close() {
+        close(fadeOutOptions) {
             if (!this.shown)
                 return;
+            this._timer.tryCancel();
             this._shown = false;
-            this._cancelClose = utils.fadeout(this.dom).cancel;
+            this._cancelClose = utils.fadeout(this.dom, fadeOutOptions).cancel;
         }
     }
     function setPosition(dom, options) {
@@ -2444,6 +2514,7 @@
     exports.EventRegistrations = EventRegistrations;
     exports.I = I;
     exports.I18n = I18n;
+    exports.InputStateTracker = InputStateTracker;
     exports.InputView = InputView;
     exports.ItemActiveHelper = ItemActiveHelper;
     exports.JsxNode = JsxNode;
