@@ -551,13 +551,13 @@ export class EditableHelper {
             onComplete?.(input.value);
         };
         var events = [
-            utils.addEvent(input, 'keydown', (evv) => {
+            utils.listenEvent(input, 'keydown', (evv) => {
                 if (evv.code === 'Enter') {
                     stopEdit();
                     evv.preventDefault();
                 }
             }),
-            utils.addEvent(input, 'focusout', (evv) => { stopEdit(); }),
+            utils.listenEvent(input, 'focusout', (evv) => { stopEdit(); }),
         ];
     }
     startEditAsync() {
@@ -1229,6 +1229,7 @@ export class ToolTip extends TextView {
         }
     }
     private _shown = false;
+    private _timer = new Timer(() => this.close());
     get shown() { return this._shown; }
     show(options: PositionOptions & {
         parent?: HTMLElement, timeout?: number
@@ -1237,15 +1238,17 @@ export class ToolTip extends TextView {
         this._shown = true;
         this._cancelClose?.();
         let { parent = document.body, timeout } = options;
+        if (timeout) this._timer.timeout(timeout);
         const dom = this.dom;
         setPosition(dom, options);
         parent.appendChild(dom);
     }
     private _cancelClose: Action | null = null;
-    close() {
+    close(fadeOutOptions?: Parameters<typeof utils.fadeout>[1]) {
         if (!this.shown) return;
+        this._timer.tryCancel();
         this._shown = false;
-        this._cancelClose = utils.fadeout(this.dom).cancel;
+        this._cancelClose = utils.fadeout(this.dom, fadeOutOptions).cancel;
     }
 }
 

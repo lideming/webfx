@@ -113,22 +113,26 @@ export var utils = new class Utils {
     }
 
     /** Fade out the element and remove it */
-    fadeout(element: HTMLElement) {
-        element.classList.add('fading-out');
+    fadeout(element: HTMLElement, options?: { className?: string, duration?: number, waitTransition?: boolean }) {
+        const { className = 'fading-out', duration = 500, waitTransition = true } = options || {};
+        element.classList.add(className);
         var cb: Action | null = null;
         var end: Action | null = () => {
             if (!end) return; // use a random variable as flag ;)
             end = null;
-            element.removeEventListener('transitionend', onTransitionend);
-            element.classList.remove('fading-out');
+            if (waitTransition)
+                element.removeEventListener('transitionend', onTransitionend);
+            element.classList.remove(className);
             element.remove();
             cb && cb();
         };
-        var onTransitionend = function (e: TransitionEvent) {
-            if (e.eventPhase === Event.AT_TARGET) end!();
-        };
-        element.addEventListener('transitionend', onTransitionend);
-        setTimeout(end, 350); // failsafe
+        if (waitTransition) {
+            var onTransitionend = function (e: TransitionEvent) {
+                if (e.eventPhase === Event.AT_TARGET) end!();
+            };
+            element.addEventListener('transitionend', onTransitionend);
+        }
+        setTimeout(end, duration); // failsafe
         return {
             get finished() { return !end; },
             onFinished(callback: Action) {
@@ -140,7 +144,8 @@ export var utils = new class Utils {
     }
 
     listenPointerEvents(element: HTMLElement, callback: (e: PtrEvent) => void | 'track', options?: AddEventListenerOptions) {
-        element.addEventListener('mousedown', function (e) {
+        var touchDown = false;
+        var mouseDown = function (e: MouseEvent) {
             if (callback({ type: 'mouse', ev: e, point: e, action: 'down' }) === 'track') {
                 var mousemove = function (e: MouseEvent) {
                     callback({ type: 'mouse', ev: e, point: e, action: 'move' });
@@ -153,9 +158,8 @@ export var utils = new class Utils {
                 document.addEventListener('mousemove', mousemove, true);
                 document.addEventListener('mouseup', mouseup, true);
             }
-        }, options);
-        var touchDown = false;
-        element.addEventListener('touchstart', function (e) {
+        };
+        var touchStart = function (e: TouchEvent) {
             var ct = e.changedTouches[0];
             var ret = callback({
                 type: 'touch', touch: 'start', ev: e, point: ct,
@@ -182,14 +186,30 @@ export var utils = new class Utils {
                 element.addEventListener('touchmove', touchmove, options);
                 element.addEventListener('touchend', touchend, options);
             }
-        }, options);
+        };
+        element.addEventListener('mousedown', mouseDown, options);
+        element.addEventListener('touchstart', touchStart, options);
+        return {
+            remove: () => {
+                element.removeEventListener('mousedown', mouseDown, options);
+                element.removeEventListener('touchstart', touchStart, options);
+            }
+        }
     }
 
-    addEvent<K extends keyof HTMLElementEventMap>(element: HTMLElement, event: K,
+    listenEvent<K extends keyof HTMLElementEventMap>(element: HTMLElement, event: K,
         handler: (ev: HTMLElementEventMap[K]) => any) {
         element.addEventListener(event, handler);
         return {
             remove: () => element.removeEventListener(event, handler)
+        };
+    }
+
+    listenEvents<K extends Array<keyof HTMLElementEventMap>>(element: HTMLElement, events: K,
+        handler: (ev: HTMLElementEventMap[K[number]]) => any) {
+        events.forEach(event => element.addEventListener(event, handler));
+        return {
+            remove: () => events.forEach(event => element.removeEventListener(event, handler))
         };
     }
 
@@ -586,5 +606,52 @@ export class TextCompositionWatcher {
         this.dom.addEventListener('compositionend', (ev) => {
             this.isCompositing = false;
         });
+    }
+}
+
+export class InputStateTracker {
+    state = {
+        mouseDown: false,
+        mouseIn: false,
+        focusIn: false,
+    };
+    private _removeEvents: Action | null = null;
+    private _removePointerEvents: Action | null = null;
+    readonly onChanged = new Callbacks<Action<keyof InputStateTracker['state']>>();
+    constructor(readonly dom: HTMLElement) {
+        this._removeEvents = utils.listenEvents(dom, ['mouseenter', 'mouseleave', 'focusin', 'focusout'], (e) => {
+            switch (e.type) {
+                case 'mouseenter':
+                    this.stateChanged('mouseIn', true);
+                    break;
+                case 'mouseleave':
+                    this.stateChanged('mouseIn', false);
+                    break;
+                case 'focusin':
+                    this.stateChanged('focusIn', true);
+                    break;
+                case 'focusout':
+                    this.stateChanged('focusIn', false);
+                    break;
+            }
+        }).remove;
+
+        this._removePointerEvents = utils.listenPointerEvents(dom, (e) => {
+            if (e.action == 'down') {
+                this.stateChanged('mouseDown', true);
+                return 'track';
+            } else if (e.action == 'up') {
+                this.stateChanged('mouseDown', false);
+            }
+        }).remove;
+    }
+    private stateChanged<T extends keyof InputStateTracker['state']>(state: T, val: InputStateTracker['state'][T]) {
+        this.state[state] = val;
+        this.onChanged.invoke(state);
+    }
+    removeListeners() {
+        this._removeEvents?.();
+        this._removePointerEvents?.();
+        this._removePointerEvents = this._removeEvents = null;
     }
 }
