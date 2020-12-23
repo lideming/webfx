@@ -377,7 +377,7 @@ export class ContainerView<T extends View> extends View {
     }
     removeView(view: T | number) {
         view = this._ensureItem(view);
-        view.dom.remove();
+        this._removeFromDom(view);
         var pos = view._position!;
         view.parentView = view._position = undefined;
         this.items.splice(pos, 1);
@@ -396,6 +396,9 @@ export class ContainerView<T extends View> extends View {
     protected _insertToDom(item: T, pos: number) {
         if (pos == this.items.length - 1) this.dom.appendChild(item.dom);
         else this.dom.insertBefore(item.dom, this.items[pos + 1]?.dom || null);
+    }
+    protected _removeFromDom(item: T) {
+        if (item.domCreated) item.dom.remove();
     }
     protected _ensureItem(item: T | number) {
         if (typeof item === 'number') item = this.items[item];

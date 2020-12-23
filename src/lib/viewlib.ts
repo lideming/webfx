@@ -460,14 +460,17 @@ export class LazyListView<T extends ListViewItem = ListViewItem> extends ListVie
         this._autoLoad = { interval, batchSize };
         this.slowlyLoad(interval, batchSize);
     }
+    stopLoading() {
+        this._slowLoading = null;
+        this._autoLoad = null;
+    }
     unload() {
-        for (let i = 0; i < this._loaded; i++) {
+        this.stopLoading();
+        for (let i = this._loaded - 1; i >= 0; i--) {
             this.items[i].dom.remove();
         }
-        this._slowLoading = null;
-        this._loaded = 0;
-        this._autoLoad = null;
         this.lazy = true;
+        this._loaded = 0;
     }
     protected _insertToDom(item: T, pos: number) {
         if (!this.lazy || pos < this._loaded - 1) {
@@ -477,6 +480,12 @@ export class LazyListView<T extends ListViewItem = ListViewItem> extends ListVie
             if (this._autoLoad) {
                 this.slowlyLoad(this._autoLoad.interval, this._autoLoad.batchSize);
             }
+        }
+    }
+    protected _removeFromDom(item: T) {
+        if (item.position! < this._loaded) {
+            super._removeFromDom(item);
+            this._loaded--;
         }
     }
 }
