@@ -299,6 +299,17 @@
     Array.prototype.remove = function (item) {
         utils.arrayRemove(this, item);
     };
+    function startBlockingDetect(threshold = 20) {
+        var begin = Date.now();
+        var lastRun = Date.now();
+        setInterval(() => {
+            var now = Date.now();
+            if (now - lastRun >= threshold) {
+                console.info(`[Blocking] ${(now - begin) / 1000}s: blocked for ${now - lastRun} ms`);
+            }
+            lastRun = now;
+        }, 1);
+    }
     class Timer {
         constructor(callback) {
             this.callback = callback;
@@ -955,7 +966,6 @@
             this.addView(view);
         }
         addView(view, pos) {
-            var _a;
             const items = this.items;
             if (view.parentView)
                 throw new Error('the view is already in a container view');
@@ -963,14 +973,14 @@
             if (pos === undefined) {
                 view._position = items.length;
                 items.push(view);
-                this.dom.appendChild(view.dom);
+                this._insertToDom(view, items.length - 1);
             }
             else {
                 items.splice(pos, 0, view);
-                this.dom.insertBefore(view.dom, ((_a = items[pos + 1]) === null || _a === void 0 ? void 0 : _a.dom) || null);
                 for (let i = pos; i < items.length; i++) {
                     items[i]._position = i;
                 }
+                this._insertToDom(view, pos);
             }
         }
         removeView(view) {
@@ -991,6 +1001,13 @@
             for (const item of this.items) {
                 item.updateDom();
             }
+        }
+        _insertToDom(item, pos) {
+            var _a;
+            if (pos == this.items.length - 1)
+                this.dom.appendChild(item.dom);
+            else
+                this.dom.insertBefore(item.dom, ((_a = this.items[pos + 1]) === null || _a === void 0 ? void 0 : _a.dom) || null);
         }
         _ensureItem(item) {
             if (typeof item === 'number')
@@ -1619,6 +1636,96 @@
             this.current = item;
             if (this.current)
                 this.funcSetActive(this.current, true);
+        }
+    }
+    class LazyListView extends ListView {
+        constructor() {
+            super(...arguments);
+            this._loaded = 0;
+            this._lazy = false;
+            this._slowLoading = null;
+            this._autoLoad = null;
+        }
+        get lazy() { return this._lazy; }
+        set lazy(val) {
+            this._lazy = val;
+            if (!val)
+                this.ensureLoaded(this.length - 1);
+        }
+        ensureLoaded(pos) {
+            if (pos >= this.length)
+                pos = this.length - 1;
+            while (this._loaded <= pos) {
+                this.dom.appendChild(this.items[this._loaded].dom);
+                this._loaded++;
+            }
+        }
+        loadNext(batchSize = 50) {
+            if (this._loaded < this.length) {
+                this.ensureLoaded(Math.min(this.length - 1, this._loaded + batchSize - 1));
+                return true;
+            }
+            return false;
+        }
+        slowlyLoad(interval = 30, batchSize = 50, autoLoad = false) {
+            if (autoLoad)
+                this.enableAutoLoad(interval, batchSize);
+            if (this._slowLoading)
+                return this._slowLoading;
+            return this._slowLoading = new Promise((r) => {
+                var cancel;
+                var cont;
+                var callback = () => {
+                    if (!this._slowLoading || !this.loadNext(batchSize)) {
+                        this.lazy = false;
+                        cancel();
+                        r(!!this._slowLoading);
+                        this._slowLoading = null;
+                    }
+                    else {
+                        cont();
+                    }
+                };
+                if (interval == -1 && window['requestIdleCallback']) {
+                    let handle;
+                    cancel = () => window['cancelIdleCallback'](handle);
+                    cont = () => {
+                        handle = window['requestIdleCallback'](callback);
+                    };
+                    cont();
+                }
+                else {
+                    if (interval == -1)
+                        interval = 30;
+                    let timer = setInterval(callback, interval);
+                    cancel = () => clearInterval(timer);
+                    cont = () => { };
+                }
+            });
+        }
+        enableAutoLoad(interval = 30, batchSize = 50) {
+            this._autoLoad = { interval, batchSize };
+            this.slowlyLoad(interval, batchSize);
+        }
+        unload() {
+            for (let i = 0; i < this._loaded; i++) {
+                this.items[i].dom.remove();
+            }
+            this._slowLoading = null;
+            this._loaded = 0;
+            this._autoLoad = null;
+            this.lazy = true;
+        }
+        _insertToDom(item, pos) {
+            if (!this.lazy || pos < this._loaded - 1) {
+                super._insertToDom(item, pos);
+                this._loaded++;
+            }
+            else {
+                if (this._autoLoad) {
+                    this.slowlyLoad(this._autoLoad.interval, this._autoLoad.batchSize);
+                }
+            }
         }
     }
     class Section extends View {
@@ -2521,6 +2628,7 @@
     exports.LabeledInput = LabeledInput;
     exports.LabeledInputBase = LabeledInputBase;
     exports.Lazy = Lazy;
+    exports.LazyListView = LazyListView;
     exports.ListView = ListView;
     exports.ListViewItem = ListViewItem;
     exports.LoadingIndicator = LoadingIndicator;
@@ -2553,6 +2661,7 @@
     exports.jsxBuild = jsxBuild;
     exports.jsxBuildCore = jsxBuildCore;
     exports.jsxFactory = jsxFactory;
+    exports.startBlockingDetect = startBlockingDetect;
     exports.utils = utils;
     exports.version = version;
 
