@@ -1671,7 +1671,7 @@ class LazyListView extends ListView {
             var cont;
             var callback = () => {
                 if (!this._slowLoading || !this.loadNext(batchSize)) {
-                    this.lazy = false;
+                    this.lazy = !!this._autoLoad;
                     cancel();
                     r(!!this._slowLoading);
                     this._slowLoading = null;
