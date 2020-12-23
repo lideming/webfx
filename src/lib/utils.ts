@@ -311,6 +311,19 @@ declare global {
     }
 }
 
+
+export function startBlockingDetect(threshold = 20) {
+    var begin = Date.now();
+    var lastRun = Date.now();
+    setInterval(() => {
+        var now = Date.now();
+        if (now - lastRun >= threshold) {
+            console.info(`[Blocking] ${(now - begin) / 1000}s: blocked for ${now - lastRun} ms`);
+        }
+        lastRun = now;
+    }, 1);
+}
+
 export class Timer {
     callback: () => void;
     cancelFunc: (() => void) | undefined;

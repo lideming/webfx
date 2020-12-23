@@ -170,7 +170,7 @@ var buildDOMHandleKey = function (key: string, val: any, node: HTMLElement, ctx:
     } else {
         node[key] = val;
     }
-}
+};
 
 export const buildDOM: typeof utils['buildDOM'] = utils.buildDOM = function (obj: BuildDomExpr, ctx: BuildDOMCtx): any {
     return buildDomCore(obj, 32, ctx);
@@ -189,7 +189,7 @@ export class JsxNode<T extends IDOM> implements IDOM {
         return this.buildDom(null, 64) as any;
     }
     private _getDOMExpr(): BuildDomExpr {
-        return { tag: this.tag as string, child: this.child, ...this.attrs }
+        return { tag: this.tag as string, child: this.child, ...this.attrs };
     }
     buildDom(ctx: BuildDOMCtx | null, ttl: number) {
         return this.buildView(ctx, ttl).getDOM();
@@ -228,9 +228,9 @@ export function jsxBuild<T extends IDOM>(node: JsxNode<T>, ctx?: BuildDOMCtx): T
     return jsxBuildCore(node, 64, ctx || new BuildDOMCtx());
 }
 
-export function jsxFactory<T extends string | { new(arg): IDOM }>(tag: T, attrs: Record<any, any>, ...childs: any)
+export function jsxFactory<T extends string | { new(arg): IDOM; }>(tag: T, attrs: Record<any, any>, ...childs: any)
     : T extends keyof HTMLElementTagNameMap ? HTMLElementTagNameMap[T]
-    : T extends { new(arg): infer U } ? U extends IDOM ? JsxNode<U> : never : never {
+    : T extends { new(arg): infer U; } ? U extends IDOM ? JsxNode<U> : never : never {
     if (typeof tag === 'string') {
         return new JsxNode(tag, attrs, childs) as any;
     } else {
@@ -348,7 +348,7 @@ Node.prototype.getDOM = function () { return this; };
 
 Node.prototype.addChild = function (child) {
     this.appendChild(utils.buildDOM(child));
-}
+};
 
 Node.prototype.appendView = function (this: Node, view: View) {
     this.appendChild(view.dom);
@@ -366,13 +366,13 @@ export class ContainerView<T extends View> extends View {
         if (pos === undefined) {
             view._position = items.length;
             items.push(view);
-            this.dom.appendChild(view.dom);
+            this._insertToDom(view, items.length - 1);
         } else {
             items.splice(pos, 0, view);
-            this.dom.insertBefore(view.dom, items[pos + 1]?.dom || null);
             for (let i = pos; i < items.length; i++) {
                 items[i]._position = i;
             }
+            this._insertToDom(view, pos);
         }
     }
     removeView(view: T | number) {
@@ -392,6 +392,10 @@ export class ContainerView<T extends View> extends View {
         for (const item of this.items) {
             item.updateDom();
         }
+    }
+    protected _insertToDom(item: T, pos: number) {
+        if (pos == this.items.length - 1) this.dom.appendChild(item.dom);
+        else this.dom.insertBefore(item.dom, this.items[pos + 1]?.dom || null);
     }
     protected _ensureItem(item: T | number) {
         if (typeof item === 'number') item = this.items[item];

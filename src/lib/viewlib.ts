@@ -401,6 +401,86 @@ export class ItemActiveHelper<T extends View> {
     }
 }
 
+export class LazyListView<T extends ListViewItem = ListViewItem> extends ListView<T> {
+    private _loaded = 0;
+    private _lazy = false;
+    private _slowLoading: Promise<boolean> | null = null;
+    private _autoLoad: { interval: number, batchSize: number; } | null = null;
+    get lazy() { return this._lazy; }
+    set lazy(val) {
+        this._lazy = val;
+        if (!val) this.ensureLoaded(this.length - 1);
+    }
+    ensureLoaded(pos: number) {
+        if (pos >= this.length) pos = this.length - 1;
+        while (this._loaded <= pos) {
+            this.dom.appendChild(this.items[this._loaded].dom);
+            this._loaded++;
+        }
+    }
+    loadNext(batchSize = 50) {
+        if (this._loaded < this.length) {
+            this.ensureLoaded(Math.min(this.length - 1, this._loaded + batchSize - 1));
+            return true;
+        }
+        return false;
+    }
+    slowlyLoad(interval = 30, batchSize = 50, autoLoad = false) {
+        if (autoLoad) this.enableAutoLoad(interval, batchSize);
+        if (this._slowLoading) return this._slowLoading;
+        return this._slowLoading = new Promise<boolean>((r) => {
+            var cancel: Action;
+            var cont: Action;
+            var callback = () => {
+                if (!this._slowLoading || !this.loadNext(batchSize)) {
+                    this.lazy = false;
+                    cancel();
+                    r(!!this._slowLoading);
+                    this._slowLoading = null;
+                } else {
+                    cont();
+                }
+            };
+            if (interval == -1 && window['requestIdleCallback']) {
+                let handle: number;
+                cancel = () => window['cancelIdleCallback'](handle);
+                cont = () => {
+                    handle = window['requestIdleCallback'](callback);
+                };
+                cont();
+            } else {
+                if (interval == -1) interval = 30;
+                let timer = setInterval(callback, interval);
+                cancel = () => clearInterval(timer);
+                cont = () => { };
+            }
+        });
+    }
+    enableAutoLoad(interval = 30, batchSize = 50) {
+        this._autoLoad = { interval, batchSize };
+        this.slowlyLoad(interval, batchSize);
+    }
+    unload() {
+        for (let i = 0; i < this._loaded; i++) {
+            this.items[i].dom.remove();
+        }
+        this._slowLoading = null;
+        this._loaded = 0;
+        this._autoLoad = null;
+        this.lazy = true;
+    }
+    protected _insertToDom(item: T, pos: number) {
+        if (!this.lazy || pos < this._loaded - 1) {
+            super._insertToDom(item, pos);
+            this._loaded++;
+        } else {
+            if (this._autoLoad) {
+                this.slowlyLoad(this._autoLoad.interval, this._autoLoad.batchSize);
+            }
+        }
+    }
+}
+
 type SectionActionOptions = { text: string, onclick: Action<MouseEvent>; };
 
 export class Section extends View {
@@ -1040,7 +1120,7 @@ export namespace FlagsInput {
         constructor(flags?: string[] | Flag[]) {
             super();
             flags?.forEach(f => {
-                var flag = f instanceof Flag ? f : new Flag({ text: Object.prototype.toString.call(f) })
+                var flag = f instanceof Flag ? f : new Flag({ text: Object.prototype.toString.call(f) });
                 this.addView(flag);
             });
         }
@@ -1226,13 +1306,13 @@ export class ToolTip extends TextView {
     createDom() {
         return {
             tag: 'div.tooltip'
-        }
+        };
     }
     private _shown = false;
     private _timer = new Timer(() => this.close());
     get shown() { return this._shown; }
     show(options: PositionOptions & {
-        parent?: HTMLElement, timeout?: number
+        parent?: HTMLElement, timeout?: number;
     }) {
         if (this.shown) return;
         this._shown = true;
