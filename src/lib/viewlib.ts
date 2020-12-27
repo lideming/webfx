@@ -406,6 +406,9 @@ export class LazyListView<T extends ListViewItem = ListViewItem> extends ListVie
     private _lazy = false;
     private _slowLoading: Promise<boolean> | null = null;
     private _autoLoad: { interval: number, batchSize: number; } | null = null;
+    get loaded() { return this.loaded; }
+    get slowLoading() { return this._slowLoading; }
+    get autoLoad() { return this._autoLoad; }
     get lazy() { return this._lazy; }
     set lazy(val) {
         this._lazy = val;
@@ -428,6 +431,7 @@ export class LazyListView<T extends ListViewItem = ListViewItem> extends ListVie
     slowlyLoad(interval = 30, batchSize = 50, autoLoad = false) {
         if (autoLoad) this.enableAutoLoad(interval, batchSize);
         if (this._slowLoading) return this._slowLoading;
+        if (this._loaded >= this.length) return Promise.resolve(true);
         return this._slowLoading = new Promise<boolean>((r) => {
             var cancel: Action;
             var cont: Action;
