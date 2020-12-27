@@ -985,7 +985,7 @@
         }
         removeView(view) {
             view = this._ensureItem(view);
-            view.dom.remove();
+            this._removeFromDom(view);
             var pos = view._position;
             view.parentView = view._position = undefined;
             this.items.splice(pos, 1);
@@ -1008,6 +1008,10 @@
                 this.dom.appendChild(item.dom);
             else
                 this.dom.insertBefore(item.dom, ((_a = this.items[pos + 1]) === null || _a === void 0 ? void 0 : _a.dom) || null);
+        }
+        _removeFromDom(item) {
+            if (item.domCreated)
+                item.dom.remove();
         }
         _ensureItem(item) {
             if (typeof item === 'number')
@@ -1707,14 +1711,17 @@
             this._autoLoad = { interval, batchSize };
             this.slowlyLoad(interval, batchSize);
         }
+        stopLoading() {
+            this._slowLoading = null;
+            this._autoLoad = null;
+        }
         unload() {
-            for (let i = 0; i < this._loaded; i++) {
+            this.stopLoading();
+            for (let i = this._loaded - 1; i >= 0; i--) {
                 this.items[i].dom.remove();
             }
-            this._slowLoading = null;
-            this._loaded = 0;
-            this._autoLoad = null;
             this.lazy = true;
+            this._loaded = 0;
         }
         _insertToDom(item, pos) {
             if (!this.lazy || pos < this._loaded - 1) {
@@ -1725,6 +1732,12 @@
                 if (this._autoLoad) {
                     this.slowlyLoad(this._autoLoad.interval, this._autoLoad.batchSize);
                 }
+            }
+        }
+        _removeFromDom(item) {
+            if (item.position < this._loaded) {
+                super._removeFromDom(item);
+                this._loaded--;
             }
         }
     }
