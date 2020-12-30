@@ -113,7 +113,7 @@ export var utils = new class Utils {
     }
 
     /** Fade out the element and remove it */
-    fadeout(element: HTMLElement, options?: { className?: string, duration?: number, waitTransition?: boolean }) {
+    fadeout(element: HTMLElement, options?: { className?: string, duration?: number, waitTransition?: boolean; }) {
         const { className = 'fading-out', duration = 500, waitTransition = true } = options || {};
         element.classList.add(className);
         var cb: Action | null = null;
@@ -194,7 +194,7 @@ export var utils = new class Utils {
                 element.removeEventListener('mousedown', mouseDown, options);
                 element.removeEventListener('touchstart', touchStart, options);
             }
-        }
+        };
     }
 
     listenEvent<K extends keyof HTMLElementEventMap>(element: HTMLElement, event: K,
@@ -213,7 +213,7 @@ export var utils = new class Utils {
         };
     }
 
-    injectCss(css: string, options?: { tag: string }) {
+    injectCss(css: string, options?: { tag: string; }) {
         document.head.appendChild(utils.buildDOM({ tag: options?.tag ?? 'style', text: css }));
     }
 
@@ -584,6 +584,36 @@ export class DataUpdatingHelper<T extends IId, TData extends IId = T> {
                 this.addItem(n, pos);
             }
             pos++;
+        }
+    }
+    updateOrRebuildAll(newData: Iterable<TData>) {
+        this.update(newData);
+        if (!this.isSame(newData)) this.rebuildAll(newData);
+    }
+    isSame(newData: Iterable<TData>) {
+        var t = this.items[Symbol.iterator]();
+        for (const n of newData) {
+            var d = t.next();
+            if (d.done) return false;
+            if (this.selectId(d.value) !== this.dataSelectId(n)) return false;
+        }
+        if (!t.next().done) return false;
+        return true;
+    }
+    rebuildAll(newData: Iterable<TData>) {
+        var oldData = this.items;
+        if (oldData instanceof Array) {
+            for (let i = oldData.length - 1; i >= 0; i--) {
+                this.removeItem(oldData[i]);
+            }
+        } else {
+            for (const o of oldData) {
+                this.removeItem(o);
+            }
+        }
+        let i = 0;
+        for (const n of newData) {
+            this.addItem(n, i++);
         }
     }
     protected selectId(obj: T): any { return obj.id; }
