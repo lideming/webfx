@@ -541,6 +541,41 @@ class DataUpdatingHelper {
             pos++;
         }
     }
+    updateOrRebuildAll(newData) {
+        this.update(newData);
+        if (!this.isSame(newData))
+            this.rebuildAll(newData);
+    }
+    isSame(newData) {
+        var t = this.items[Symbol.iterator]();
+        for (const n of newData) {
+            var d = t.next();
+            if (d.done)
+                return false;
+            if (this.selectId(d.value) !== this.dataSelectId(n))
+                return false;
+        }
+        if (!t.next().done)
+            return false;
+        return true;
+    }
+    rebuildAll(newData) {
+        var oldData = this.items;
+        if (oldData instanceof Array) {
+            for (let i = oldData.length - 1; i >= 0; i--) {
+                this.removeItem(oldData[i]);
+            }
+        }
+        else {
+            for (const o of oldData) {
+                this.removeItem(o);
+            }
+        }
+        let i = 0;
+        for (const n of newData) {
+            this.addItem(n, i++);
+        }
+    }
     selectId(obj) { return obj.id; }
     dataSelectId(obj) { return obj.id; }
     addItem(obj, pos) { }
