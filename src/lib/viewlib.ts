@@ -477,7 +477,7 @@ export class LazyListView<T extends ListViewItem = ListViewItem> extends ListVie
         this._loaded = 0;
     }
     protected _insertToDom(item: T, pos: number) {
-        if (!this.lazy || pos < this._loaded - 1) {
+        if (!this.lazy || pos < this._loaded) {
             super._insertToDom(item, pos);
             this._loaded++;
         } else {
