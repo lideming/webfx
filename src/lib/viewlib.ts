@@ -791,8 +791,14 @@ export class ContextMenu extends ListView {
         var x = arg.x, y = arg.y;
         if (x + width > parentWidth) x -= width;
         if (y + height > parentHeight) y -= height;
-        if (x < 0) x = 0;
-        if (y < 0) y = 0;
+        if (x < 0) {
+            if (arg.x > parentWidth / 2) x = 0;
+            else x = parentWidth - width;
+        }
+        if (y < 0) {
+            if (arg.y > parentHeight / 2) y = 0;
+            else y = parentHeight - height;
+        }
         this.dom.style.left = x + 'px';
         this.dom.style.top = y + 'px';
         this.dom.style.transformOrigin = `${arg.x - x}px ${arg.y - y}px`;
