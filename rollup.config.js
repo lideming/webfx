@@ -93,7 +93,7 @@ export default [{
         {
             file: 'dist/webfxcore.min.js',
             format: 'umd',
-            name: 'utils',
+            name: 'webfx',
             sourcemap: true,
             sourcemapPathTransform: transformSourcemapPath(),
             plugins: [terser()]
