@@ -998,16 +998,22 @@ export class Dialog extends View {
 export class DialogParent extends View {
     bgOverlay = new Overlay();
     dialogCount = 0;
-    _cancelFadeout: Action | null = null;
+    fixed = false;
+    private _cancelFadeout: Action | null = null;
 
-    constructor(dom?: BuildDomExpr) {
-        super(dom ?? document.body);
+    constructor(dom: BuildDomExpr = document.body) {
+        super(dom);
+        if (dom === document.body) {
+            this.fixed = true;
+        }
     }
     onDialogShowing(dialog: Dialog) {
         if (this.dialogCount++ === 0) {
             this._cancelFadeout?.();
+            this.bgOverlay.setFixed(this.fixed);
             this.appendView(this.bgOverlay);
         }
+        dialog.overlay.setFixed(this.fixed);
         this.appendView(dialog.overlay);
     }
     onDialogClosing(dialog: Dialog) {
