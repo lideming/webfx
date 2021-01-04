@@ -176,6 +176,7 @@ export var utils = new class Utils {
                         touchDown = false;
                         element.removeEventListener('touchmove', touchmove);
                         element.removeEventListener('touchend', touchend);
+                        element.removeEventListener('touchcancel', touchend);
                     }
                     var ct = e.changedTouches[0];
                     callback({
@@ -185,6 +186,7 @@ export var utils = new class Utils {
                 };
                 element.addEventListener('touchmove', touchmove, options);
                 element.addEventListener('touchend', touchend, options);
+                element.addEventListener('touchcancel', touchend, options);
             }
         };
         element.addEventListener('mousedown', mouseDown, options);
