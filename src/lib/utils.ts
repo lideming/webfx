@@ -652,7 +652,13 @@ export class EventRegistrations {
 
 export class TextCompositionWatcher {
     dom: HTMLElement;
-    isCompositing = false;
+    onCompositingChanged = new Callbacks<Action>();
+    private _isCompositing = false;
+    get isCompositing() { return this._isCompositing; }
+    set isCompositing(val) {
+        this._isCompositing = val;
+        this.onCompositingChanged.invoke();
+    }
     constructor(dom: IDOM) {
         this.dom = dom.getDOM();
         this.dom.addEventListener('compositionstart', (ev) => {
