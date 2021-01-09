@@ -465,21 +465,31 @@ interface SiType<T> {
     deserialize: (str: string) => T;
 }
 
-export class Callbacks<T extends AnyFunc = Action> {
-    private list: T[] | null = null;
+class CallbacksImpl<T extends AnyFunc = Action> extends Array<T> {
     invoke(...args: Parameters<T>) {
-        this.list?.forEach((x) => x.apply(this, args));
+        this.forEach((x) => {
+            try {
+                x.apply(this, args);
+            } catch (error) {
+                console.error("Error in callback", error);
+            }
+        });
     }
     add(callback: T) {
-        if (!this.list) this.list = [callback];
-        else this.list.push(callback);
+        this.push(callback);
         return callback;
     }
     remove(callback: T) {
-        if (this.list)
-            this.list.remove(callback);
+        this.remove(callback);
     }
 }
+
+export interface Callbacks<T extends AnyFunc = Action> {
+    invoke(...args: Parameters<T>): void;
+    add(callback: T): T;
+    remove(callback: T): void;
+}
+export const Callbacks: { new <T extends AnyFunc = Action>(): Callbacks<T> } = CallbacksImpl;
 
 export class Lazy<T> {
     private _func?: Func<T>;
