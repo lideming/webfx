@@ -8,6 +8,7 @@
   "browser": "dist/webfx.min.js",
   "scripts": {
     "build": "tsc && rollup -c",
+    "watch": "tsc && rollup -c -w",
     "test": "echo \"Error: no test specified\" && exit 1",
     "prepack": "npm run build"
   },
