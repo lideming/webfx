@@ -421,26 +421,26 @@
             deserialize: function (x) { return JSON.parse(x); }
         }
     };
-    class Callbacks {
-        constructor() {
-            this.list = null;
-        }
+    class CallbacksImpl extends Array {
         invoke(...args) {
-            var _a;
-            (_a = this.list) === null || _a === void 0 ? void 0 : _a.forEach((x) => x.apply(this, args));
+            this.forEach((x) => {
+                try {
+                    x.apply(this, args);
+                }
+                catch (error) {
+                    console.error("Error in callback", error);
+                }
+            });
         }
         add(callback) {
-            if (!this.list)
-                this.list = [callback];
-            else
-                this.list.push(callback);
+            this.push(callback);
             return callback;
         }
         remove(callback) {
-            if (this.list)
-                this.list.remove(callback);
+            this.remove(callback);
         }
     }
+    const Callbacks = CallbacksImpl;
     class Lazy {
         constructor(func) {
             this._func = func;
@@ -608,7 +608,8 @@
     }
     class TextCompositionWatcher {
         constructor(dom) {
-            this.isCompositing = false;
+            this.onCompositingChanged = new Callbacks();
+            this._isCompositing = false;
             this.dom = dom.getDOM();
             this.dom.addEventListener('compositionstart', (ev) => {
                 this.isCompositing = true;
@@ -616,6 +617,11 @@
             this.dom.addEventListener('compositionend', (ev) => {
                 this.isCompositing = false;
             });
+        }
+        get isCompositing() { return this._isCompositing; }
+        set isCompositing(val) {
+            this._isCompositing = val;
+            this.onCompositingChanged.invoke();
         }
     }
     class InputStateTracker {
