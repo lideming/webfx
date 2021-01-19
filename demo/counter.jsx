@@ -2,7 +2,9 @@
 (function () {
     /** @jsx webfx.jsx */
 
-    var { utils, View, Toast, ButtonView } = webfx;
+    /** @type {import("../")} */
+    const webfx = window.webfx;
+    const { utils, View, Toast, ButtonView } = webfx;
 
     document.body.appendChild(webfx.buildDOM(
         <h2>JSX</h2>
