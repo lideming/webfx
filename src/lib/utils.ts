@@ -480,7 +480,7 @@ class CallbacksImpl<T extends AnyFunc = Action> extends Array<T> {
         return callback;
     }
     remove(callback: T) {
-        this.remove(callback);
+        super.remove(callback);
     }
 }
 
