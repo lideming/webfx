@@ -519,6 +519,19 @@ export interface Callbacks<T extends AnyFunc = Action> {
 }
 export const Callbacks: { new <T extends AnyFunc = Action>(): Callbacks<T> } = CallbacksImpl;
 
+export class Ref<T> {
+    private _value: T | undefined = undefined;
+    private _onChanged: Callbacks<Action<Ref<T>>> | undefined = undefined;
+    get onChanged() {
+        if (!this._onChanged) this._onChanged = new Callbacks();
+        return this._onChanged;
+    }
+    get value() { return this._value; }
+    set value(val) {
+        this._value = val;
+    }
+}
+
 export class Lazy<T> {
     private _func?: Func<T>;
     private _value?: T;

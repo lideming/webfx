@@ -1,4 +1,4 @@
-import { Action, Func, FuncOrVal, Callbacks, utils } from "./utils";
+import { Action, Func, FuncOrVal, Callbacks, utils, Ref } from "./utils";
 
 // BuildDOM types & implementation:
 export type BuildDomExpr = string | BuildDomNode | HTMLElement | Node | IDOM;
@@ -153,6 +153,8 @@ var buildDOMHandleKey = function (key: string, val: any, node: HTMLElement, ctx:
         }
     } else if (key === '_key') {
         ctx!.setDict(val, node);
+    } else if (key === 'ref') {
+        (val as Ref<any>).value = node;
     } else if (key === 'text') {
         if (typeof val === 'function') {
             ctx!.addUpdateAction(['text', node, val]);
@@ -217,6 +219,8 @@ export class JsxNode<T extends IDOM> implements IDOM {
                         const val = this.attrs[key];
                         if (key == "init") {
                             init = val;
+                        } else if (key == "ref") {
+                            (val as Ref<any>).value = view;
                         } else if (key.startsWith("on") && view[key] instanceof Callbacks) {
                             (view[key] as Callbacks).add(val);
                         } else {
