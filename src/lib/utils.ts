@@ -282,6 +282,22 @@ export var utils = new class Utils {
         return obj;
     }
 
+    objectInit<T>(obj: T, kv?: ObjectInit<T>, keys?: Array<keyof T>) {
+        if (kv) {
+            for (const key in kv as any) {
+                if (_object_hasOwnProperty.call(kv, key) && (!keys || keys.indexOf(key as any) >= 0)) {
+                    const val = kv[key];
+                    if (key.startsWith("on") && obj[key] instanceof Callbacks) {
+                        (obj[key] as Callbacks).add(val);
+                    } else {
+                        obj[key] = val;
+                    }
+                }
+            }
+        }
+        return obj;
+    }
+
     mod(a: number, b: number): number {
         if (a < 0) a = b + a;
         return a % b;
@@ -313,6 +329,9 @@ declare global {
     }
 }
 
+export type ObjectInit<T> = {
+    [P in keyof T]?: T[P] extends Callbacks<infer U> ? T[P] | U : T[P];
+};
 
 export function startBlockingDetect(threshold = 20) {
     var begin = Date.now();
@@ -466,6 +485,11 @@ interface SiType<T> {
 }
 
 class CallbacksImpl<T extends AnyFunc = Action> extends Array<T> {
+    private _hook?: Callbacks<(adding: boolean, func: T) => void> = undefined;
+    get onChanged() {
+        this._hook ??= new Callbacks();
+        return this._hook;
+    }
     invoke(...args: Parameters<T>) {
         this.forEach((x) => {
             try {
@@ -477,10 +501,12 @@ class CallbacksImpl<T extends AnyFunc = Action> extends Array<T> {
     }
     add(callback: T) {
         this.push(callback);
+        this._hook?.invoke(true, callback);
         return callback;
     }
     remove(callback: T) {
         super.remove(callback);
+        this._hook?.invoke(false, callback);
     }
 }
 
@@ -488,6 +514,8 @@ export interface Callbacks<T extends AnyFunc = Action> {
     invoke(...args: Parameters<T>): void;
     add(callback: T): T;
     remove(callback: T): void;
+    readonly length: number;
+    readonly onChanged: Callbacks<(adding: boolean, func: T) => void>;
 }
 export const Callbacks: { new <T extends AnyFunc = Action>(): Callbacks<T> } = CallbacksImpl;
 
@@ -513,8 +541,8 @@ export class Semaphore {
     queue = new Array<Action>();
     maxCount = 1;
     runningCount = 0;
-    constructor(init: Partial<Semaphore>) {
-        utils.objectApply(this, init);
+    constructor(init: ObjectInit<Semaphore>) {
+        utils.objectInit(this, init);
     }
     enter(): Promise<any> {
         if (this.runningCount === this.maxCount) {

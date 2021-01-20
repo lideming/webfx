@@ -1,6 +1,6 @@
 // file: viewlib.ts
 
-import { utils, Action, Callbacks, Timer } from "./utils";
+import { utils, Action, Callbacks, Timer, ObjectInit } from "./utils";
 import { BuildDomExpr, BuildDomNode, ContainerView, IDOM, View } from "./view";
 import { I, i18n } from "./I18n";
 import css from "../style.css";
@@ -390,8 +390,8 @@ export class SelectionHelper<TItem extends ISelectable> {
 export class ItemActiveHelper<T extends View> {
     funcSetActive = (item: T, val: boolean) => item.toggleClass('active', val);
     current: T | null = null;
-    constructor(init?: Partial<ItemActiveHelper<T>>) {
-        utils.objectApply(this, init);
+    constructor(init?: ObjectInit<ItemActiveHelper<T>>) {
+        utils.objectInit(this, init);
     }
     set(item: T | null) {
         if (this.current === item) return;
@@ -537,7 +537,7 @@ export class Section extends View {
             text: arg.text,
             tabIndex: 0
         });
-        view.onactive = arg.onclick;
+        view.onActive.add(arg.onclick);
         this.headerView.dom.appendChild(view.dom);
     }
 }
@@ -545,9 +545,9 @@ export class Section extends View {
 type LoadingIndicatorState = 'normal' | 'running' | 'error';
 
 export class LoadingIndicator extends View {
-    constructor(init?: Partial<LoadingIndicator>) {
+    constructor(init?: ObjectInit<LoadingIndicator>) {
         super();
-        if (init) utils.objectApply(this, init);
+        if (init) utils.objectInit(this, init);
     }
     private _status: LoadingIndicatorState = 'running';
     get state() { return this._status; }
@@ -588,7 +588,7 @@ export class LoadingIndicator extends View {
                 tag: 'div.loading-indicator-inner',
                 child: [{ tag: 'div.loading-indicator-text', _key: '_textdom' }]
             }],
-            onclick: (e) => this.onclick && this.onclick(e)
+            onclick: (e) => this.onclick?.(e)
         };
     }
     postCreateDom() {
@@ -661,10 +661,9 @@ export class EditableHelper {
 export class MenuItem extends ListViewItem {
     text: string = '';
     cls: 'normal' | 'dangerous' = 'normal';
-    onclick: Action<MouseEvent> | null = null;
-    constructor(init: Partial<MenuItem>) {
+    constructor(init: ObjectInit<MenuItem>) {
         super();
-        utils.objectApply(this, init);
+        utils.objectInit(this, init);
     }
     createDom(): BuildDomExpr {
         return {
@@ -674,12 +673,11 @@ export class MenuItem extends ListViewItem {
     }
     postCreateDom() {
         super.postCreateDom();
-        this.onactive = (ev) => {
+        this.onActive.add((ev) => {
             if (this.parentView instanceof ContextMenu) {
                 if (!this.parentView.keepOpen) this.parentView.close();
             }
-            this.onclick?.(ev);
-        };
+        });
     }
     private _lastcls;
     updateDom() {
@@ -694,9 +692,9 @@ export class MenuItem extends ListViewItem {
 export class MenuLinkItem extends MenuItem {
     link: string = '';
     download: string = '';
-    constructor(init: Partial<MenuLinkItem>) {
+    constructor(init: ObjectInit<MenuLinkItem>) {
         super(init);
-        utils.objectApply(this, init);
+        utils.objectInit(this, init);
     }
     createDom(): BuildDomExpr {
         var dom = super.createDom() as BuildDomNode;
@@ -713,9 +711,9 @@ export class MenuLinkItem extends MenuItem {
 
 export class MenuInfoItem extends MenuItem {
     text: string = '';
-    constructor(init: Partial<MenuInfoItem>) {
+    constructor(init: ObjectInit<MenuInfoItem>) {
         super(init);
-        utils.objectApply(this, init);
+        utils.objectInit(this, init);
     }
     createDom(): BuildDomExpr {
         return {
@@ -853,7 +851,7 @@ export class Dialog extends View {
 
     constructor() {
         super();
-        this.btnClose.onClick.add(() => this.allowClose && this.close());
+        this.btnClose.onActive.add(() => this.allowClose && this.close());
     }
     createDom(): BuildDomExpr {
         return {
@@ -1028,21 +1026,13 @@ export class TabBtn extends View {
     clickable = true;
     active = false;
     right = false;
-    onclick: Action<MouseEvent> | null = null;
-    onClick = new Callbacks<Action<MouseEvent>>();
-    constructor(init?: Partial<TabBtn>) {
+    constructor(init?: ObjectInit<TabBtn>) {
         super();
-        utils.objectApply(this, init);
+        utils.objectInit(this, init);
     }
     createDom(): BuildDomExpr {
         return {
             tag: 'span.tab.no-selection'
-        };
-    }
-    postCreateDom() {
-        this.onactive = (ev) => {
-            this.onclick?.(ev);
-            this.onClick.invoke(ev);
         };
     }
     updateDom() {
@@ -1060,9 +1050,9 @@ export class InputView extends View {
     placeholder = '';
     get value() { return (this.dom as HTMLInputElement).value; }
     set value(val) { (this.dom as HTMLInputElement).value = val; }
-    constructor(init?: Partial<InputView>) {
+    constructor(init?: ObjectInit<InputView>) {
         super();
-        utils.objectApply(this, init);
+        utils.objectInit(this, init);
     }
     createDom(): BuildDomExpr {
         return this.multiline ? { tag: 'textarea.input-text' } : { tag: 'input.input-text' };
@@ -1083,12 +1073,10 @@ export class TextView extends View {
 
 export class ButtonView extends TextView {
     disabled: boolean = false;
-    get onclick() { return this.onactive; }
-    set onclick(val) { this.onactive = val; }
     type: 'normal' | 'big' = 'normal';
-    constructor(init?: Partial<ButtonView>) {
+    constructor(init?: ObjectInit<ButtonView>) {
         super();
-        utils.objectApply(this, init);
+        utils.objectInit(this, init);
         this.updateDom();
     }
     createDom(): BuildDomExpr {
@@ -1105,9 +1093,9 @@ export class LabeledInputBase<T extends View> extends View {
     label: string = '';
     input: T;
     get dominput(): HTMLInputElement { return this.input.dom as any; }
-    constructor(init?: Partial<LabeledInputBase<T>>) {
+    constructor(init?: ObjectInit<LabeledInputBase<T>>) {
         super();
-        utils.objectApply(this, init);
+        utils.objectInit(this, init);
     }
     createDom(): BuildDomExpr {
         return {
@@ -1129,9 +1117,9 @@ export class LabeledInput extends LabeledInputBase<InputView> {
     type: string;
     get value() { return this.dominput.value; }
     set value(val) { this.dominput.value = val; }
-    constructor(init?: Partial<LabeledInput>) {
+    constructor(init?: ObjectInit<LabeledInput>) {
         super();
-        utils.objectApply(this, init);
+        utils.objectInit(this, init);
         if (!this.input) this.input = new InputView();
     }
     updateDom() {
@@ -1156,9 +1144,9 @@ export namespace FlagsInput {
 
     export class Flag extends TextView {
         get parentInput() { return this.parentView as (FlagsInput | undefined); }
-        constructor(init?: Partial<Flag>) {
+        constructor(init?: ObjectInit<Flag>) {
             super();
-            utils.objectApply(this, init);
+            utils.objectInit(this, init);
         }
         createDom() {
             return { tag: 'div.flags-input-item' };
@@ -1197,9 +1185,9 @@ export class Toast extends View {
     container: ToastsContainer;
     shown = false;
     timer = new Timer(() => this.close());
-    constructor(init?: Partial<Toast>) {
+    constructor(init?: ObjectInit<Toast>) {
         super();
-        utils.objectApply(this, init);
+        utils.objectInit(this, init);
         if (!this.container) this.container = ToastsContainer.default;
     }
     show(timeout?: number) {
@@ -1257,7 +1245,7 @@ export class MessageBox extends Dialog {
         return this;
     }
     addBtnWithResult(btn: TabBtn, result: this['result']) {
-        btn.onClick.add(() => { this.result = result; this.close(); });
+        btn.onActive.add(() => { this.result = result; this.close(); });
         this.addBtn(btn);
         return this;
     }
@@ -1273,8 +1261,8 @@ export class ViewToggle<T extends keyof any> {
     shownKeys: T[] = [];
     toggleMode: 'display' | 'hidden' | 'remove' = 'remove';
     container: View | null = null;
-    constructor(init?: Partial<ViewToggle<T>>) {
-        utils.objectApply(this, init);
+    constructor(init?: ObjectInit<ViewToggle<T>>) {
+        utils.objectInit(this, init);
         this.setShownKeys(this.shownKeys);
     }
     add(key: T, view: View) {

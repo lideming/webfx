@@ -330,35 +330,24 @@ export class View<T extends HTMLElement = HTMLElement> implements IDOM {
         }
     }
 
-    _onactive: Action<MouseEvent> | undefined = undefined;
-    _onActiveCbs: Action<any>[] | undefined = undefined;
-    get onactive() { return this._onactive; }
-    set onactive(val) {
-        if (!!this._onactive !== !!val) {
-            if (val) {
-                this._onActiveCbs = [
-                    (e: MouseEvent) => {
-                        this._onactive!(e);
-                    },
-                    (e: KeyboardEvent) => {
-                        this.handleKeyDown(e, this._onactive!);
-                    }
-                ];
-                this.dom.addEventListener('click', this._onActiveCbs[0]);
-                this.dom.addEventListener('keydown', this._onActiveCbs[1]);
-            } else {
-                this.dom.removeEventListener('click', this._onActiveCbs![0]);
-                this.dom.removeEventListener('keydown', this._onActiveCbs![1]);
-                this._onActiveCbs = undefined;
-            }
+    _onActive: Callbacks<Action<MouseEvent>> | undefined = undefined;
+    get onActive() {
+        if (!this._onActive) {
+            this._onActive = new Callbacks<Action<MouseEvent>>();
+            this.dom.addEventListener('click', (e: MouseEvent) => {
+                this._onActive!.invoke(e);
+            });
+            this.dom.addEventListener('keydown', (e: KeyboardEvent) => {
+                this.handleKeyDown(e);
+            });
         }
-        this._onactive = val;
+        return this._onActive;
     }
 
-    handleKeyDown(e: KeyboardEvent, onactive: Action<MouseEvent | null>) {
+    handleKeyDown(e: KeyboardEvent) {
         if (e.code === 'Enter') {
             const rect = this.dom.getBoundingClientRect();
-            onactive(new MouseEvent('click', {
+            this._onActive?.invoke(new MouseEvent('click', {
                 clientX: rect.x, clientY: rect.y,
                 relatedTarget: this.dom
             }));
