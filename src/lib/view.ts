@@ -1,4 +1,4 @@
-import { Action, Func, FuncOrVal, utils } from "./utils";
+import { Action, Func, FuncOrVal, Callbacks, utils } from "./utils";
 
 // BuildDOM types & implementation:
 export type BuildDomExpr = string | BuildDomNode | HTMLElement | Node | IDOM;
@@ -188,24 +188,43 @@ export class JsxNode<T extends IDOM> implements IDOM {
     getDOM(): HTMLElement {
         return this.buildDom(null, 64) as any;
     }
-    private _getDOMExpr(): BuildDomExpr {
-        return { tag: this.tag as string, child: this.child, ...this.attrs };
-    }
     buildDom(ctx: BuildDOMCtx | null, ttl: number) {
         return this.buildView(ctx, ttl).getDOM();
     }
     buildView(ctx: BuildDOMCtx | null, ttl: number)
         : T extends IDOM ? T : T extends keyof HTMLElementTagNameMap ? HTMLElementTagNameMap[T] : HTMLElement {
         if (ttl-- < 0) throw new Error('ran out of TTL');
-        if (typeof this.tag === 'string') return buildDomCore(this._getDOMExpr(), ttl, ctx) as any;
-        if (this.child) for (const it of this.child) {
-            if (it instanceof Array) {
-                it.forEach(it => (this.tag as IDOM).addChild(jsxBuildCore(it, ttl, ctx) as any));
-            } else {
-                (this.tag as IDOM).addChild(jsxBuildCore(it, ttl, ctx) as any);
+        let view: IDOM;
+        if (typeof this.tag === 'string') {
+            const dom = document.createElement(this.tag);
+            view = dom;
+            if (this.attrs) for (const key in this.attrs) {
+                if (Object.prototype.hasOwnProperty.call(this.attrs, key)) {
+                    const val = this.attrs[key];
+                    buildDOMHandleKey(key, val, dom, ctx, ttl);
+                }
+            }
+        } else {
+            view = this.tag;
+            if (this.attrs) for (const key in this.attrs) {
+                if (Object.prototype.hasOwnProperty.call(this.attrs, key)) {
+                    const val = this.attrs[key];
+                    if (key.startsWith("on") && view[key] instanceof Callbacks) {
+                        (view[key] as Callbacks).add(val);
+                    } else {
+                        view[key] = val;
+                    }
+                }
             }
         }
-        return this.tag as any;
+        if (this.child) for (const it of this.child) {
+            if (it instanceof Array) {
+                it.forEach(it => view.addChild(jsxBuildCore(it, ttl, ctx) as any));
+            } else {
+                view.addChild(jsxBuildCore(it, ttl, ctx) as any);
+            }
+        }
+        return view as any;
     }
     addChild(child: IDOM): void {
         if (this.child == null) this.child = [];
@@ -213,7 +232,7 @@ export class JsxNode<T extends IDOM> implements IDOM {
     }
 }
 
-export function jsxBuildCore(node: JsxNode<any> | BuildDomExpr, ttl: number, ctx: BuildDOMCtx | null) {
+function jsxBuildCore(node: JsxNode<any> | BuildDomExpr, ttl: number, ctx: BuildDOMCtx | null) {
     if (ttl-- < 0) throw new Error('ran out of TTL');
     var r = tryHandleValues(node, ctx);
     if (r) return r;
@@ -228,13 +247,25 @@ export function jsxBuild<T extends IDOM>(node: JsxNode<T>, ctx?: BuildDOMCtx): T
     return jsxBuildCore(node, 64, ctx || new BuildDOMCtx());
 }
 
-export function jsxFactory<T extends string | { new(arg): IDOM; }>(tag: T, attrs: Record<any, any>, ...childs: any)
-    : T extends keyof HTMLElementTagNameMap ? HTMLElementTagNameMap[T]
-    : T extends { new(arg): infer U; } ? U extends IDOM ? JsxNode<U> : never : never {
+export type JsxTag = keyof HTMLElementTagNameMap | JsxCtorTag;
+export type JsxCtorTag = { new(...args): IDOM; };
+
+export type JsxTagInstance<T> = T extends keyof HTMLElementTagNameMap ? HTMLElementTagNameMap[T]
+    : T extends { new(...args): infer U; } ? U extends IDOM ? JsxNode<U> : never : never;
+
+export type JsxAttrs<T extends JsxTag> = {
+    args: T extends JsxCtorTag ? ConstructorParameters<T> : never;
+} & JsxTagInstance<T>;
+
+export function jsxFactory<T extends JsxTag>(tag: T, attrs: JsxAttrs<T>, ...childs: any)
+    : JsxTagInstance<T> {
     if (typeof tag === 'string') {
         return new JsxNode(tag, attrs, childs) as any;
     } else {
-        return new JsxNode(new (tag as any)(attrs), undefined, childs) as any;
+        const view = 'args' in attrs ?
+            new (tag as any)(...attrs.args) :
+            new (tag as any)();
+        return new JsxNode(view, attrs, childs) as any;
     }
 }
 
