@@ -262,7 +262,7 @@ export function jsxFactory<T extends JsxTag>(tag: T, attrs: JsxAttrs<T>, ...chil
     if (typeof tag === 'string') {
         return new JsxNode(tag, attrs, childs) as any;
     } else {
-        const view = 'args' in attrs ?
+        const view = attrs?.args ?
             new (tag as any)(...attrs.args) :
             new (tag as any)();
         return new JsxNode(view, attrs, childs) as any;
