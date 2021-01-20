@@ -85,15 +85,15 @@
                 child: [
                     new ButtonView({
                         text: 'Show toast',
-                        onclick: () => Toast.show("This is a toast!", 3000)
+                        onActive: () => Toast.show("This is a toast!", 3000)
                     }),
                     new ButtonView({
                         text: 'Show context menu',
-                        onclick: (ev) => {
+                        onActive: (ev) => {
                             var m = new webfx.ContextMenu();
                             for (let i = 1; i <= 5; i++) {
                                 m.add(new webfx.MenuItem({
-                                    text: 'Show toast ' + i, onclick: () => {
+                                    text: 'Show toast ' + i, onActive: () => {
                                         Toast.show(`This is toast ${i}!`, 3000)
                                     }
                                 }));
@@ -103,7 +103,7 @@
                     }),
                     new ButtonView({
                         text: 'Show dialog',
-                        onclick: (ev) => {
+                        onActive: (ev) => {
                             var d = new webfx.Dialog();
                             d.title = 'A dialog';
                             d.addContent(new View({
