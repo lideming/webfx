@@ -108,7 +108,10 @@
                             d.title = 'A dialog';
                             d.addContent(new View({
                                 tag: 'p', text: 'Dialog content'
-                            }))
+                            }));
+                            d.addContent(new View({
+                                tag: 'p', text: 'webfx version: ' + webfx.version
+                            }));
                             d.show(ev);
                         }
                     })

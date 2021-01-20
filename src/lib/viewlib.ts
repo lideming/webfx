@@ -939,7 +939,10 @@ export class Dialog extends View {
     addContent(view: IDOM, replace?: boolean) {
         this.ensureDom();
         if (replace) this.content.removeAllView();
-        this.content.appendView(View.getView(view));
+        this.content.addView(View.getView(view));
+    }
+    addChild(view: IDOM) {
+        this.addContent(view);
     }
     setOffset(x: number, y: number) {
         this.dom.style.left = x ? x + 'px' : '';
