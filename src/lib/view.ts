@@ -198,23 +198,33 @@ export class JsxNode<T extends IDOM> implements IDOM {
         if (typeof this.tag === 'string') {
             const dom = document.createElement(this.tag);
             view = dom;
-            if (this.attrs) for (const key in this.attrs) {
-                if (Object.prototype.hasOwnProperty.call(this.attrs, key)) {
-                    const val = this.attrs[key];
-                    buildDOMHandleKey(key, val, dom, ctx, ttl);
+            if (this.attrs) {
+                for (const key in this.attrs) {
+                    if (Object.prototype.hasOwnProperty.call(this.attrs, key)) {
+                        const val = this.attrs[key];
+                        buildDOMHandleKey(key, val, dom, ctx, ttl);
+                    }
                 }
+                const init = this.attrs['init'];
+                if (init) init(dom);
             }
         } else {
             view = this.tag;
-            if (this.attrs) for (const key in this.attrs) {
-                if (Object.prototype.hasOwnProperty.call(this.attrs, key)) {
-                    const val = this.attrs[key];
-                    if (key.startsWith("on") && view[key] instanceof Callbacks) {
-                        (view[key] as Callbacks).add(val);
-                    } else {
-                        view[key] = val;
+            if (this.attrs) {
+                let init: Action<IDOM> | null = null;
+                for (const key in this.attrs) {
+                    if (Object.prototype.hasOwnProperty.call(this.attrs, key)) {
+                        const val = this.attrs[key];
+                        if (key == "init") {
+                            init = val;
+                        } else if (key.startsWith("on") && view[key] instanceof Callbacks) {
+                            (view[key] as Callbacks).add(val);
+                        } else {
+                            view[key] = val;
+                        }
                     }
                 }
+                if (init) init(view);
             }
         }
         if (this.child) for (const it of this.child) {
@@ -247,15 +257,26 @@ export function jsxBuild<T extends IDOM>(node: JsxNode<T>, ctx?: BuildDOMCtx): T
     return jsxBuildCore(node, 64, ctx || new BuildDOMCtx());
 }
 
-export type JsxTag = keyof HTMLElementTagNameMap | JsxCtorTag;
+export type JsxTag = JsxDOMTag | JsxCtorTag;
 export type JsxCtorTag = { new(...args): IDOM; };
+export type JsxDOMTag = keyof HTMLElementTagNameMap;
 
-export type JsxTagInstance<T> = T extends keyof HTMLElementTagNameMap ? HTMLElementTagNameMap[T]
-    : T extends { new(...args): infer U; } ? U extends IDOM ? JsxNode<U> : never : never;
+export type JsxTagInstance<T> =
+    T extends keyof HTMLElementTagNameMap ? HTMLElementTagNameMap[T] :
+    T extends { new(...args): infer U; } ? U extends IDOM ? JsxNode<U> :
+    never : never;
 
-export type JsxAttrs<T extends JsxTag> = {
-    args: T extends JsxCtorTag ? ConstructorParameters<T> : never;
+export type JsxAttrs<T extends JsxTag> =
+    T extends JsxCtorTag ? JsxCtorAttrs<T> :
+    T extends JsxDOMTag ? JsxDOMAttrs<T> :
+    never;
+
+export type JsxCtorAttrs<T extends JsxCtorTag> = {
+    args?: ConstructorParameters<T>;
+    init?: Action<JsxTagInstance<T>>;
 } & JsxTagInstance<T>;
+
+export type JsxDOMAttrs<T extends JsxDOMTag> = Omit<BuildDomNode, "key"> & Partial<JsxTagInstance<T>>;
 
 export function jsxFactory<T extends JsxTag>(tag: T, attrs: JsxAttrs<T>, ...childs: any)
     : JsxTagInstance<T> {
