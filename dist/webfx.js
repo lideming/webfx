@@ -470,6 +470,21 @@
         }
     }
     const Callbacks = CallbacksImpl;
+    class Ref {
+        constructor() {
+            this._value = undefined;
+            this._onChanged = undefined;
+        }
+        get onChanged() {
+            if (!this._onChanged)
+                this._onChanged = new Callbacks();
+            return this._onChanged;
+        }
+        get value() { return this._value; }
+        set value(val) {
+            this._value = val;
+        }
+    }
     class Lazy {
         constructor(func) {
             this._func = func;
@@ -842,6 +857,9 @@
         else if (key === '_key') {
             ctx.setDict(val, node);
         }
+        else if (key === 'ref') {
+            val.value = node;
+        }
         else if (key === 'text') {
             if (typeof val === 'function') {
                 ctx.addUpdateAction(['text', node, val]);
@@ -886,21 +904,32 @@
             if (typeof this.tag === 'string') {
                 const dom = document.createElement(this.tag);
                 view = dom;
-                if (this.attrs)
+                if (this.attrs) {
                     for (const key in this.attrs) {
                         if (Object.prototype.hasOwnProperty.call(this.attrs, key)) {
                             const val = this.attrs[key];
                             buildDOMHandleKey(key, val, dom, ctx, ttl);
                         }
                     }
+                    const init = this.attrs['init'];
+                    if (init)
+                        init(dom);
+                }
             }
             else {
                 view = this.tag;
-                if (this.attrs)
+                if (this.attrs) {
+                    let init = null;
                     for (const key in this.attrs) {
                         if (Object.prototype.hasOwnProperty.call(this.attrs, key)) {
                             const val = this.attrs[key];
-                            if (key.startsWith("on") && view[key] instanceof Callbacks) {
+                            if (key == "init") {
+                                init = val;
+                            }
+                            else if (key == "ref") {
+                                val.value = view;
+                            }
+                            else if (key.startsWith("on") && view[key] instanceof Callbacks) {
                                 view[key].add(val);
                             }
                             else {
@@ -908,6 +937,9 @@
                             }
                         }
                     }
+                    if (init)
+                        init(view);
+                }
             }
             if (this.child)
                 for (const it of this.child) {
@@ -947,7 +979,7 @@
             return new JsxNode(tag, attrs, childs);
         }
         else {
-            const view = 'args' in attrs ?
+            const view = (attrs === null || attrs === void 0 ? void 0 : attrs.args) ?
                 new tag(...attrs.args) :
                 new tag();
             return new JsxNode(view, attrs, childs);
@@ -2277,7 +2309,10 @@
             this.ensureDom();
             if (replace)
                 this.content.removeAllView();
-            this.content.appendView(View.getView(view));
+            this.content.addView(View.getView(view));
+        }
+        addChild(view) {
+            this.addContent(view);
         }
         setOffset(x, y) {
             this.dom.style.left = x ? x + 'px' : '';
@@ -2741,6 +2776,7 @@
     exports.MenuLinkItem = MenuLinkItem;
     exports.MessageBox = MessageBox;
     exports.Overlay = Overlay;
+    exports.Ref = Ref;
     exports.Section = Section;
     exports.SelectionHelper = SelectionHelper;
     exports.Semaphore = Semaphore;

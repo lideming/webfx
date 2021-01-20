@@ -4,7 +4,7 @@
 
     /** @type {import("../")} */
     const webfx = window.webfx;
-    const { utils, View, Toast, ButtonView } = webfx;
+    const { utils, View, Toast, ButtonView, jsxBuild } = webfx;
 
     document.body.appendChild(webfx.buildDOM(
         <h2>JSX</h2>
@@ -47,9 +47,12 @@
                 m.show({ ev });
             }}>Show context menu</ButtonView>
             <ButtonView onActive={(ev) => {
-                var d = new webfx.Dialog();
-                d.title = 'A dialog';
-                d.addContent(new View(<p>Dialog content</p>));
+                var d = jsxBuild(
+                    <webfx.Dialog>
+                        <p>Dialog content</p>
+                        <p>webfx version: {webfx.version}</p>
+                    </webfx.Dialog>
+                );
                 d.show(ev);
             }}>Show dialog</ButtonView>
         </Card>));
