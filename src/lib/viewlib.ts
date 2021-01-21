@@ -661,6 +661,7 @@ export class EditableHelper {
 export class MenuItem extends ListViewItem {
     text: string = '';
     cls: 'normal' | 'dangerous' = 'normal';
+    keepOpen = false;
     constructor(init: ObjectInit<MenuItem>) {
         super();
         utils.objectInit(this, init);
@@ -675,7 +676,7 @@ export class MenuItem extends ListViewItem {
         super.postCreateDom();
         this.onActive.add((ev) => {
             if (this.parentView instanceof ContextMenu) {
-                if (!this.parentView.keepOpen) this.parentView.close();
+                if (!this.keepOpen && !this.parentView.keepOpen) this.parentView.close();
             }
         });
     }
@@ -713,6 +714,7 @@ export class MenuInfoItem extends MenuItem {
     text: string = '';
     constructor(init: ObjectInit<MenuInfoItem>) {
         super(init);
+        this.keepOpen = true;
         utils.objectInit(this, init);
     }
     createDom(): BuildDomExpr {
@@ -753,7 +755,7 @@ export class ContextMenu extends ListView {
     }
     show(arg: { x: number, y: number; } | { ev: MouseEvent; }) {
         if (this._visible) {
-            console.warn("[ContextMenu] show() called when it's already visible.");
+            console.trace("[ContextMenu] show() called when it's already visible.");
             return;
         }
         if ('ev' in arg) arg = {
@@ -777,8 +779,16 @@ export class ContextMenu extends ListView {
             document.body.appendChild(this.dom);
         }
         this._originalFocused = document.activeElement;
+        this.setPosition(arg);
         this.dom.focus();
-        var width = this.dom.offsetWidth, height = this.dom.offsetHeight;
+    }
+    setPosition(arg: { x: number, y: number }) {
+        if (!this._visible) {
+            console.trace("[ContextMenu] setPosition() called when it's not visible.");
+            return;
+        }
+        this.dom.style.left = '0';
+        this.dom.style.top = '0';
         var parentWidth = document.body.offsetWidth;
         var parentHeight = document.body.offsetHeight;
         if (this.useOverlay) {
@@ -786,6 +796,8 @@ export class ContextMenu extends ListView {
             parentWidth = overlayDom.offsetWidth;
             parentHeight = overlayDom.offsetHeight;
         }
+        this.dom.style.maxHeight = parentHeight + 'px';
+        var width = this.dom.offsetWidth, height = this.dom.offsetHeight;
         var x = arg.x, y = arg.y;
         if (x + width > parentWidth) x -= width;
         if (y + height > parentHeight) y -= height;

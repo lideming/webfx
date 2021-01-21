@@ -408,7 +408,7 @@ textarea.input-text {
 
 .context-menu {
     position: absolute;
-    overflow: hidden;
+    overflow-y: auto;
     background: var(--color-bg);
     border: solid 1px #777;
     box-shadow: 0 0px 12px var(--color-shadow);
