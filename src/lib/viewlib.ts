@@ -203,7 +203,7 @@ export abstract class ListViewItem extends View implements ISelectable {
             if (drop || arg.accept) ev.preventDefault();
         }
         const onContextMenu = this.onContextMenu ?? this.listview?.onContextMenu;
-        if (!arg.accept && items.indexOf(this) >= 0 && onContextMenu) {
+        if (!arg.accept && items && items.indexOf(this) >= 0 && onContextMenu) {
             if (drop) onContextMenu(this, ev);
             else ev.preventDefault();
         }
