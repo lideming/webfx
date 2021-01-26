@@ -1568,7 +1568,7 @@
                     ev.preventDefault();
             }
             const onContextMenu = (_d = this.onContextMenu) !== null && _d !== void 0 ? _d : (_e = this.listview) === null || _e === void 0 ? void 0 : _e.onContextMenu;
-            if (!arg.accept && items.indexOf(this) >= 0 && onContextMenu) {
+            if (!arg.accept && items && items.indexOf(this) >= 0 && onContextMenu) {
                 if (drop)
                     onContextMenu(this, ev);
                 else
