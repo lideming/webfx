@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Human Ping - webfx demo</title>
+    <script src="../dist/webfx.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: sans-serif;
+            margin: 0;
+            padding: 0;
+            font-size: 40px;
+        }
+
+        .app {
+            padding: 20px;
+            display: flex;
+            height: 100vh;
+            flex-flow: column;
+            justify-content: center;
+            color: white;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <script>
+        (function () {
+            const READY = "#2b87d1";
+            const WAIT = "#ce2636";
+            const CLICK = "#4bdb6a";
+
+            class App extends webfx.View {
+                constructor() {
+                    super();
+                    this.clickEvent = new AutoResetEvent();
+                    this.text = new webfx.Ref();
+                    this.routine();
+                }
+                createDom() {
+                    const onclick = (e) => {
+                        e.preventDefault();
+                        this.clickEvent.set();
+                    };
+                    return {
+                        tag: 'div.app',
+                        onmousedown: onclick,
+                        ontouchstart: onclick,
+                        child: {
+                            ref: this.text,
+                            tag: 'p'
+                        }
+                    }
+                }
+                set(color, str) {
+                    this.dom.style.backgroundColor = color;
+                    this.text.value.textContent = str || '';
+                }
+                async routine() {
+                    this.set(READY, "Click to start");
+                    while (true) {
+                        await this.clickEvent.wait();
+                        this.set(WAIT, "Wait for green...");
+                        const action = await Promise.race([
+                            new Promise(r => setTimeout(r, 1000 + Math.random() * 2000, "timer")),
+                            this.clickEvent.wait(),
+                        ]);
+                        if (action == "timer") {
+                            this.set(CLICK, "CLICK NOW!");
+                            const startTime = Date.now();
+                            await this.clickEvent.wait();
+                            const ms = Date.now() - startTime;
+                            this.set(READY, `${ms} ms`);
+                        } else {
+                            this.set(READY, `Too early!`);
+                        }
+                    }
+                }
+            }
+
+            class AutoResetEvent {
+                constructor() {
+                    this._whenNotify = null;
+                    this._callback = null;
+                }
+                wait() {
+                    if (!this._whenNotify) {
+                        this._whenNotify = new Promise(r => {
+                            this._callback = () => {
+                                this._callback = this._whenNotify = null;
+                                r();
+                            };
+                        });
+                    }
+                    return this._whenNotify;
+                }
+                set() {
+                    this._callback && this._callback();
+                }
+            }
+
+            document.body.appendChild(new App().dom);
+        })();
+    </script>
+</body>
+
+</html>
