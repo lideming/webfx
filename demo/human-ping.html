@@ -33,13 +33,11 @@
 <body>
     <script>
         (function () {
-            const { utils, View, Toast, ButtonView } = webfx;
-
             const READY = "#2b87d1";
             const WAIT = "#ce2636";
             const CLICK = "#4bdb6a";
 
-            class App extends View {
+            class App extends webfx.View {
                 constructor() {
                     super();
                     this.clickEvent = new AutoResetEvent();
@@ -69,13 +67,20 @@
                     this.set(READY, "Click to start");
                     while (true) {
                         await this.clickEvent.wait();
-                        this.set(WAIT, "Wait for green");
-                        await new Promise(r => setTimeout(r, 1000 + Math.random() * 2000));
-                        this.set(CLICK, "CLICK NOW!");
-                        const startTime = Date.now();
-                        await this.clickEvent.wait();
-                        const ms = Date.now() - startTime;
-                        this.set(READY, `${ms} ms`);
+                        this.set(WAIT, "Wait for green...");
+                        const action = await Promise.race([
+                            new Promise(r => setTimeout(r, 1000 + Math.random() * 2000, "timer")),
+                            this.clickEvent.wait(),
+                        ]);
+                        if (action == "timer") {
+                            this.set(CLICK, "CLICK NOW!");
+                            const startTime = Date.now();
+                            await this.clickEvent.wait();
+                            const ms = Date.now() - startTime;
+                            this.set(READY, `${ms} ms`);
+                        } else {
+                            this.set(READY, `Too early!`);
+                        }
                     }
                 }
             }
