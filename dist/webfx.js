@@ -2508,6 +2508,7 @@
             super.updateDom();
         }
     }
+    exports.FlagsInput = void 0;
     (function (FlagsInput_1) {
         class FlagsInput extends ContainerView {
             constructor(flags) {
