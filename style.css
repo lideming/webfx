@@ -392,6 +392,10 @@ textarea.input-text {
     padding: 5px;
 }
 
+.btn-inline {
+    display: inline;
+}
+
 .tab {
     display: inline-block;
     color: var(--color-text-gray);

@@ -1088,7 +1088,7 @@ export class TextView extends View {
 
 export class ButtonView extends TextView {
     disabled: boolean = false;
-    type: 'normal' | 'big' = 'normal';
+    type: 'normal' | 'big' | 'inline' = 'normal';
     constructor(init?: ObjectInit<ButtonView>) {
         super();
         utils.objectInit(this, init);
@@ -1101,6 +1101,7 @@ export class ButtonView extends TextView {
         super.updateDom();
         this.toggleClass('disabled', this.disabled);
         this.toggleClass('btn-big', this.type === 'big');
+        this.toggleClass('btn-inline', this.type === 'inline');
     }
 }
 
