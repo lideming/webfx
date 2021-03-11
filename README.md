@@ -24,20 +24,171 @@ Created for [MusicCloud](https://github.com/lideming/MusicCloud).
   * `webfx.esm.js`
     + A bundle as a ES module
 
-## Getting Started
+## Installation
+
+### Import from modules
+
+Install the module locally using `npm`:
+
+```shell
+npm install @yuuza/webfx
+```
+
+Import from ES modules:
+
+```ts
+import { View, ButtonView } from "@yuuza/webfx";
+```
+
+### Load into the browser directly
 
 Add webfx to your web page:
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@yuuza/webfx@1.5.4/dist/webfx.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@yuuza/webfx@1.6.0/dist/webfx.min.js"></script>
 ```
 
 Or if you don't need the viewlib:
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@yuuza/webfx@1.5.4/dist/webfxcore.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@yuuza/webfx@1.6.0/dist/webfxcore.min.js"></script>
 ```
 
-[Demo](https://gh.yuuza.net/webfx/demo/counter.html) ([Source code](https://github.com/lideming/webfx/blob/master/demo/counter.html))
+Then the module can be accessed from global variable `webfx`:
+
+```js
+const { View, ButtonView } = webfx;
+```
+
+## Getting Started
+
+### Create a view component
+
+```js
+class Hello extends View {
+  createDom() {
+    return {
+      tag: 'p.text.bold#hello',
+      text: 'hello webfx'
+    }
+  }
+}
+document.body.appendChild(new Hello().dom);
+```
+Renders:
+```html
+<p class="text bold" id="hello">hello webfx</p>
+```
+
+### Use properties
+
+```js
+webfx.injectWebfxCss();
+class Counter extends View {
+  constructor() {
+    super();
+    this.count = 0;
+  }
+  createDom() {
+    return {
+      tag: 'div.counter',
+      child: [
+        'Count: ', () => this.count, {tag: 'br'},
+        new ButtonView({ text: 'Click me', onActive: () => {
+          this.updateWith({count: this.count + 1});
+        }})
+      ]
+    }
+  }
+}
+document.body.appendChild(new Counter().dom);
+```
+
+Renders:
+```html
+<div class="counter">
+  Count: 9<br>
+  <div class="btn" tabindex="0">Click me</div>
+</div>
+```
+
+### Use hooks
+
+```js
+webfx.injectWebfxCss();
+class Counter extends View {
+  constructor() {
+    super();
+    this.count = 0;
+  }
+  createDom() {
+    return {
+      tag: 'div.counter',
+      child: [
+        'Count: ',
+        {
+          tag: 'span',
+          text: () => this.count,
+          init: (dom) => { console.info('the <span> DOM is created', dom); },
+          update: (dom) => { dom.style.fontSize = `${14 + this.count}px`; }
+        },
+        {tag: 'br'},
+
+        new ButtonView({text: 'Click me', onActive: () => {
+          this.updateWith({count: this.count + 1});
+        }})
+      ]
+    }
+  }
+  postCreateDom() {
+    super.postCreateDom();
+    console.info('the counter DOM is created', this.dom);
+  }
+  updateDom() {
+    super.updateDom();
+    console.info('the counter DOM is updated', this.dom);
+  }
+}
+document.body.appendChild(new Counter().dom);
+```
+
+### Use ListView
+
+(TBD)
+
+
+### Use JSX/TSX
+
+```jsx
+webfx.injectWebfxCss();
+class Counter extends View {
+  constructor() {
+    super();
+    this.count = 0;
+  }
+  createDom() {
+    return (
+      <div class="counter">
+        Count: {() => this.count}<br/>
+        <ButtonView onActive={() => {
+          this.updateWith({count: this.count + 1});
+        }}>
+            Click me
+        </ButtonView>
+      </div>
+    );
+  }
+}
+document.body.appendChild(new Counter().dom);
+```
+
+## Demos
+
+[Counter & viewlib](https://gh.yuuza.net/webfx/demo/counter.html)
+([HTML + JS](https://github.com/lideming/webfx/blob/master/demo/counter.html))
+([JSX](https://github.com/lideming/webfx/blob/master/demo/counter.jsx))
+
+[Human-ping](https://gh.yuuza.net/webfx/demo/human-ping.html)
+([HTML + JS](https://github.com/lideming/webfx/blob/master/demo/human-ping.html))
 
 (TBD)
