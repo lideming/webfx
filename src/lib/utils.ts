@@ -529,6 +529,7 @@ export class Ref<T> {
     get value() { return this._value; }
     set value(val) {
         this._value = val;
+        if (this._onChanged) this.onChanged.invoke(this);
     }
 }
 
