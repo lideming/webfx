@@ -1,6 +1,6 @@
 {
   "name": "@yuuza/webfx",
-  "version": "1.6.0",
+  "version": "1.6.1",
   "description": "",
   "main": "dist/webfx.js",
   "module": "dist/webfx.esm.js",
@@ -19,7 +19,6 @@
   ],
   "author": "",
   "license": "MIT",
-  "dependencies": {},
   "devDependencies": {
     "rollup-plugin-sourcemaps": "^0.6.3",
     "rollup-plugin-terser": "^7.0.2"
