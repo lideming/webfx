@@ -3,7 +3,7 @@
 import { utils, Action, Callbacks, Timer, ObjectInit } from "./utils";
 import { BuildDomExpr, BuildDomNode, ContainerView, IDOM, View } from "./view";
 import { I, i18n } from "./I18n";
-import css from "../style.css";
+import css from "../../style.css";
 
 export function getWebfxCss() { return css; }
 let cssInjected = false;

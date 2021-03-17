@@ -21,19 +21,14 @@ function transformSourcemapPath() {
     };
 }
 
-function myCss() {
+function myText() {
+    function match(id) {
+        return /\.(css|svg)$/.test(id);
+    }
     return {
-        name: 'my-css-loader',
-        resolveId(id) {
-            if (id.endsWith('.css')) {
-                return "style.css";
-            }
-            return null;
-        },
-        /** @param {string} code */
+        name: 'my-text-loader',
         transform(code, id) {
-            if (id.endsWith('.css')) {
-                code = code.replace(/\r?\n[ \t]*/g, '');
+            if (match(id)) {
                 return {
                     code: 'export default ' + JSON.stringify(code),
                     map: { mappings: '' }
@@ -84,7 +79,7 @@ export default [{
     plugins: [
         sourcemaps(),
         myVersion(),
-        myCss(),
+        myText(),
     ],
     context: 'this'
 }, {
