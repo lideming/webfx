@@ -248,11 +248,13 @@ export class JsxNode<T extends IDOM> implements IDOM {
 
 function jsxBuildCore(node: JsxNode<any> | BuildDomExpr, ttl: number, ctx: BuildDOMCtx | null) {
     if (ttl-- < 0) throw new Error('ran out of TTL');
+    if (node instanceof View) return node;
     var r = tryHandleValues(node, ctx);
     if (r) return r;
     if (node instanceof JsxNode) {
         return node.buildView(ctx, ttl);
     } else {
+        console.error("Unknown node type", node);
         throw new Error("Unknown node type");
     }
 }
