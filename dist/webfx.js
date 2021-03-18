@@ -963,6 +963,8 @@
     function jsxBuildCore(node, ttl, ctx) {
         if (ttl-- < 0)
             throw new Error('ran out of TTL');
+        if (node instanceof View)
+            return node;
         var r = tryHandleValues(node, ctx);
         if (r)
             return r;
@@ -970,6 +972,7 @@
             return node.buildView(ctx, ttl);
         }
         else {
+            console.error("Unknown node type", node);
             throw new Error("Unknown node type");
         }
     }
