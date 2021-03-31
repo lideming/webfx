@@ -1,8 +1,10 @@
-# webfx - My Web Framework
+# Webfx
+
+Web UI framework and utilities.
+
+It was originally created for [MusicCloud](https://github.com/lideming/MusicCloud).
 
 [![](https://data.jsdelivr.com/v1/package/npm/@yuuza/webfx/badge?style=rounded)](https://www.jsdelivr.com/package/npm/@yuuza/webfx)
-
-Created for [MusicCloud](https://github.com/lideming/MusicCloud).
 
 ## Files
 
@@ -182,5 +184,11 @@ document.body.appendChild(new Counter().dom);
 
 [Human-ping](https://gh.yuuza.net/webfx/demo/human-ping.html)
 ([HTML + JS](https://github.com/lideming/webfx/blob/master/demo/human-ping.html))
+
+## Todos
+
+- [ ] Mount / unmount events
+- [ ] Functional DOM tree updating
+- [ ] React-like function components with hooks
 
 (TBD)
