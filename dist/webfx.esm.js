@@ -1863,6 +1863,10 @@ class LazyListView extends ListView {
         }
     }
 }
+class TextView extends View {
+    get text() { return this.dom.textContent; }
+    set text(val) { this.dom.textContent = val; }
+}
 class Section extends View {
     constructor(arg) {
         super();
@@ -1903,13 +1907,22 @@ class Section extends View {
         dom.appendChild(view.getDOM());
     }
     addAction(arg) {
-        var view = new View({
-            tag: 'div.section-action.clickable',
-            text: arg.text,
-            tabIndex: 0
-        });
-        view.onActive.add(arg.onclick);
+        var view = arg instanceof View ?
+            arg :
+            new SectionAction({ text: arg.text, onActive: arg.onclick });
         this.headerView.dom.appendChild(view.dom);
+    }
+}
+class SectionAction extends TextView {
+    constructor(init) {
+        super();
+        utils.objectInit(this, init);
+    }
+    createDom() {
+        return {
+            tag: 'div.section-action.clickable',
+            tabIndex: 0
+        };
     }
 }
 class LoadingIndicator extends View {
@@ -2450,10 +2463,6 @@ class InputView extends View {
         }
     }
 }
-class TextView extends View {
-    get text() { return this.dom.textContent; }
-    set text(val) { this.dom.textContent = val; }
-}
 class ButtonView extends TextView {
     constructor(init) {
         super();
@@ -2760,4 +2769,4 @@ function setPosition(dom, options) {
     }
 }
 
-export { BuildDOMCtx, ButtonView, Callbacks, CancelToken, ContainerView, ContextMenu, DataUpdatingHelper, Dialog, DialogParent, EditableHelper, EventRegistrations, FlagsInput, I, I18n, InputStateTracker, InputView, ItemActiveHelper, JsxNode, LabeledInput, LabeledInputBase, Lazy, LazyListView, ListView, ListViewItem, LoadingIndicator, MenuInfoItem, MenuItem, MenuLinkItem, MessageBox, Overlay, Ref, Section, SelectionHelper, Semaphore, SettingItem, TabBtn, TextCompositionWatcher, TextView, Timer, Toast, ToastsContainer, ToolTip, View, ViewToggle, buildDOM, createArrayBuilder, createStringBuilder, dragManager, getWebfxCss, i18n, injectWebfxCss, jsx, jsxBuild, jsxFactory, startBlockingDetect, utils, version };
+export { BuildDOMCtx, ButtonView, Callbacks, CancelToken, ContainerView, ContextMenu, DataUpdatingHelper, Dialog, DialogParent, EditableHelper, EventRegistrations, FlagsInput, I, I18n, InputStateTracker, InputView, ItemActiveHelper, JsxNode, LabeledInput, LabeledInputBase, Lazy, LazyListView, ListView, ListViewItem, LoadingIndicator, MenuInfoItem, MenuItem, MenuLinkItem, MessageBox, Overlay, Ref, Section, SectionAction, SelectionHelper, Semaphore, SettingItem, TabBtn, TextCompositionWatcher, TextView, Timer, Toast, ToastsContainer, ToolTip, View, ViewToggle, buildDOM, createArrayBuilder, createStringBuilder, dragManager, getWebfxCss, i18n, injectWebfxCss, jsx, jsxBuild, jsxFactory, startBlockingDetect, utils, version };

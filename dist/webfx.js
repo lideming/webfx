@@ -1869,6 +1869,10 @@
             }
         }
     }
+    class TextView extends View {
+        get text() { return this.dom.textContent; }
+        set text(val) { this.dom.textContent = val; }
+    }
     class Section extends View {
         constructor(arg) {
             super();
@@ -1909,13 +1913,22 @@
             dom.appendChild(view.getDOM());
         }
         addAction(arg) {
-            var view = new View({
-                tag: 'div.section-action.clickable',
-                text: arg.text,
-                tabIndex: 0
-            });
-            view.onActive.add(arg.onclick);
+            var view = arg instanceof View ?
+                arg :
+                new SectionAction({ text: arg.text, onActive: arg.onclick });
             this.headerView.dom.appendChild(view.dom);
+        }
+    }
+    class SectionAction extends TextView {
+        constructor(init) {
+            super();
+            utils.objectInit(this, init);
+        }
+        createDom() {
+            return {
+                tag: 'div.section-action.clickable',
+                tabIndex: 0
+            };
         }
     }
     class LoadingIndicator extends View {
@@ -2456,10 +2469,6 @@
             }
         }
     }
-    class TextView extends View {
-        get text() { return this.dom.textContent; }
-        set text(val) { this.dom.textContent = val; }
-    }
     class ButtonView extends TextView {
         constructor(init) {
             super();
@@ -2797,6 +2806,7 @@
     exports.Overlay = Overlay;
     exports.Ref = Ref;
     exports.Section = Section;
+    exports.SectionAction = SectionAction;
     exports.SelectionHelper = SelectionHelper;
     exports.Semaphore = Semaphore;
     exports.SettingItem = SettingItem;
