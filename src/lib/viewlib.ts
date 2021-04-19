@@ -494,6 +494,11 @@ export class LazyListView<T extends ListViewItem = ListViewItem> extends ListVie
     }
 }
 
+export class TextView extends View {
+    get text() { return this.dom.textContent; }
+    set text(val) { this.dom.textContent = val; }
+}
+
 type SectionActionOptions = { text: string, onclick: Action<MouseEvent>; };
 
 export class Section extends View {
@@ -531,14 +536,24 @@ export class Section extends View {
         while (dom.lastChild !== firstChild) dom.removeChild(dom.lastChild!);
         dom.appendChild(view.getDOM());
     }
-    addAction(arg: SectionActionOptions) {
-        var view = new View({
-            tag: 'div.section-action.clickable',
-            text: arg.text,
-            tabIndex: 0
-        });
-        view.onActive.add(arg.onclick);
+    addAction(arg: SectionAction | SectionActionOptions) {
+        var view = arg instanceof View ?
+            arg :
+            new SectionAction({ text: arg.text, onActive: arg.onclick });
         this.headerView.dom.appendChild(view.dom);
+    }
+}
+
+export class SectionAction extends TextView {
+    constructor(init?: ObjectInit<SectionAction>) {
+        super();
+        utils.objectInit(this, init);
+    }
+    createDom() {
+        return {
+            tag: 'div.section-action.clickable',
+            tabIndex: 0
+        }
     }
 }
 
@@ -1079,11 +1094,6 @@ export class InputView extends View {
             this.dom.placeholder = this.placeholder;
         }
     }
-}
-
-export class TextView extends View {
-    get text() { return this.dom.textContent; }
-    set text(val) { this.dom.textContent = val; }
 }
 
 export class ButtonView extends TextView {
