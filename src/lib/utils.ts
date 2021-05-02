@@ -605,6 +605,26 @@ export class CancelToken {
     }
 }
 
+export class AutoResetEvent {
+    private _whenNotify: Promise<void> | null = null;
+    private _callback: Action | null = null;
+
+    wait() {
+        if (!this._whenNotify) {
+            this._whenNotify = new Promise(r => {
+                this._callback = () => {
+                    this._callback = this._whenNotify = null;
+                    r();
+                };
+            });
+        }
+        return this._whenNotify;
+    }
+    set() {
+        this._callback && this._callback();
+    }
+}
+
 export interface IId {
     id: keyof any;
 }

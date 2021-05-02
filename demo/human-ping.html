@@ -40,7 +40,7 @@
             class App extends webfx.View {
                 constructor() {
                     super();
-                    this.clickEvent = new AutoResetEvent();
+                    this.clickEvent = new webfx.AutoResetEvent();
                     this.text = new webfx.Ref();
                     this.routine();
                 }
@@ -82,27 +82,6 @@
                             this.set(READY, `Too early!`);
                         }
                     }
-                }
-            }
-
-            class AutoResetEvent {
-                constructor() {
-                    this._whenNotify = null;
-                    this._callback = null;
-                }
-                wait() {
-                    if (!this._whenNotify) {
-                        this._whenNotify = new Promise(r => {
-                            this._callback = () => {
-                                this._callback = this._whenNotify = null;
-                                r();
-                            };
-                        });
-                    }
-                    return this._whenNotify;
-                }
-                set() {
-                    this._callback && this._callback();
                 }
             }
 
