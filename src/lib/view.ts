@@ -174,8 +174,15 @@ var buildDOMHandleKey = function (key: string, val: any, node: HTMLElement, ctx:
     }
 };
 
-export const buildDOM: typeof utils['buildDOM'] = utils.buildDOM = function (obj: BuildDomExpr, ctx: BuildDOMCtx): any {
-    return buildDomCore(obj, 32, ctx);
+/** 
+ * Build a DOM tree from a JavaScript object.
+ * @example utils.buildDOM({
+        tag: 'div.item#firstitem',
+        child: ['Name: ', { tag: 'span.name', textContent: name } ],
+    })
+ */
+export function buildDOM<T extends BuildDomReturn = BuildDomReturn>(obj: BuildDomExpr, ctx?: BuildDOMCtx): T {
+    return buildDomCore(obj, 32, ctx || null) as T;
 };
 
 export class JsxNode<T extends IDOM> implements IDOM {
@@ -296,7 +303,7 @@ export function jsxFactory<T extends JsxTag>(tag: T, attrs: JsxAttrs<T>, ...chil
     }
 }
 
-export const jsx = utils.jsx = utils.jsxFactory = jsxFactory;
+export const jsx = jsxFactory;
 
 export class View<T extends HTMLElement = HTMLElement> implements IDOM {
     constructor(dom?: BuildDomExpr) {
