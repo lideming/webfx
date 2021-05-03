@@ -43,16 +43,16 @@
                     this.clickEvent = new webfx.AutoResetEvent();
                     this.text = new webfx.Ref();
                     this.routine();
-                }
-                createDom() {
-                    const onclick = (e) => {
+                    this.onclick = (e) => {
                         e.preventDefault();
                         this.clickEvent.set();
                     };
+                }
+                createDom() {
                     return {
                         tag: 'div.app',
-                        onmousedown: onclick,
-                        ontouchstart: onclick,
+                        onmousedown: this.onclick,
+                        ontouchstart: this.onclick,
                         child: {
                             ref: this.text,
                             tag: 'p'
@@ -84,8 +84,9 @@
                     }
                 }
             }
-
-            document.body.appendChild(new App().dom);
+            const app = new App();
+            document.body.appendChild(app.dom);
+            window.addEventListener('keydown', app.onclick)
         })();
     </script>
 </body>
