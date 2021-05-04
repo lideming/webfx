@@ -25,7 +25,17 @@ jobs:
         with:
           node-version: 12.x
 
+      - name: Cache node_modules
+        id: cache_node_modules
+        uses: actions/cache@v2
+        with:
+          path: |
+            node_modules
+            package-lock.json
+          key: ${{ runner.os }}-${{ hashFiles('package.json') }}
+
       - name: Install npm dependencies
+        if: steps.cache_node_modules.outputs.cache-hit != 'true'
         run: |
           npm i
 
