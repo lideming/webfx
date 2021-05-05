@@ -2,6 +2,7 @@
   "name": "@yuuza/webfx",
   "version": "1.7.0",
   "description": "",
+  "repository": "github:lideming/webfx",
   "main": "dist/webfx.js",
   "module": "dist/webfx.esm.js",
   "types": "build/index.d.ts",
