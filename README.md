@@ -4,9 +4,20 @@ Web UI framework and utilities.
 
 It was originally created for [MusicCloud](https://github.com/lideming/MusicCloud).
 
-[![](https://data.jsdelivr.com/v1/package/npm/@yuuza/webfx/badge?style=rounded)](https://www.jsdelivr.com/package/npm/@yuuza/webfx)
+[![npm](https://img.shields.io/npm/dy/@yuuza/webfx?label=%40yuuza%2Fwebfx&logo=npm)](https://www.npmjs.com/package/@yuuza/webfx)
 
-## Files
+## Demos
+
+* [Counter & viewlib](https://gh.yuuza.net/webfx/demo/counter.html)
+([HTML + JS](https://github.com/lideming/webfx/blob/master/demo/counter.html))
+([JSX](https://github.com/lideming/webfx/blob/master/demo/counter.jsx))
+
+* [Human-ping](https://gh.yuuza.net/webfx/demo/human-ping.html)
+([HTML + JS](https://github.com/lideming/webfx/blob/master/demo/human-ping.html))
+
+* And of cource [MusicCloud (GitHub repo)](https://github.com/lideming/MusicCloud)
+
+## Project Structure
 
 * `utils.ts` - Utilities
 * `i18n.ts` - Internationalization (i18n) helper
@@ -54,19 +65,23 @@ Then the module can be accessed from global variable `webfx`:
 const { View, ButtonView } = webfx;
 ```
 
-## Getting Started
+## Usage
 
-### Create a view component
+### A basic view component
 
 ```js
+// Define a very basic view class
 class Hello extends View {
   createDom() {
+    // Returns a so-called "DOM expression" object.
     return {
       tag: 'p.text.bold#hello',
       text: 'hello webfx'
     }
   }
 }
+
+// Create a instance of the view and append it into <body>.
 document.body.appendChild(new Hello().dom);
 ```
 Renders:
@@ -74,7 +89,33 @@ Renders:
 <p class="text bold" id="hello">hello webfx</p>
 ```
 
-### Use properties
+Note: `createDom()` can be omited, then the DOM will be an empty `<div>`.
+
+
+### DOM Expression
+
+A DOM Expression is a `BuildDomNode` object, `View` object, string, number or function (which returns string/number only).
+
+```ts
+type BuildDomNode = {
+    tag?: BuildDomTag;  // A string indicates DOM tag name, class names and id, similar to CSS seletor.
+    child?: BuildDomExpr[] | BuildDomExpr;  // One or more DOM expressions as the children.
+    text?: FuncOrVal<string>;  // Shortcut for `textContent`, can be a function, see below.
+    hidden?: FuncOrVal<boolean>;  // `hidden` but can be a function, see below.
+    init?: Action<HTMLElement>;  // A callback that is called on the DOM created.
+    update?: Action<HTMLElement>;  // A callback that is called on the View updated.
+    // ...omited internal properties...
+}
+```
+
+The `text` and `hidden` callbacks will be called in `updateDom()`.
+
+
+### Properties and Child Elements
+
+There are no `state`s in webfx. They're just properties.
+
+Use the `child` key in DOM expression for child elements.
 
 ```js
 webfx.injectWebfxCss();
@@ -106,7 +147,15 @@ Renders:
 </div>
 ```
 
-### Use hooks
+### Hook methods
+
+`postCreateDom()` is called when the DOM is just created.
+
+`updateDom()` is called after `postCreateDom()`, also be called manually by `updateDom()`.
+
+`updateWith()` is a shortcut for changing properties and calling `updateDom()`.
+
+Note: Remember to call the `super` method when overriding these methods.
 
 ```js
 webfx.injectWebfxCss();
@@ -146,14 +195,19 @@ class Counter extends View {
 document.body.appendChild(new Counter().dom);
 ```
 
-### Use ListView
+### ListView
 
 (TBD)
 
 
-### Use JSX/TSX
+### JSX/TSX
+
+Some configuration is required to make the JSX/TSX compiler use the correct JSX factory. Set `"jsxFactory": "jsx"` in `tsconfig.json` or use `/** @jsx jsx */`.
 
 ```jsx
+/** @jsx jsx */
+import { View, jsx } from "@yuuza/webfx";
+
 webfx.injectWebfxCss();
 class Counter extends View {
   constructor() {
@@ -176,14 +230,34 @@ class Counter extends View {
 document.body.appendChild(new Counter().dom);
 ```
 
-## Demos
+### I18n Helper
 
-[Counter & viewlib](https://gh.yuuza.net/webfx/demo/counter.html)
-([HTML + JS](https://github.com/lideming/webfx/blob/master/demo/counter.html))
-([JSX](https://github.com/lideming/webfx/blob/master/demo/counter.jsx))
+Using the [tagged templates](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals#tagged_templates) feature, the i18n is very easy.
 
-[Human-ping](https://gh.yuuza.net/webfx/demo/human-ping.html)
-([HTML + JS](https://github.com/lideming/webfx/blob/master/demo/human-ping.html))
+```js
+import { i18n, I } from "@yuuza/webfx";
+
+i18n.add2dArray([
+    ['en', 'zh'],
+    ['Hello!', '你好！'],
+    ['My name is {0}.', '我的名字是 {0}。']
+]);
+
+function sayHello(name) {
+    console.log(I`Hello!`);
+    console.log(I`My name is ${name}.`);
+}
+
+i18n.curLang = 'en';
+sayHello('Yuuza');
+// Hello!
+// My name is Yuuza.
+
+i18n.curLang = 'zh';
+sayHello('Yuuza');
+// 你好！
+// 我的名字是 Yuuza。
+```
 
 ## Todos
 
