@@ -841,7 +841,7 @@ export class ContextMenu extends ListView {
 }
 
 export class Dialog extends View {
-    overlay: Overlay;
+    parent: DialogParent = Dialog.defaultParent;
     domheader: HTMLElement;
     content = new ContainerView({ tag: 'div.dialog-content' });
     shown = false;
@@ -990,7 +990,7 @@ export class Dialog extends View {
         this.shown = true;
         this._cancelFadeout?.();
         this.ensureDom();
-        Dialog.defaultParent.onDialogShowing(this);
+        this.parent.onDialogShowing(this);
         this.setTransformOrigin(ev);
         this.dom.focus();
         (this.autoFocus || this).dom.focus();
