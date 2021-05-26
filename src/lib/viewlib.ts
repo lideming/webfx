@@ -615,16 +615,28 @@ export class Overlay extends View {
     createDom() {
         return { tag: 'div.overlay' };
     }
+
+    /** @deprecated Use `setFlags` instead. */
     setCenterChild(centerChild: boolean) {
-        this.toggleClass('centerchild', centerChild);
-        return this;
+        return this.setFlags({ centerChild });
     }
+
+    /** @deprecated Use `setFlags` instead. */
     setNoBg(nobg: boolean) {
-        this.toggleClass('nobg', nobg);
-        return this;
+        return this.setFlags({ nobg });
     }
+
+    /** @deprecated Use `setFlags` instead. */
     setFixed(fixed: boolean) {
-        this.toggleClass('fixed', fixed);
+        return this.setFlags({ fixed });
+    }
+
+    setFlags(flags: { centerChild?: boolean, nobg?: boolean, fixed?: boolean, clickThrough?: boolean }) {
+        for (const key in flags) {
+            if (Object.prototype.hasOwnProperty.call(flags, key)) {
+                this.toggleClass(key, flags[key]);
+            }
+        }
         return this;
     }
 }
@@ -842,6 +854,8 @@ export class ContextMenu extends ListView {
 
 export class Dialog extends View {
     parent: DialogParent = Dialog.defaultParent;
+    overlay = new Overlay().setFlags({ centerChild: true, nobg: true });
+
     domheader: HTMLElement;
     content = new ContainerView({ tag: 'div.dialog-content' });
     shown = false;
@@ -904,7 +918,6 @@ export class Dialog extends View {
         super.postCreateDom();
         this.addBtn(this.btnTitle);
         this.addBtn(this.btnClose);
-        this.overlay = new Overlay().setCenterChild(true).setNoBg(true);
         this.overlay.dom.appendView(this);
         this.overlay.dom.addEventListener('mousedown', (ev) => {
             if (this.allowClose && ev.button === 0 && ev.target === this.overlay.dom) {

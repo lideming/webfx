@@ -238,10 +238,14 @@ a.item {
     will-change: auto;
 }
 
-.overlay.centerchild {
+.overlay.centerChild {
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+.overlay.clickThrough {
+    pointer-events: none;
 }
 
 .dialog * {
