@@ -303,7 +303,7 @@ class View {
         }
     }
     domExprCreated(r) {
-        this._dom = utils.buildDOM(r, this.domctx);
+        this._dom = buildDOM(r, this.domctx);
         this.postCreateDom();
         this.updateDom();
     }
@@ -319,11 +319,11 @@ class View {
     }
     /** Assign key-values and call `updateDom()` */
     updateWith(kv) {
-        utils.objectApply(this, kv);
+        objectApply(this, kv);
         this.updateDom();
     }
     toggleClass(clsName, force) {
-        utils.toggleClass(this.dom, clsName, force);
+        toggleClass(this.dom, clsName, force);
     }
     appendView(view) { return this.dom.appendView(view); }
     getDOM() { return this.dom; }
@@ -332,7 +332,7 @@ class View {
             this.appendView(child);
         }
         else {
-            this.dom.appendChild(utils.buildDOM(child));
+            this.dom.appendChild(buildDOM(child));
         }
     }
     get onActive() {
@@ -361,7 +361,7 @@ class View {
 }
 Node.prototype.getDOM = function () { return this; };
 Node.prototype.addChild = function (child) {
-    this.appendChild(utils.buildDOM(child));
+    this.appendChild(buildDOM(child));
 };
 Node.prototype.appendView = function (view) {
     this.appendChild(view.dom);
@@ -436,9 +436,9 @@ class ContainerView extends View {
     get(idx) {
         return this.items[idx];
     }
-    map(func) { return utils.arrayMap(this, func); }
-    find(func) { return utils.arrayFind(this, func); }
-    forEach(func) { return utils.arrayForeach(this, func); }
+    map(func) { return arrayMap(this, func); }
+    find(func) { return arrayFind(this, func); }
+    forEach(func) { return arrayForeach(this, func); }
 }
 
 // file: utils.ts
@@ -932,7 +932,7 @@ class Semaphore {
         this.queue = new Array();
         this.maxCount = 1;
         this.runningCount = 0;
-        utils.objectInit(this, init);
+        objectInit(this, init);
     }
     enter() {
         if (this.runningCount === this.maxCount) {
@@ -1126,7 +1126,7 @@ class InputStateTracker {
         this._removeEvents = null;
         this._removePointerEvents = null;
         this.onChanged = new Callbacks();
-        this._removeEvents = utils.listenEvents(dom, ['mouseenter', 'mouseleave', 'focusin', 'focusout'], (e) => {
+        this._removeEvents = listenEvents(dom, ['mouseenter', 'mouseleave', 'focusin', 'focusout'], (e) => {
             switch (e.type) {
                 case 'mouseenter':
                     this.stateChanged('mouseIn', true);
@@ -1142,7 +1142,7 @@ class InputStateTracker {
                     break;
             }
         }).remove;
-        this._removePointerEvents = utils.listenPointerEvents(dom, (e) => {
+        this._removePointerEvents = listenPointerEvents(dom, (e) => {
             if (e.action == 'down') {
                 this.stateChanged('mouseDown', true);
                 return 'track';
@@ -1390,7 +1390,7 @@ const I = createStringBuilder(i18n);
 
 const version = "1.7.0";
 
-var css = ":root {\n    --color-bg: white;\n    --color-text: black;\n    --color-text-gray: #666;\n    --color-bg-selection: hsl(5, 100%, 85%);\n    --color-primary: hsl(5, 100%, 67%);\n    --color-primary-darker: hsl(5, 100%, 60%);\n    --color-primary-dark: hsl(5, 100%, 40%);\n    --color-primary-dark-depends: hsl(5, 100%, 40%);\n    --color-primary-verydark: hsl(5, 100%, 20%);\n    --color-primary-light: hsl(5, 100%, 83%);\n    --color-primary-lighter: hsl(5, 100%, 70%);\n    --color-fg-11: #111111;\n    --color-fg-22: #222222;\n    --color-fg-33: #333333;\n    --color-bg-cc: #cccccc;\n    --color-bg-dd: #dddddd;\n    --color-bg-ee: #eeeeee;\n    --color-bg-f8: #f8f8f8;\n    --color-shadow: rgba(0, 0, 0, .5);\n}\n\n.no-selection {\n    user-select: none;\n    -ms-user-select: none;\n    -moz-user-select: none;\n    -webkit-user-select: none;\n}\n\n/* listview item */\n\n.item {\n    display: block;\n    position: relative;\n    padding: 10px;\n    /* background: #ddd; */\n    /* animation: showing .3s forwards; */\n    text-decoration: none;\n    line-height: 1.2;\n}\n\na.item {\n    color: inherit;\n}\n\n.clickable, .item {\n    cursor: pointer;\n    transition: transform .3s;\n    -webkit-tap-highlight-color: transparent;\n}\n\n.item:hover, .dragover {\n    background: var(--color-bg-ee);\n}\n\n.keyboard-input .item:focus {\n    outline-offset: -2px;\n}\n\n.dragover-placeholder {\n    /* border-top: 2px solid gray; */\n    position: relative;\n}\n\n.dragover-placeholder::before {\n    content: \"\";\n    display: block;\n    position: absolute;\n    transform: translate(0, -1px);\n    height: 2px;\n    width: 100%;\n    background: gray;\n    z-index: 100;\n    pointer-events: none;\n}\n\n.clickable:active, .item:active {\n    transition: transform .07s;\n    transform: scale(.97);\n}\n\n.item:active {\n    background: var(--color-bg-dd);\n}\n\n.item.no-transform:active {\n    transform: none;\n}\n\n.item.active {\n    background: var(--color-bg-dd);\n}\n\n.loading-indicator {\n    position: relative;\n    margin: .3em;\n    margin-top: 3em;\n    margin-bottom: 1em;\n    text-align: center;\n    white-space: pre-wrap;\n    cursor: default;\n    animation: loading-fadein .3s;\n}\n\n.loading-indicator-text {\n    margin: 0 auto;\n}\n\n.loading-indicator.running .loading-indicator-inner {\n    display: inline-block;\n    position: relative;\n    vertical-align: bottom;\n}\n\n.loading-indicator.running .loading-indicator-inner::after {\n    content: \"\";\n    height: 1px;\n    margin: 0%;\n    background: var(--color-text);\n    display: block;\n    animation: fadein .5s 1s backwards;\n}\n\n.loading-indicator.running .loading-indicator-text {\n    margin: 0 .5em;\n    animation: fadein .3s, loading-first .3s .5s cubic-bezier(0.55, 0.055, 0.675, 0.19) reverse, loading-second .3s .8s cubic-bezier(0.55, 0.055, 0.675, 0.19), loading .25s 1.1s cubic-bezier(0.55, 0.055, 0.675, 0.19) alternate-reverse infinite;\n}\n\n.loading-indicator.error {\n    color: red;\n}\n\n.loading-indicator.fading-out {\n    transition: max-height;\n    animation: loading-fadein .3s reverse;\n}\n\n@keyframes loading-fadein {\n    0% {\n        opacity: 0;\n        max-height: 0;\n    }\n    100% {\n        opacity: 1;\n        max-height: 200px;\n    }\n}\n\n@keyframes fadein {\n    0% {\n        opacity: 0;\n    }\n    100% {\n        opacity: 1;\n    }\n}\n\n@keyframes loading-first {\n    0% {\n        transform: translate(0, -2em) scale(1) rotate(360deg);\n    }\n    100% {\n        transform: translate(0, 0) scale(1) rotate(0deg);\n    }\n}\n\n@keyframes loading-second {\n    0% {\n        transform: translate(0, -2em);\n    }\n    100% {\n        transform: translate(0, 0);\n    }\n}\n\n@keyframes loading {\n    0% {\n        transform: translate(0, -1em);\n    }\n    100% {\n        transform: translate(0, 0);\n    }\n}\n\n@keyframes showing {\n    0% {\n        opacity: .3;\n        transform: translate(-20px, 0)\n    }\n    100% {\n        opacity: 1;\n        transform: translate(0, 0)\n    }\n}\n\n@keyframes showing-top {\n    0% {\n        opacity: .3;\n        transform: translate(0, -20px)\n    }\n    100% {\n        opacity: 1;\n        transform: translate(0, 0)\n    }\n}\n\n@keyframes showing-right {\n    0% {\n        opacity: .3;\n        transform: translate(20px, 0)\n    }\n    100% {\n        opacity: 1;\n        transform: translate(0, 0)\n    }\n}\n\n.overlay {\n    background: rgba(0, 0, 0, .2);\n    position: absolute;\n    top: 0;\n    left: 0;\n    right: 0;\n    bottom: 0;\n    animation: fadein .3s;\n    z-index: 10001;\n    overflow: hidden;\n    contain: strict;\n    will-change: transform;\n}\n\n.overlay.fixed {\n    position: fixed;\n}\n\n.overlay.nobg {\n    background: none;\n    will-change: auto;\n}\n\n.overlay.centerchild {\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.dialog * {\n    box-sizing: border-box;\n}\n\n.dialog {\n    font-size: 14px;\n    position: relative;\n    overflow: auto;\n    background: var(--color-bg);\n    border-radius: 5px;\n    box-shadow: 0 0 12px var(--color-shadow);\n    animation: dialogin .2s ease-out;\n    z-index: 10001;\n    display: flex;\n    flex-direction: column;\n    max-height: 100%;\n    contain: content;\n    will-change: transform;\n}\n\n.dialog.resize {\n    resize: both;\n}\n\n.fading-out .dialog {\n    transition: transform .3s ease-in;\n    transform: scale(.85);\n}\n\n.dialog-title, .dialog-content, .dialog-bottom {\n    padding: 10px;\n}\n\n.dialog-title {\n    background: var(--color-bg-ee);\n}\n\n.dialog-content {\n    flex: 1;\n    padding: 5px 10px;\n    overflow: auto;\n}\n\n.dialog-content.flex {\n    display: flex;\n    flex-direction: column;\n}\n\n.dialog-bottom {\n    padding: 5px 10px;\n}\n\n@keyframes dialogin {\n    0% {\n        transform: scale(.85);\n    }\n    100% {\n        transform: scale(1);\n    }\n}\n\n.input-label {\n    font-size: 80%;\n    color: var(--color-text-gray);\n    margin: 5px 0 3px 0;\n}\n\n.input-text {\n    display: block;\n    width: 100%;\n    padding: 5px;\n    border: solid 1px gray;\n    background: var(--color-bg);\n    color: var(--color-text);\n}\n\n.dialog .input-text {\n    margin: 5px 0;\n}\n\ntextarea.input-text {\n    resize: vertical;\n}\n\n.labeled-input {\n    display: flex;\n    flex-direction: column;\n}\n\n.labeled-input .input-text {\n    flex: 1;\n}\n\n.labeled-input:focus-within .input-label {\n    color: var(--color-primary-darker);\n}\n\n.input-text:focus {\n    border-color: var(--color-primary-darker);\n}\n\n.input-text:active {\n    border-color: var(--color-primary-dark);\n}\n\n.btn {\n    display: block;\n    text-align: center;\n    transition: all .2s;\n    padding: 0 .4em;\n    min-width: 3em;\n    line-height: 1.5em;\n    background: var(--color-primary);\n    color: white;\n    text-shadow: 0 0 4px var(--color-primary-verydark);\n    box-shadow: 0 0 3px var(--color-shadow);\n    cursor: pointer;\n    -ms-user-select: none;\n    -moz-user-select: none;\n    -webkit-user-select: none;\n    user-select: none;\n    position: relative;\n    overflow: hidden;\n}\n\n.btn:hover {\n    transition: all .05s;\n    background: var(--color-primary-darker);\n}\n\n.btn.btn-down, .btn:active {\n    transition: all .05s;\n    background: var(--color-primary-dark);\n    box-shadow: 0 0 1px var(--color-shadow);\n}\n\n.btn.disabled {\n    background: var(--color-primary-light);\n}\n\n.dialog .btn {\n    margin: 10px 0;\n}\n\n.btn-big {\n    padding: 5px;\n}\n\n.btn-inline {\n    display: inline;\n}\n\n.tab {\n    display: inline-block;\n    color: var(--color-text-gray);\n    margin: 0 5px;\n}\n\n.tab.active {\n    color: var(--color-text);\n}\n\n*[hidden] {\n    display: none !important;\n}\n\n.context-menu {\n    position: absolute;\n    overflow-y: auto;\n    background: var(--color-bg);\n    border: solid 1px #777;\n    box-shadow: 0 0px 12px var(--color-shadow);\n    min-width: 100px;\n    max-width: 450px;\n    outline: none;\n    z-index: 10001;\n    animation: context-menu-in .2s ease-out forwards;\n    will-change: transform;\n}\n\n.context-menu .item.dangerous {\n    transition: color .3s, background .3s;\n    color: red;\n}\n\n.context-menu .item.dangerous:hover {\n    transition: color .1s, background .1s;\n    background: red;\n    color: white;\n}\n\n@keyframes context-menu-in {\n    0% {\n        transform: scale(.9);\n    }\n    100% {\n        transform: scale(1);\n    }\n}\n\n*.menu-shown {\n    background: var(--color-bg-dd);\n}\n\n.menu-info {\n    white-space: pre-wrap;\n    color: var(--color-text-gray);\n    padding: 5px 10px;\n    /* animation: showing .3s; */\n    cursor: default;\n}\n\n.toasts-container {\n    position: fixed;\n    bottom: 0;\n    right: 0;\n    padding: 5px;\n    width: 300px;\n    z-index: 10001;\n    overflow: hidden;\n}\n\n.toast {\n    margin: 5px;\n    padding: 10px;\n    border-radius: 5px;\n    box-shadow: 0 0 10px var(--color-shadow);\n    background: var(--color-bg);\n    white-space: pre-wrap;\n    animation: showing-right .3s;\n}\n\n.fading-out {\n    transition: opacity .3s;\n    opacity: 0;\n    pointer-events: none;\n}\n\n.anchor-bottom {\n    transform: translate(-50%, -100%);\n}\n\n.tooltip {\n    position: absolute;\n    background: var(--color-bg);\n    box-shadow: 0 0 5px var(--color-shadow);\n    border-radius: 5px;\n    padding: .2em .25em;\n}\n";
+var css = ":root {\n    --color-bg: white;\n    --color-text: black;\n    --color-text-gray: #666;\n    --color-bg-selection: hsl(5, 100%, 85%);\n    --color-primary: hsl(5, 100%, 67%);\n    --color-primary-darker: hsl(5, 100%, 60%);\n    --color-primary-dark: hsl(5, 100%, 40%);\n    --color-primary-dark-depends: hsl(5, 100%, 40%);\n    --color-primary-verydark: hsl(5, 100%, 20%);\n    --color-primary-light: hsl(5, 100%, 83%);\n    --color-primary-lighter: hsl(5, 100%, 70%);\n    --color-fg-11: #111111;\n    --color-fg-22: #222222;\n    --color-fg-33: #333333;\n    --color-bg-cc: #cccccc;\n    --color-bg-dd: #dddddd;\n    --color-bg-ee: #eeeeee;\n    --color-bg-f8: #f8f8f8;\n    --color-shadow: rgba(0, 0, 0, .5);\n}\n\n.no-selection {\n    user-select: none;\n    -ms-user-select: none;\n    -moz-user-select: none;\n    -webkit-user-select: none;\n}\n\n/* listview item */\n\n.item {\n    display: block;\n    position: relative;\n    padding: 10px;\n    /* background: #ddd; */\n    /* animation: showing .3s forwards; */\n    text-decoration: none;\n    line-height: 1.2;\n}\n\na.item {\n    color: inherit;\n}\n\n.clickable, .item {\n    cursor: pointer;\n    transition: transform .3s;\n    -webkit-tap-highlight-color: transparent;\n}\n\n.item:hover, .dragover {\n    background: var(--color-bg-ee);\n}\n\n.keyboard-input .item:focus {\n    outline-offset: -2px;\n}\n\n.dragover-placeholder {\n    /* border-top: 2px solid gray; */\n    position: relative;\n}\n\n.dragover-placeholder::before {\n    content: \"\";\n    display: block;\n    position: absolute;\n    transform: translate(0, -1px);\n    height: 2px;\n    width: 100%;\n    background: gray;\n    z-index: 100;\n    pointer-events: none;\n}\n\n.clickable:active, .item:active {\n    transition: transform .07s;\n    transform: scale(.97);\n}\n\n.item:active {\n    background: var(--color-bg-dd);\n}\n\n.item.no-transform:active {\n    transform: none;\n}\n\n.item.active {\n    background: var(--color-bg-dd);\n}\n\n.loading-indicator {\n    position: relative;\n    margin: .3em;\n    margin-top: 3em;\n    margin-bottom: 1em;\n    text-align: center;\n    white-space: pre-wrap;\n    cursor: default;\n    animation: loading-fadein .3s;\n}\n\n.loading-indicator-text {\n    margin: 0 auto;\n}\n\n.loading-indicator.running .loading-indicator-inner {\n    display: inline-block;\n    position: relative;\n    vertical-align: bottom;\n}\n\n.loading-indicator.running .loading-indicator-inner::after {\n    content: \"\";\n    height: 1px;\n    margin: 0%;\n    background: var(--color-text);\n    display: block;\n    animation: fadein .5s 1s backwards;\n}\n\n.loading-indicator.running .loading-indicator-text {\n    margin: 0 .5em;\n    animation: fadein .3s, loading-first .3s .5s cubic-bezier(0.55, 0.055, 0.675, 0.19) reverse, loading-second .3s .8s cubic-bezier(0.55, 0.055, 0.675, 0.19), loading .25s 1.1s cubic-bezier(0.55, 0.055, 0.675, 0.19) alternate-reverse infinite;\n}\n\n.loading-indicator.error {\n    color: red;\n}\n\n.loading-indicator.fading-out {\n    transition: max-height;\n    animation: loading-fadein .3s reverse;\n}\n\n@keyframes loading-fadein {\n    0% {\n        opacity: 0;\n        max-height: 0;\n    }\n    100% {\n        opacity: 1;\n        max-height: 200px;\n    }\n}\n\n@keyframes fadein {\n    0% {\n        opacity: 0;\n    }\n    100% {\n        opacity: 1;\n    }\n}\n\n@keyframes loading-first {\n    0% {\n        transform: translate(0, -2em) scale(1) rotate(360deg);\n    }\n    100% {\n        transform: translate(0, 0) scale(1) rotate(0deg);\n    }\n}\n\n@keyframes loading-second {\n    0% {\n        transform: translate(0, -2em);\n    }\n    100% {\n        transform: translate(0, 0);\n    }\n}\n\n@keyframes loading {\n    0% {\n        transform: translate(0, -1em);\n    }\n    100% {\n        transform: translate(0, 0);\n    }\n}\n\n@keyframes showing {\n    0% {\n        opacity: .3;\n        transform: translate(-20px, 0)\n    }\n    100% {\n        opacity: 1;\n        transform: translate(0, 0)\n    }\n}\n\n@keyframes showing-top {\n    0% {\n        opacity: .3;\n        transform: translate(0, -20px)\n    }\n    100% {\n        opacity: 1;\n        transform: translate(0, 0)\n    }\n}\n\n@keyframes showing-right {\n    0% {\n        opacity: .3;\n        transform: translate(20px, 0)\n    }\n    100% {\n        opacity: 1;\n        transform: translate(0, 0)\n    }\n}\n\n.overlay {\n    background: rgba(0, 0, 0, .2);\n    position: absolute;\n    top: 0;\n    left: 0;\n    right: 0;\n    bottom: 0;\n    animation: fadein .3s;\n    z-index: 10001;\n    overflow: hidden;\n    contain: strict;\n    will-change: transform;\n}\n\n.overlay.fixed {\n    position: fixed;\n}\n\n.overlay.nobg {\n    background: none;\n    will-change: auto;\n}\n\n.overlay.centerChild {\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.overlay.clickThrough {\n    pointer-events: none;\n}\n\n.dialog * {\n    box-sizing: border-box;\n}\n\n.dialog {\n    font-size: 14px;\n    position: relative;\n    overflow: auto;\n    background: var(--color-bg);\n    border-radius: 5px;\n    box-shadow: 0 0 12px var(--color-shadow);\n    animation: dialogin .2s ease-out;\n    z-index: 10001;\n    display: flex;\n    flex-direction: column;\n    max-height: 100%;\n    contain: content;\n    will-change: transform;\n}\n\n.dialog.resize {\n    resize: both;\n}\n\n.fading-out .dialog {\n    transition: transform .3s ease-in;\n    transform: scale(.85);\n}\n\n.dialog-title, .dialog-content, .dialog-bottom {\n    padding: 10px;\n}\n\n.dialog-title {\n    background: var(--color-bg-ee);\n}\n\n.dialog-content {\n    flex: 1;\n    padding: 5px 10px;\n    overflow: auto;\n}\n\n.dialog-content.flex {\n    display: flex;\n    flex-direction: column;\n}\n\n.dialog-bottom {\n    padding: 5px 10px;\n}\n\n@keyframes dialogin {\n    0% {\n        transform: scale(.85);\n    }\n    100% {\n        transform: scale(1);\n    }\n}\n\n.input-label {\n    font-size: 80%;\n    color: var(--color-text-gray);\n    margin: 5px 0 3px 0;\n}\n\n.input-text {\n    display: block;\n    width: 100%;\n    padding: 5px;\n    border: solid 1px gray;\n    background: var(--color-bg);\n    color: var(--color-text);\n}\n\n.dialog .input-text {\n    margin: 5px 0;\n}\n\ntextarea.input-text {\n    resize: vertical;\n}\n\n.labeled-input {\n    display: flex;\n    flex-direction: column;\n}\n\n.labeled-input .input-text {\n    flex: 1;\n}\n\n.labeled-input:focus-within .input-label {\n    color: var(--color-primary-darker);\n}\n\n.input-text:focus {\n    border-color: var(--color-primary-darker);\n}\n\n.input-text:active {\n    border-color: var(--color-primary-dark);\n}\n\n.btn {\n    display: block;\n    text-align: center;\n    transition: all .2s;\n    padding: 0 .4em;\n    min-width: 3em;\n    line-height: 1.5em;\n    background: var(--color-primary);\n    color: white;\n    text-shadow: 0 0 4px var(--color-primary-verydark);\n    box-shadow: 0 0 3px var(--color-shadow);\n    cursor: pointer;\n    -ms-user-select: none;\n    -moz-user-select: none;\n    -webkit-user-select: none;\n    user-select: none;\n    position: relative;\n    overflow: hidden;\n}\n\n.btn:hover {\n    transition: all .05s;\n    background: var(--color-primary-darker);\n}\n\n.btn.btn-down, .btn:active {\n    transition: all .05s;\n    background: var(--color-primary-dark);\n    box-shadow: 0 0 1px var(--color-shadow);\n}\n\n.btn.disabled {\n    background: var(--color-primary-light);\n}\n\n.dialog .btn {\n    margin: 10px 0;\n}\n\n.btn-big {\n    padding: 5px;\n}\n\n.btn-inline {\n    display: inline;\n}\n\n.tab {\n    display: inline-block;\n    color: var(--color-text-gray);\n    margin: 0 5px;\n}\n\n.tab.active {\n    color: var(--color-text);\n}\n\n*[hidden] {\n    display: none !important;\n}\n\n.context-menu {\n    position: absolute;\n    overflow-y: auto;\n    background: var(--color-bg);\n    border: solid 1px #777;\n    box-shadow: 0 0px 12px var(--color-shadow);\n    min-width: 100px;\n    max-width: 450px;\n    outline: none;\n    z-index: 10001;\n    animation: context-menu-in .2s ease-out forwards;\n    will-change: transform;\n}\n\n.context-menu .item.dangerous {\n    transition: color .3s, background .3s;\n    color: red;\n}\n\n.context-menu .item.dangerous:hover {\n    transition: color .1s, background .1s;\n    background: red;\n    color: white;\n}\n\n@keyframes context-menu-in {\n    0% {\n        transform: scale(.9);\n    }\n    100% {\n        transform: scale(1);\n    }\n}\n\n*.menu-shown {\n    background: var(--color-bg-dd);\n}\n\n.menu-info {\n    white-space: pre-wrap;\n    color: var(--color-text-gray);\n    padding: 5px 10px;\n    /* animation: showing .3s; */\n    cursor: default;\n}\n\n.toasts-container {\n    position: fixed;\n    bottom: 0;\n    right: 0;\n    padding: 5px;\n    width: 300px;\n    z-index: 10001;\n    overflow: hidden;\n}\n\n.toast {\n    margin: 5px;\n    padding: 10px;\n    border-radius: 5px;\n    box-shadow: 0 0 10px var(--color-shadow);\n    background: var(--color-bg);\n    white-space: pre-wrap;\n    animation: showing-right .3s;\n}\n\n.fading-out {\n    transition: opacity .3s;\n    opacity: 0;\n    pointer-events: none;\n}\n\n.anchor-bottom {\n    transform: translate(-50%, -100%);\n}\n\n.tooltip {\n    position: absolute;\n    background: var(--color-bg);\n    box-shadow: 0 0 5px var(--color-shadow);\n    border-radius: 5px;\n    padding: .2em .25em;\n}\n";
 
 // file: viewlib.ts
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
@@ -1406,7 +1406,7 @@ function getWebfxCss() { return css; }
 let cssInjected = false;
 function injectWebfxCss() {
     if (!cssInjected) {
-        utils.injectCss(getWebfxCss(), { tag: 'style.webfx-injected-style' });
+        injectCss(getWebfxCss(), { tag: 'style.webfx-injected-style' });
         cssInjected = true;
     }
 }
@@ -1637,7 +1637,7 @@ class ListViewItem extends View {
                 this.dragoverPlaceholder = null;
                 if (placeholder) {
                     this.dragoverPlaceholder = [
-                        utils.buildDOM({ tag: 'div.dragover-placeholder' }),
+                        buildDOM({ tag: 'div.dragover-placeholder' }),
                         placeholder
                     ];
                     var before = this.dom;
@@ -1705,7 +1705,7 @@ class ListView extends ContainerView {
     /** Remove all items and all DOM children */
     clear() {
         this.removeAll();
-        utils.clearChildren(this.dom);
+        clearChildren(this.dom);
     }
     ReplaceChild(dom) {
         this.clear();
@@ -1793,7 +1793,7 @@ class ItemActiveHelper {
     constructor(init) {
         this.funcSetActive = (item, val) => item.toggleClass('active', val);
         this.current = null;
-        utils.objectInit(this, init);
+        objectInit(this, init);
     }
     set(item) {
         if (this.current === item)
@@ -1962,7 +1962,7 @@ class Section extends View {
 class SectionAction extends TextView {
     constructor(init) {
         super();
-        utils.objectInit(this, init);
+        objectInit(this, init);
     }
     createDom() {
         return {
@@ -1977,7 +1977,7 @@ class LoadingIndicator extends View {
         this._status = 'running';
         this.onclick = null;
         if (init)
-            utils.objectInit(this, init);
+            objectInit(this, init);
     }
     get state() { return this._status; }
     set state(val) {
@@ -2028,16 +2028,24 @@ class Overlay extends View {
     createDom() {
         return { tag: 'div.overlay' };
     }
+    /** @deprecated Use `setFlags` instead. */
     setCenterChild(centerChild) {
-        this.toggleClass('centerchild', centerChild);
-        return this;
+        return this.setFlags({ centerChild });
     }
+    /** @deprecated Use `setFlags` instead. */
     setNoBg(nobg) {
-        this.toggleClass('nobg', nobg);
-        return this;
+        return this.setFlags({ nobg });
     }
+    /** @deprecated Use `setFlags` instead. */
     setFixed(fixed) {
-        this.toggleClass('fixed', fixed);
+        return this.setFlags({ fixed });
+    }
+    setFlags(flags) {
+        for (const key in flags) {
+            if (Object.prototype.hasOwnProperty.call(flags, key)) {
+                this.toggleClass(key, flags[key]);
+            }
+        }
         return this;
     }
 }
@@ -2054,8 +2062,8 @@ class EditableHelper {
         this.editing = true;
         var ele = this.element;
         var beforeEdit = this.beforeEdit = ele.textContent;
-        utils.toggleClass(ele, 'editing', true);
-        var input = utils.buildDOM({
+        toggleClass(ele, 'editing', true);
+        var input = buildDOM({
             tag: 'input', type: 'text', value: beforeEdit
         });
         while (ele.firstChild)
@@ -2066,20 +2074,20 @@ class EditableHelper {
         var stopEdit = () => {
             var _a;
             this.editing = false;
-            utils.toggleClass(ele, 'editing', false);
+            toggleClass(ele, 'editing', false);
             events.forEach(x => x.remove());
             input.remove();
             (_a = this.onComplete) === null || _a === void 0 ? void 0 : _a.call(this, input.value);
             onComplete === null || onComplete === void 0 ? void 0 : onComplete(input.value);
         };
         var events = [
-            utils.listenEvent(input, 'keydown', (evv) => {
+            listenEvent(input, 'keydown', (evv) => {
                 if (evv.code === 'Enter') {
                     stopEdit();
                     evv.preventDefault();
                 }
             }),
-            utils.listenEvent(input, 'focusout', (evv) => { stopEdit(); }),
+            listenEvent(input, 'focusout', (evv) => { stopEdit(); }),
         ];
     }
     startEditAsync() {
@@ -2092,7 +2100,7 @@ class MenuItem extends ListViewItem {
         this.text = '';
         this.cls = 'normal';
         this.keepOpen = false;
-        utils.objectInit(this, init);
+        objectInit(this, init);
     }
     createDom() {
         return {
@@ -2124,7 +2132,7 @@ class MenuLinkItem extends MenuItem {
         super(init);
         this.link = '';
         this.download = '';
-        utils.objectInit(this, init);
+        objectInit(this, init);
     }
     createDom() {
         var dom = super.createDom();
@@ -2143,7 +2151,7 @@ class MenuInfoItem extends MenuItem {
         super(init);
         this.text = '';
         this.keepOpen = true;
-        utils.objectInit(this, init);
+        objectInit(this, init);
     }
     createDom() {
         return {
@@ -2257,14 +2265,16 @@ class ContextMenu extends ListView {
             (_b = (_a = this._originalFocused) === null || _a === void 0 ? void 0 : _a['focus']) === null || _b === void 0 ? void 0 : _b.call(_a);
             this._originalFocused = null;
             if (this.overlay)
-                utils.fadeout(this.overlay.dom);
-            utils.fadeout(this.dom);
+                fadeout(this.overlay.dom);
+            fadeout(this.dom);
         }
     }
 }
 class Dialog extends View {
     constructor() {
         super();
+        this.parent = Dialog.defaultParent;
+        this.overlay = new Overlay().setFlags({ centerChild: true, nobg: true });
         this.content = new ContainerView({ tag: 'div.dialog-content' });
         this.shown = false;
         this.btnTitle = new TabBtn({ active: true, clickable: false });
@@ -2315,7 +2325,6 @@ class Dialog extends View {
         super.postCreateDom();
         this.addBtn(this.btnTitle);
         this.addBtn(this.btnClose);
-        this.overlay = new Overlay().setCenterChild(true).setNoBg(true);
         this.overlay.dom.appendView(this);
         this.overlay.dom.addEventListener('mousedown', (ev) => {
             if (this.allowClose && ev.button === 0 && ev.target === this.overlay.dom) {
@@ -2340,7 +2349,7 @@ class Dialog extends View {
         // title bar pointer event handler:
         {
             let offset;
-            utils.listenPointerEvents(this.domheader, (e) => {
+            listenPointerEvents(this.domheader, (e) => {
                 if (e.action === 'down') {
                     if (e.ev.target !== this.domheader && e.ev.target !== this.btnTitle.dom)
                         return;
@@ -2356,8 +2365,8 @@ class Dialog extends View {
                 else if (e.action === 'move') {
                     e.ev.preventDefault();
                     const rect = this.overlay.dom.getBoundingClientRect();
-                    const pageX = utils.numLimit(e.point.pageX, rect.left, rect.right);
-                    const pageY = utils.numLimit(e.point.pageY, rect.top, rect.bottom);
+                    const pageX = numLimit(e.point.pageX, rect.left, rect.right);
+                    const pageY = numLimit(e.point.pageY, rect.top, rect.bottom);
                     this.setOffset(pageX - offset.x, pageY - offset.y);
                 }
             });
@@ -2405,7 +2414,7 @@ class Dialog extends View {
         this.shown = true;
         (_a = this._cancelFadeout) === null || _a === void 0 ? void 0 : _a.call(this);
         this.ensureDom();
-        Dialog.defaultParent.onDialogShowing(this);
+        this.parent.onDialogShowing(this);
         this.setTransformOrigin(ev);
         this.dom.focus();
         (this.autoFocus || this).dom.focus();
@@ -2426,7 +2435,7 @@ class Dialog extends View {
         this.shown = false;
         this.setTransformOrigin(undefined);
         this.onClose.invoke();
-        this._cancelFadeout = utils.fadeout(this.overlay.dom).cancel;
+        this._cancelFadeout = fadeout(this.overlay.dom).cancel;
         Dialog.defaultParent.onDialogClosing(this);
     }
     waitClose() {
@@ -2462,7 +2471,7 @@ class DialogParent extends View {
     }
     onDialogClosing(dialog) {
         if (--this.dialogCount === 0) {
-            this._cancelFadeout = utils.fadeout(this.bgOverlay.dom).cancel;
+            this._cancelFadeout = fadeout(this.bgOverlay.dom).cancel;
         }
     }
 }
@@ -2473,7 +2482,7 @@ class TabBtn extends View {
         this.clickable = true;
         this.active = false;
         this.right = false;
-        utils.objectInit(this, init);
+        objectInit(this, init);
     }
     createDom() {
         return {
@@ -2494,7 +2503,7 @@ class InputView extends View {
         this.multiline = false;
         this.type = 'text';
         this.placeholder = '';
-        utils.objectInit(this, init);
+        objectInit(this, init);
     }
     get value() { return this.dom.value; }
     set value(val) { this.dom.value = val; }
@@ -2514,7 +2523,7 @@ class ButtonView extends TextView {
         super();
         this.disabled = false;
         this.type = 'normal';
-        utils.objectInit(this, init);
+        objectInit(this, init);
         this.updateDom();
     }
     createDom() {
@@ -2531,7 +2540,7 @@ class LabeledInputBase extends View {
     constructor(init) {
         super();
         this.label = '';
-        utils.objectInit(this, init);
+        objectInit(this, init);
     }
     get dominput() { return this.input.dom; }
     createDom() {
@@ -2552,7 +2561,7 @@ class LabeledInputBase extends View {
 class LabeledInput extends LabeledInputBase {
     constructor(init) {
         super();
-        utils.objectInit(this, init);
+        objectInit(this, init);
         if (!this.input)
             this.input = new InputView();
     }
@@ -2582,7 +2591,7 @@ var FlagsInput;
         get parentInput() { return this.parentView; }
         constructor(init) {
             super();
-            utils.objectInit(this, init);
+            objectInit(this, init);
         }
         createDom() {
             return { tag: 'div.flags-input-item' };
@@ -2624,7 +2633,7 @@ class Toast extends View {
         this.text = '';
         this.shown = false;
         this.timer = new Timer(() => this.close());
-        utils.objectInit(this, init);
+        objectInit(this, init);
         if (!this.container)
             this.container = ToastsContainer.default;
     }
@@ -2643,7 +2652,7 @@ class Toast extends View {
         if (!this.shown)
             return;
         this.shown = false;
-        utils.fadeout(this.dom)
+        fadeout(this.dom)
             .onFinished(() => this.container.removeToast(this));
     }
     createDom() {
@@ -2707,7 +2716,7 @@ class ViewToggle {
         this.shownKeys = [];
         this.toggleMode = 'remove';
         this.container = null;
-        utils.objectInit(this, init);
+        objectInit(this, init);
         this.setShownKeys(this.shownKeys);
     }
     add(key, view) {
@@ -2798,7 +2807,7 @@ class ToolTip extends TextView {
             return;
         this._timer.tryCancel();
         this._shown = false;
-        this._cancelClose = utils.fadeout(this.dom, fadeOutOptions).cancel;
+        this._cancelClose = fadeout(this.dom, fadeOutOptions).cancel;
     }
 }
 function setPosition(dom, options) {
