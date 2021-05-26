@@ -1051,10 +1051,10 @@ export class DialogParent extends View {
     onDialogShowing(dialog: Dialog) {
         if (this.dialogCount++ === 0) {
             this._cancelFadeout?.();
-            this.bgOverlay.setFixed(this.fixed);
+            this.bgOverlay.setFlags({ fixed: this.fixed, clickThrough: true });
             this.appendView(this.bgOverlay);
         }
-        dialog.overlay.setFixed(this.fixed);
+        dialog.overlay.setFlags({ fixed: this.fixed });
         this.appendView(dialog.overlay);
     }
     onDialogClosing(dialog: Dialog) {

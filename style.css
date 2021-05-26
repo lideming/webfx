@@ -266,6 +266,7 @@ a.item {
     max-height: 100%;
     contain: content;
     will-change: transform;
+    pointer-events: auto;
 }
 
 .dialog.resize {
