@@ -1,7 +1,7 @@
 // file: viewlib.ts
 
-import { utils, Action, Callbacks, Timer, ObjectInit } from "./utils";
-import { BuildDomExpr, BuildDomNode, ContainerView, IDOM, View } from "./view";
+import { Action, Callbacks, Timer, ObjectInit, clearChildren, fadeout, injectCss, listenEvent, listenPointerEvents, numLimit, objectInit, toggleClass } from "./utils";
+import { buildDOM, BuildDomExpr, BuildDomNode, ContainerView, IDOM, View } from "./view";
 import { I, i18n } from "./I18n";
 import css from "../../style.css";
 
@@ -9,7 +9,7 @@ export function getWebfxCss() { return css; }
 let cssInjected = false;
 export function injectWebfxCss() {
     if (!cssInjected) {
-        utils.injectCss(getWebfxCss(), { tag: 'style.webfx-injected-style' });
+        injectCss(getWebfxCss(), { tag: 'style.webfx-injected-style' });
         cssInjected = true;
     }
 }
@@ -223,7 +223,7 @@ export abstract class ListViewItem extends View implements ISelectable {
                 this.dragoverPlaceholder = null;
                 if (placeholder) {
                     this.dragoverPlaceholder = [
-                        utils.buildDOM({ tag: 'div.dragover-placeholder' }) as HTMLElement,
+                        buildDOM({ tag: 'div.dragover-placeholder' }) as HTMLElement,
                         placeholder
                     ];
                     var before = this.dom as Element;
@@ -296,7 +296,7 @@ export class ListView<T extends ListViewItem = ListViewItem> extends ContainerVi
     /** Remove all items and all DOM children */
     clear() {
         this.removeAll();
-        utils.clearChildren(this.dom);
+        clearChildren(this.dom);
     }
     ReplaceChild(dom: IDOM) {
         this.clear();
@@ -391,7 +391,7 @@ export class ItemActiveHelper<T extends View> {
     funcSetActive = (item: T, val: boolean) => item.toggleClass('active', val);
     current: T | null = null;
     constructor(init?: ObjectInit<ItemActiveHelper<T>>) {
-        utils.objectInit(this, init);
+        objectInit(this, init);
     }
     set(item: T | null) {
         if (this.current === item) return;
@@ -547,7 +547,7 @@ export class Section extends View {
 export class SectionAction extends TextView {
     constructor(init?: ObjectInit<SectionAction>) {
         super();
-        utils.objectInit(this, init);
+        objectInit(this, init);
     }
     createDom() {
         return {
@@ -562,7 +562,7 @@ type LoadingIndicatorState = 'normal' | 'running' | 'error';
 export class LoadingIndicator extends View {
     constructor(init?: ObjectInit<LoadingIndicator>) {
         super();
-        if (init) utils.objectInit(this, init);
+        if (init) objectInit(this, init);
     }
     private _status: LoadingIndicatorState = 'running';
     get state() { return this._status; }
@@ -654,8 +654,8 @@ export class EditableHelper {
         this.editing = true;
         var ele = this.element;
         var beforeEdit = this.beforeEdit = ele.textContent!;
-        utils.toggleClass(ele, 'editing', true);
-        var input = utils.buildDOM({
+        toggleClass(ele, 'editing', true);
+        var input = buildDOM({
             tag: 'input', type: 'text', value: beforeEdit
         }) as HTMLInputElement;
         while (ele.firstChild) ele.removeChild(ele.firstChild);
@@ -664,20 +664,20 @@ export class EditableHelper {
         input.focus();
         var stopEdit = () => {
             this.editing = false;
-            utils.toggleClass(ele, 'editing', false);
+            toggleClass(ele, 'editing', false);
             events.forEach(x => x.remove());
             input.remove();
             this.onComplete?.(input.value);
             onComplete?.(input.value);
         };
         var events = [
-            utils.listenEvent(input, 'keydown', (evv) => {
+            listenEvent(input, 'keydown', (evv) => {
                 if (evv.code === 'Enter') {
                     stopEdit();
                     evv.preventDefault();
                 }
             }),
-            utils.listenEvent(input, 'focusout', (evv) => { stopEdit(); }),
+            listenEvent(input, 'focusout', (evv) => { stopEdit(); }),
         ];
     }
     startEditAsync() {
@@ -691,7 +691,7 @@ export class MenuItem extends ListViewItem {
     keepOpen = false;
     constructor(init: ObjectInit<MenuItem>) {
         super();
-        utils.objectInit(this, init);
+        objectInit(this, init);
     }
     createDom(): BuildDomExpr {
         return {
@@ -722,7 +722,7 @@ export class MenuLinkItem extends MenuItem {
     download: string = '';
     constructor(init: ObjectInit<MenuLinkItem>) {
         super(init);
-        utils.objectInit(this, init);
+        objectInit(this, init);
     }
     createDom(): BuildDomExpr {
         var dom = super.createDom() as BuildDomNode;
@@ -742,7 +742,7 @@ export class MenuInfoItem extends MenuItem {
     constructor(init: ObjectInit<MenuInfoItem>) {
         super(init);
         this.keepOpen = true;
-        utils.objectInit(this, init);
+        objectInit(this, init);
     }
     createDom(): BuildDomExpr {
         return {
@@ -846,8 +846,8 @@ export class ContextMenu extends ListView {
             this.onClose.invoke();
             this._originalFocused?.['focus']?.();
             this._originalFocused = null;
-            if (this.overlay) utils.fadeout(this.overlay.dom);
-            utils.fadeout(this.dom);
+            if (this.overlay) fadeout(this.overlay.dom);
+            fadeout(this.dom);
         }
     }
 }
@@ -942,7 +942,7 @@ export class Dialog extends View {
         // title bar pointer event handler:
         {
             let offset: { x: number; y: number; };
-            utils.listenPointerEvents(this.domheader, (e) => {
+            listenPointerEvents(this.domheader, (e) => {
                 if (e.action === 'down') {
                     if (e.ev.target !== this.domheader && e.ev.target !== this.btnTitle.dom) return;
                     e.ev.preventDefault();
@@ -956,8 +956,8 @@ export class Dialog extends View {
                 } else if (e.action === 'move') {
                     e.ev.preventDefault();
                     const rect = this.overlay.dom.getBoundingClientRect();
-                    const pageX = utils.numLimit(e.point.pageX, rect.left, rect.right);
-                    const pageY = utils.numLimit(e.point.pageY, rect.top, rect.bottom);
+                    const pageX = numLimit(e.point.pageX, rect.left, rect.right);
+                    const pageY = numLimit(e.point.pageY, rect.top, rect.bottom);
                     this.setOffset(pageX - offset.x, pageY - offset.y);
                 }
             });
@@ -1023,7 +1023,7 @@ export class Dialog extends View {
         this.shown = false;
         this.setTransformOrigin(undefined);
         this.onClose.invoke();
-        this._cancelFadeout = utils.fadeout(this.overlay.dom).cancel;
+        this._cancelFadeout = fadeout(this.overlay.dom).cancel;
         Dialog.defaultParent.onDialogClosing(this);
     }
     waitClose(): Promise<void> {
@@ -1059,7 +1059,7 @@ export class DialogParent extends View {
     }
     onDialogClosing(dialog: Dialog) {
         if (--this.dialogCount === 0) {
-            this._cancelFadeout = utils.fadeout(this.bgOverlay.dom).cancel;
+            this._cancelFadeout = fadeout(this.bgOverlay.dom).cancel;
         }
     }
 }
@@ -1071,7 +1071,7 @@ export class TabBtn extends View {
     right = false;
     constructor(init?: ObjectInit<TabBtn>) {
         super();
-        utils.objectInit(this, init);
+        objectInit(this, init);
     }
     createDom(): BuildDomExpr {
         return {
@@ -1095,7 +1095,7 @@ export class InputView extends View {
     set value(val) { (this.dom as HTMLInputElement).value = val; }
     constructor(init?: ObjectInit<InputView>) {
         super();
-        utils.objectInit(this, init);
+        objectInit(this, init);
     }
     createDom(): BuildDomExpr {
         return this.multiline ? { tag: 'textarea.input-text' } : { tag: 'input.input-text' };
@@ -1114,7 +1114,7 @@ export class ButtonView extends TextView {
     type: 'normal' | 'big' | 'inline' = 'normal';
     constructor(init?: ObjectInit<ButtonView>) {
         super();
-        utils.objectInit(this, init);
+        objectInit(this, init);
         this.updateDom();
     }
     createDom(): BuildDomExpr {
@@ -1134,7 +1134,7 @@ export class LabeledInputBase<T extends View> extends View {
     get dominput(): HTMLInputElement { return this.input.dom as any; }
     constructor(init?: ObjectInit<LabeledInputBase<T>>) {
         super();
-        utils.objectInit(this, init);
+        objectInit(this, init);
     }
     createDom(): BuildDomExpr {
         return {
@@ -1158,7 +1158,7 @@ export class LabeledInput extends LabeledInputBase<InputView> {
     set value(val) { this.dominput.value = val; }
     constructor(init?: ObjectInit<LabeledInput>) {
         super();
-        utils.objectInit(this, init);
+        objectInit(this, init);
         if (!this.input) this.input = new InputView();
     }
     updateDom() {
@@ -1185,7 +1185,7 @@ export namespace FlagsInput {
         get parentInput() { return this.parentView as (FlagsInput | undefined); }
         constructor(init?: ObjectInit<Flag>) {
             super();
-            utils.objectInit(this, init);
+            objectInit(this, init);
         }
         createDom() {
             return { tag: 'div.flags-input-item' };
@@ -1226,7 +1226,7 @@ export class Toast extends View {
     timer = new Timer(() => this.close());
     constructor(init?: ObjectInit<Toast>) {
         super();
-        utils.objectInit(this, init);
+        objectInit(this, init);
         if (!this.container) this.container = ToastsContainer.default;
     }
     show(timeout?: number) {
@@ -1241,7 +1241,7 @@ export class Toast extends View {
     close() {
         if (!this.shown) return;
         this.shown = false;
-        utils.fadeout(this.dom)
+        fadeout(this.dom)
             .onFinished(() => this.container.removeToast(this));
     }
     createDom() {
@@ -1301,7 +1301,7 @@ export class ViewToggle<T extends keyof any> {
     toggleMode: 'display' | 'hidden' | 'remove' = 'remove';
     container: View | null = null;
     constructor(init?: ObjectInit<ViewToggle<T>>) {
-        utils.objectInit(this, init);
+        objectInit(this, init);
         this.setShownKeys(this.shownKeys);
     }
     add(key: T, view: View) {
@@ -1376,11 +1376,11 @@ export class ToolTip extends TextView {
         parent.appendChild(dom);
     }
     private _cancelClose: Action | null = null;
-    close(fadeOutOptions?: Parameters<typeof utils.fadeout>[1]) {
+    close(fadeOutOptions?: Parameters<typeof fadeout>[1]) {
         if (!this.shown) return;
         this._timer.tryCancel();
         this._shown = false;
-        this._cancelClose = utils.fadeout(this.dom, fadeOutOptions).cancel;
+        this._cancelClose = fadeout(this.dom, fadeOutOptions).cancel;
     }
 }
 

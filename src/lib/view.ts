@@ -1,4 +1,4 @@
-import { Action, Func, FuncOrVal, Callbacks, utils, Ref } from "./utils";
+import { Action, Func, FuncOrVal, Callbacks, Ref, objectApply, toggleClass, arrayFind, arrayForeach, arrayMap } from "./utils";
 
 // BuildDOM types & implementation:
 export type BuildDomExpr = string | BuildDomNode | HTMLElement | Node | IDOM;
@@ -332,7 +332,7 @@ export class View<T extends HTMLElement = HTMLElement> implements IDOM {
         }
     }
     private domExprCreated(r: BuildDomExpr) {
-        this._dom = utils.buildDOM(r, this.domctx) as T;
+        this._dom = buildDOM(r, this.domctx) as T;
         this.postCreateDom();
         this.updateDom();
     }
@@ -348,11 +348,11 @@ export class View<T extends HTMLElement = HTMLElement> implements IDOM {
     }
     /** Assign key-values and call `updateDom()` */
     updateWith(kv: Partial<this>) {
-        utils.objectApply(this, kv);
+        objectApply(this, kv);
         this.updateDom();
     }
     toggleClass(clsName: string, force?: boolean) {
-        utils.toggleClass(this.dom, clsName, force);
+        toggleClass(this.dom, clsName, force);
     }
     appendView(view: View) { return this.dom.appendView(view); }
     getDOM() { return this.dom; }
@@ -360,7 +360,7 @@ export class View<T extends HTMLElement = HTMLElement> implements IDOM {
         if (child instanceof View) {
             this.appendView(child);
         } else {
-            this.dom.appendChild(utils.buildDOM(child));
+            this.dom.appendChild(buildDOM(child));
         }
     }
 
@@ -401,7 +401,7 @@ declare global {
 Node.prototype.getDOM = function () { return this; };
 
 Node.prototype.addChild = function (child) {
-    this.appendChild(utils.buildDOM(child));
+    this.appendChild(buildDOM(child));
 };
 
 Node.prototype.appendView = function (this: Node, view: View) {
@@ -466,7 +466,7 @@ export class ContainerView<T extends View> extends View {
     get(idx: number) {
         return this.items[idx];
     }
-    map<TRet>(func: (lvi: T) => TRet) { return utils.arrayMap(this, func); }
-    find(func: (lvi: T, idx: number) => any) { return utils.arrayFind(this, func); }
-    forEach(func: (lvi: T, idx: number) => void) { return utils.arrayForeach(this, func); }
+    map<TRet>(func: (lvi: T) => TRet) { return arrayMap(this, func); }
+    find(func: (lvi: T, idx: number) => any) { return arrayFind(this, func); }
+    forEach(func: (lvi: T, idx: number) => void) { return arrayForeach(this, func); }
 }

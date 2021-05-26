@@ -541,7 +541,7 @@ export class Semaphore {
     maxCount = 1;
     runningCount = 0;
     constructor(init: ObjectInit<Semaphore>) {
-        utils.objectInit(this, init);
+        objectInit(this, init);
     }
     enter(): Promise<any> {
         if (this.runningCount === this.maxCount) {
@@ -727,7 +727,7 @@ export class InputStateTracker {
     private _removePointerEvents: Action | null = null;
     readonly onChanged = new Callbacks<Action<keyof InputStateTracker['state']>>();
     constructor(readonly dom: HTMLElement) {
-        this._removeEvents = utils.listenEvents(dom, ['mouseenter', 'mouseleave', 'focusin', 'focusout'], (e) => {
+        this._removeEvents = listenEvents(dom, ['mouseenter', 'mouseleave', 'focusin', 'focusout'], (e) => {
             switch (e.type) {
                 case 'mouseenter':
                     this.stateChanged('mouseIn', true);
@@ -744,7 +744,7 @@ export class InputStateTracker {
             }
         }).remove;
 
-        this._removePointerEvents = utils.listenPointerEvents(dom, (e) => {
+        this._removePointerEvents = listenPointerEvents(dom, (e) => {
             if (e.action == 'down') {
                 this.stateChanged('mouseDown', true);
                 return 'track';
