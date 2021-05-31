@@ -31,13 +31,12 @@ jobs:
         with:
           path: |
             node_modules
-            package-lock.json
-          key: ${{ runner.os }}-${{ hashFiles('package.json') }}
+          key: ${{ runner.os }}-${{ hashFiles('package-lock.json') }}
 
       - name: Install npm dependencies
         if: steps.cache_node_modules.outputs.cache-hit != 'true'
         run: |
-          npm i
+          npm ci
 
       - name: Build
         run: npm run build
