@@ -1,7 +1,5 @@
 // file: I18n.ts
 
-import { FlagsInput } from "./viewlib";
-
 export interface I18nData {
     [lang: string]: LangObj;
 }

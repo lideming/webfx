@@ -1,6 +1,6 @@
 // file: utils.ts
 
-import { BuildDomReturn, BuildDomExpr, BuildDOMCtx, jsxFactory, IDOM, buildDOM } from "./view";
+import { IDOM, buildDOM } from "./view";
 
 const _object_assign = Object.assign;
 const _object_hasOwnProperty = Object.prototype.hasOwnProperty;

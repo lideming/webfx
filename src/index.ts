@@ -22,3 +22,4 @@
 
 export * from "./webfxcore";
 export * from "./lib/viewlib";
+export * from "./views/index";

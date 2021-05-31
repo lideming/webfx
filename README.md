@@ -22,8 +22,16 @@ It was originally created for [MusicCloud](https://github.com/lideming/MusicClou
 * `utils.ts` - Utilities
 * `i18n.ts` - Internationalization (i18n) helper
 * `view.ts` - The core of a very simple Web UI framework
-* `viewlib.ts` - Some `View`s (Button, Input, ListView, Menu, Dialog, Toast, etc.)
-* `style.css` - CSS for the viewlib
+* `views/` - Some built-in `View`s and helpers
+  * `Basics`
+  * `ListView`
+  * `Dialog`
+  * `Menu`
+  * `Overlay`
+  * `Toast`
+  * `LoadingIndicator`
+  * `Section`
+* `style.css` - CSS for the built-in views
 * `dist/` - Bundles
   * `webfx.js` - for browsers (and there is a `.min.js` version)
   * `webfxcore.min.js` - without the viewlib and style (it is much smaller)
