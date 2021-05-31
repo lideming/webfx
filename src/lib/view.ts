@@ -176,10 +176,15 @@ var buildDOMHandleKey = function (key: string, val: any, node: HTMLElement, ctx:
 
 /** 
  * Build a DOM tree from a JavaScript object.
- * @example utils.buildDOM({
-        tag: 'div.item#firstitem',
-        child: ['Name: ', { tag: 'span.name', textContent: name } ],
-    })
+ * @example
+ * buildDOM({
+ *     tag: 'div.item#firstitem',
+ *     onclick: () => console.info('clicked'),
+ *     child: [
+ *         'Name: ',
+ *         { tag: 'span.name', text: name },
+ *     ],
+ * });
  */
 export function buildDOM<T extends BuildDomReturn = BuildDomReturn>(obj: BuildDomExpr, ctx?: BuildDOMCtx): T {
     return buildDomCore(obj, 32, ctx || null) as T;
