@@ -1975,6 +1975,64 @@
         }
     }
 
+    class InputView extends View {
+        constructor(init) {
+            super();
+            this.multiline = false;
+            this.type = 'text';
+            this.placeholder = '';
+            objectInit(this, init);
+        }
+        get value() { return this.dom.value; }
+        set value(val) { this.dom.value = val; }
+        createDom() {
+            return this.multiline ? { tag: 'textarea.input-text' } : { tag: 'input.input-text' };
+        }
+        updateDom() {
+            super.updateDom();
+            if (this.dom instanceof HTMLInputElement) {
+                this.dom.type = this.type;
+                this.dom.placeholder = this.placeholder;
+            }
+        }
+    }
+    class LabeledInputBase extends View {
+        constructor(init) {
+            super();
+            this.label = '';
+            objectInit(this, init);
+        }
+        get dominput() { return this.input.dom; }
+        createDom() {
+            return {
+                _ctx: this,
+                tag: 'div.labeled-input',
+                child: [
+                    { tag: 'div.input-label', text: () => this.label },
+                    this.input
+                ]
+            };
+        }
+        updateDom() {
+            super.updateDom();
+            this.input.domCreated && this.input.updateDom();
+        }
+    }
+    class LabeledInput extends LabeledInputBase {
+        constructor(init) {
+            super();
+            objectInit(this, init);
+            if (!this.input)
+                this.input = new InputView();
+        }
+        get value() { return this.dominput.value; }
+        set value(val) { this.dominput.value = val; }
+        updateDom() {
+            this.input.type = this.type;
+            super.updateDom();
+        }
+    }
+
     class ListViewItem extends View {
         constructor() {
             super(...arguments);
@@ -2426,6 +2484,69 @@
         }
     }
 
+    var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+        function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+        return new (P || (P = Promise))(function (resolve, reject) {
+            function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+            function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+            function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+            step((generator = generator.apply(thisArg, _arguments || [])).next());
+        });
+    };
+    class LoadingIndicator extends View {
+        constructor(init) {
+            super();
+            this._status = 'running';
+            this.onclick = null;
+            if (init)
+                objectInit(this, init);
+        }
+        get state() { return this._status; }
+        set state(val) {
+            this._status = val;
+            ['running', 'error', 'normal'].forEach(x => this.toggleClass(x, val === x));
+        }
+        get content() { return this._text; }
+        set content(val) { this._text = val; this.ensureDom(); this._textdom.textContent = val; }
+        reset() {
+            this.state = 'running';
+            this.content = I `Loading`;
+            this.onclick = null;
+        }
+        error(err, retry) {
+            this.state = 'error';
+            this.content = I `Oh no! Something just goes wrong:` + '\r\n' + err;
+            if (retry) {
+                this.content += '\r\n' + I `[Click here to retry]`;
+            }
+            this.onclick = retry;
+        }
+        action(func) {
+            return __awaiter(this, void 0, void 0, function* () {
+                try {
+                    yield func();
+                }
+                catch (error) {
+                    this.error(error, () => this.action(func));
+                }
+            });
+        }
+        createDom() {
+            return {
+                _ctx: this,
+                tag: 'div.loading-indicator',
+                child: [{
+                        tag: 'div.loading-indicator-inner',
+                        child: [{ tag: 'div.loading-indicator-text', _key: '_textdom' }]
+                    }],
+                onclick: (e) => { var _a; return (_a = this.onclick) === null || _a === void 0 ? void 0 : _a.call(this, e); }
+            };
+        }
+        postCreateDom() {
+            this.reset();
+        }
+    }
+
     class MenuItem extends ListViewItem {
         constructor(init) {
             super();
@@ -2603,6 +2724,65 @@
         }
     }
 
+    class Section extends View {
+        constructor(arg) {
+            super();
+            this.titleView = new TextView({ tag: 'span.section-title' });
+            this.headerView = new View({
+                tag: 'div.section-header',
+                child: [
+                    this.titleView
+                ]
+            });
+            this.ensureDom();
+            if (arg) {
+                if (arg.title)
+                    this.setTitle(arg.title);
+                if (arg.content)
+                    this.setContent(arg.content);
+                if (arg.actions)
+                    arg.actions.forEach(x => this.addAction(x));
+            }
+        }
+        createDom() {
+            return {
+                _ctx: this,
+                tag: 'div.section',
+                child: [
+                    this.headerView
+                ]
+            };
+        }
+        setTitle(text) {
+            this.titleView.text = text;
+        }
+        setContent(view) {
+            var dom = this.dom;
+            var firstChild = dom.firstChild;
+            while (dom.lastChild !== firstChild)
+                dom.removeChild(dom.lastChild);
+            dom.appendChild(view.getDOM());
+        }
+        addAction(arg) {
+            var view = arg instanceof View ?
+                arg :
+                new SectionAction({ text: arg.text, onActive: arg.onclick });
+            this.headerView.dom.appendChild(view.dom);
+        }
+    }
+    class SectionAction extends TextView {
+        constructor(init) {
+            super();
+            objectInit(this, init);
+        }
+        createDom() {
+            return {
+                tag: 'div.section-action.clickable',
+                tabIndex: 0
+            };
+        }
+    }
+
     class ToastsContainer extends View {
         constructor() {
             super(...arguments);
@@ -2672,69 +2852,6 @@
         }
     }
 
-    var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-        function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-        return new (P || (P = Promise))(function (resolve, reject) {
-            function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-            function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-            function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-            step((generator = generator.apply(thisArg, _arguments || [])).next());
-        });
-    };
-    class LoadingIndicator extends View {
-        constructor(init) {
-            super();
-            this._status = 'running';
-            this.onclick = null;
-            if (init)
-                objectInit(this, init);
-        }
-        get state() { return this._status; }
-        set state(val) {
-            this._status = val;
-            ['running', 'error', 'normal'].forEach(x => this.toggleClass(x, val === x));
-        }
-        get content() { return this._text; }
-        set content(val) { this._text = val; this.ensureDom(); this._textdom.textContent = val; }
-        reset() {
-            this.state = 'running';
-            this.content = I `Loading`;
-            this.onclick = null;
-        }
-        error(err, retry) {
-            this.state = 'error';
-            this.content = I `Oh no! Something just goes wrong:` + '\r\n' + err;
-            if (retry) {
-                this.content += '\r\n' + I `[Click here to retry]`;
-            }
-            this.onclick = retry;
-        }
-        action(func) {
-            return __awaiter(this, void 0, void 0, function* () {
-                try {
-                    yield func();
-                }
-                catch (error) {
-                    this.error(error, () => this.action(func));
-                }
-            });
-        }
-        createDom() {
-            return {
-                _ctx: this,
-                tag: 'div.loading-indicator',
-                child: [{
-                        tag: 'div.loading-indicator-inner',
-                        child: [{ tag: 'div.loading-indicator-text', _key: '_textdom' }]
-                    }],
-                onclick: (e) => { var _a; return (_a = this.onclick) === null || _a === void 0 ? void 0 : _a.call(this, e); }
-            };
-        }
-        postCreateDom() {
-            this.reset();
-        }
-    }
-
     exports.AutoResetEvent = AutoResetEvent;
     exports.BuildDOMCtx = BuildDOMCtx;
     exports.ButtonView = ButtonView;
@@ -2750,8 +2867,11 @@
     exports.I = I;
     exports.I18n = I18n;
     exports.InputStateTracker = InputStateTracker;
+    exports.InputView = InputView;
     exports.ItemActiveHelper = ItemActiveHelper;
     exports.JsxNode = JsxNode;
+    exports.LabeledInput = LabeledInput;
+    exports.LabeledInputBase = LabeledInputBase;
     exports.Lazy = Lazy;
     exports.LazyListView = LazyListView;
     exports.ListView = ListView;
@@ -2763,6 +2883,8 @@
     exports.MessageBox = MessageBox;
     exports.Overlay = Overlay;
     exports.Ref = Ref;
+    exports.Section = Section;
+    exports.SectionAction = SectionAction;
     exports.SelectionHelper = SelectionHelper;
     exports.Semaphore = Semaphore;
     exports.SettingItem = SettingItem;
