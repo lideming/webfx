@@ -48,4 +48,8 @@ export class TextBtn extends View {
     }
 }
 
+/** @deprecated Use `TextBtn` instead. */
 export const TabBtn = TextBtn;
+
+/** @deprecated Use `TextBtn` instead. */
+export type TabBtn = TextBtn;
