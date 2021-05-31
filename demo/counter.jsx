@@ -4,7 +4,7 @@
 
     /** @type {import("../")} */
     const webfx = window.webfx;
-    const { utils, View, Toast, ButtonView, jsxBuild } = webfx;
+    const { View, Toast, ButtonView, jsxBuild } = webfx;
 
     document.body.appendChild(webfx.buildDOM(
         <h2>JSX</h2>
