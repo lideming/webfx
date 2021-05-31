@@ -442,7 +442,7 @@ class ContainerView extends View {
 }
 
 // file: utils.ts
-var __awaiter$1 = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+var __awaiter$2 = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -960,7 +960,7 @@ class Semaphore {
         }
     }
     run(func) {
-        return __awaiter$1(this, void 0, void 0, function* () {
+        return __awaiter$2(this, void 0, void 0, function* () {
             yield this.enter();
             try {
                 yield func();
@@ -1390,24 +1390,76 @@ const I = createStringBuilder(i18n);
 
 const version = "1.7.2";
 
-var css = ":root {\n    --color-bg: white;\n    --color-text: black;\n    --color-text-gray: #666;\n    --color-bg-selection: hsl(5, 100%, 85%);\n    --color-primary: hsl(5, 100%, 67%);\n    --color-primary-darker: hsl(5, 100%, 60%);\n    --color-primary-dark: hsl(5, 100%, 40%);\n    --color-primary-dark-depends: hsl(5, 100%, 40%);\n    --color-primary-verydark: hsl(5, 100%, 20%);\n    --color-primary-light: hsl(5, 100%, 83%);\n    --color-primary-lighter: hsl(5, 100%, 70%);\n    --color-fg-11: #111111;\n    --color-fg-22: #222222;\n    --color-fg-33: #333333;\n    --color-bg-cc: #cccccc;\n    --color-bg-dd: #dddddd;\n    --color-bg-ee: #eeeeee;\n    --color-bg-f8: #f8f8f8;\n    --color-shadow: rgba(0, 0, 0, .5);\n}\n\n.no-selection {\n    user-select: none;\n    -ms-user-select: none;\n    -moz-user-select: none;\n    -webkit-user-select: none;\n}\n\n/* listview item */\n\n.item {\n    display: block;\n    position: relative;\n    padding: 10px;\n    /* background: #ddd; */\n    /* animation: showing .3s forwards; */\n    text-decoration: none;\n    line-height: 1.2;\n}\n\na.item {\n    color: inherit;\n}\n\n.clickable, .item {\n    cursor: pointer;\n    transition: transform .3s;\n    -webkit-tap-highlight-color: transparent;\n}\n\n.item:hover, .dragover {\n    background: var(--color-bg-ee);\n}\n\n.keyboard-input .item:focus {\n    outline-offset: -2px;\n}\n\n.dragover-placeholder {\n    /* border-top: 2px solid gray; */\n    position: relative;\n}\n\n.dragover-placeholder::before {\n    content: \"\";\n    display: block;\n    position: absolute;\n    transform: translate(0, -1px);\n    height: 2px;\n    width: 100%;\n    background: gray;\n    z-index: 100;\n    pointer-events: none;\n}\n\n.clickable:active, .item:active {\n    transition: transform .07s;\n    transform: scale(.97);\n}\n\n.item:active {\n    background: var(--color-bg-dd);\n}\n\n.item.no-transform:active {\n    transform: none;\n}\n\n.item.active {\n    background: var(--color-bg-dd);\n}\n\n.loading-indicator {\n    position: relative;\n    margin: .3em;\n    margin-top: 3em;\n    margin-bottom: 1em;\n    text-align: center;\n    white-space: pre-wrap;\n    cursor: default;\n    animation: loading-fadein .3s;\n}\n\n.loading-indicator-text {\n    margin: 0 auto;\n}\n\n.loading-indicator.running .loading-indicator-inner {\n    display: inline-block;\n    position: relative;\n    vertical-align: bottom;\n}\n\n.loading-indicator.running .loading-indicator-inner::after {\n    content: \"\";\n    height: 1px;\n    margin: 0%;\n    background: var(--color-text);\n    display: block;\n    animation: fadein .5s 1s backwards;\n}\n\n.loading-indicator.running .loading-indicator-text {\n    margin: 0 .5em;\n    animation: fadein .3s, loading-first .3s .5s cubic-bezier(0.55, 0.055, 0.675, 0.19) reverse, loading-second .3s .8s cubic-bezier(0.55, 0.055, 0.675, 0.19), loading .25s 1.1s cubic-bezier(0.55, 0.055, 0.675, 0.19) alternate-reverse infinite;\n}\n\n.loading-indicator.error {\n    color: red;\n}\n\n.loading-indicator.fading-out {\n    transition: max-height;\n    animation: loading-fadein .3s reverse;\n}\n\n@keyframes loading-fadein {\n    0% {\n        opacity: 0;\n        max-height: 0;\n    }\n    100% {\n        opacity: 1;\n        max-height: 200px;\n    }\n}\n\n@keyframes fadein {\n    0% {\n        opacity: 0;\n    }\n    100% {\n        opacity: 1;\n    }\n}\n\n@keyframes loading-first {\n    0% {\n        transform: translate(0, -2em) scale(1) rotate(360deg);\n    }\n    100% {\n        transform: translate(0, 0) scale(1) rotate(0deg);\n    }\n}\n\n@keyframes loading-second {\n    0% {\n        transform: translate(0, -2em);\n    }\n    100% {\n        transform: translate(0, 0);\n    }\n}\n\n@keyframes loading {\n    0% {\n        transform: translate(0, -1em);\n    }\n    100% {\n        transform: translate(0, 0);\n    }\n}\n\n@keyframes showing {\n    0% {\n        opacity: .3;\n        transform: translate(-20px, 0)\n    }\n    100% {\n        opacity: 1;\n        transform: translate(0, 0)\n    }\n}\n\n@keyframes showing-top {\n    0% {\n        opacity: .3;\n        transform: translate(0, -20px)\n    }\n    100% {\n        opacity: 1;\n        transform: translate(0, 0)\n    }\n}\n\n@keyframes showing-right {\n    0% {\n        opacity: .3;\n        transform: translate(20px, 0)\n    }\n    100% {\n        opacity: 1;\n        transform: translate(0, 0)\n    }\n}\n\n.overlay {\n    background: rgba(0, 0, 0, .2);\n    position: absolute;\n    top: 0;\n    left: 0;\n    right: 0;\n    bottom: 0;\n    animation: fadein .3s;\n    z-index: 10001;\n    overflow: hidden;\n    contain: strict;\n    will-change: transform;\n}\n\n.overlay.fixed {\n    position: fixed;\n}\n\n.overlay.nobg {\n    background: none;\n    will-change: auto;\n}\n\n.overlay.centerChild {\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.overlay.clickThrough {\n    pointer-events: none;\n}\n\n.dialog * {\n    box-sizing: border-box;\n}\n\n.dialog {\n    font-size: 14px;\n    position: relative;\n    overflow: auto;\n    background: var(--color-bg);\n    border-radius: 5px;\n    box-shadow: 0 0 12px var(--color-shadow);\n    animation: dialogin .2s ease-out;\n    z-index: 10001;\n    display: flex;\n    flex-direction: column;\n    max-height: 100%;\n    contain: content;\n    will-change: transform;\n    pointer-events: auto;\n}\n\n.dialog.resize {\n    resize: both;\n}\n\n.fading-out .dialog {\n    transition: transform .3s ease-in;\n    transform: scale(.85);\n}\n\n.dialog-title, .dialog-content, .dialog-bottom {\n    padding: 10px;\n}\n\n.dialog-title {\n    background: var(--color-bg-ee);\n}\n\n.dialog-content {\n    flex: 1;\n    padding: 5px 10px;\n    overflow: auto;\n}\n\n.dialog-content.flex {\n    display: flex;\n    flex-direction: column;\n}\n\n.dialog-bottom {\n    padding: 5px 10px;\n}\n\n@keyframes dialogin {\n    0% {\n        transform: scale(.85);\n    }\n    100% {\n        transform: scale(1);\n    }\n}\n\n.input-label {\n    font-size: 80%;\n    color: var(--color-text-gray);\n    margin: 5px 0 3px 0;\n}\n\n.input-text {\n    display: block;\n    width: 100%;\n    padding: 5px;\n    border: solid 1px gray;\n    background: var(--color-bg);\n    color: var(--color-text);\n}\n\n.dialog .input-text {\n    margin: 5px 0;\n}\n\ntextarea.input-text {\n    resize: vertical;\n}\n\n.labeled-input {\n    display: flex;\n    flex-direction: column;\n}\n\n.labeled-input .input-text {\n    flex: 1;\n}\n\n.labeled-input:focus-within .input-label {\n    color: var(--color-primary-darker);\n}\n\n.input-text:focus {\n    border-color: var(--color-primary-darker);\n}\n\n.input-text:active {\n    border-color: var(--color-primary-dark);\n}\n\n.btn {\n    display: block;\n    text-align: center;\n    transition: all .2s;\n    padding: 0 .4em;\n    min-width: 3em;\n    line-height: 1.5em;\n    background: var(--color-primary);\n    color: white;\n    text-shadow: 0 0 4px var(--color-primary-verydark);\n    box-shadow: 0 0 3px var(--color-shadow);\n    cursor: pointer;\n    -ms-user-select: none;\n    -moz-user-select: none;\n    -webkit-user-select: none;\n    user-select: none;\n    position: relative;\n    overflow: hidden;\n}\n\n.btn:hover {\n    transition: all .05s;\n    background: var(--color-primary-darker);\n}\n\n.btn.btn-down, .btn:active {\n    transition: all .05s;\n    background: var(--color-primary-dark);\n    box-shadow: 0 0 1px var(--color-shadow);\n}\n\n.btn.disabled {\n    background: var(--color-primary-light);\n}\n\n.dialog .btn {\n    margin: 10px 0;\n}\n\n.btn-big {\n    padding: 5px;\n}\n\n.btn-inline {\n    display: inline;\n}\n\n.tab {\n    display: inline-block;\n    color: var(--color-text-gray);\n    margin: 0 5px;\n}\n\n.tab.active {\n    color: var(--color-text);\n}\n\n*[hidden] {\n    display: none !important;\n}\n\n.context-menu {\n    position: absolute;\n    overflow-y: auto;\n    background: var(--color-bg);\n    border: solid 1px #777;\n    box-shadow: 0 0px 12px var(--color-shadow);\n    min-width: 100px;\n    max-width: 450px;\n    outline: none;\n    z-index: 10001;\n    animation: context-menu-in .2s ease-out forwards;\n    will-change: transform;\n}\n\n.context-menu .item.dangerous {\n    transition: color .3s, background .3s;\n    color: red;\n}\n\n.context-menu .item.dangerous:hover {\n    transition: color .1s, background .1s;\n    background: red;\n    color: white;\n}\n\n@keyframes context-menu-in {\n    0% {\n        transform: scale(.9);\n    }\n    100% {\n        transform: scale(1);\n    }\n}\n\n*.menu-shown {\n    background: var(--color-bg-dd);\n}\n\n.menu-info {\n    white-space: pre-wrap;\n    color: var(--color-text-gray);\n    padding: 5px 10px;\n    /* animation: showing .3s; */\n    cursor: default;\n}\n\n.toasts-container {\n    position: fixed;\n    bottom: 0;\n    right: 0;\n    padding: 5px;\n    width: 300px;\n    z-index: 10001;\n    overflow: hidden;\n}\n\n.toast {\n    margin: 5px;\n    padding: 10px;\n    border-radius: 5px;\n    box-shadow: 0 0 10px var(--color-shadow);\n    background: var(--color-bg);\n    white-space: pre-wrap;\n    animation: showing-right .3s;\n}\n\n.fading-out {\n    transition: opacity .3s;\n    opacity: 0;\n    pointer-events: none;\n}\n\n.anchor-bottom {\n    transform: translate(-50%, -100%);\n}\n\n.tooltip {\n    position: absolute;\n    background: var(--color-bg);\n    box-shadow: 0 0 5px var(--color-shadow);\n    border-radius: 5px;\n    padding: .2em .25em;\n}\n";
+var css = ":root {\n    --color-bg: white;\n    --color-text: black;\n    --color-text-gray: #666;\n    --color-bg-selection: hsl(5, 100%, 85%);\n    --color-primary: hsl(5, 100%, 67%);\n    --color-primary-darker: hsl(5, 100%, 60%);\n    --color-primary-dark: hsl(5, 100%, 40%);\n    --color-primary-dark-depends: hsl(5, 100%, 40%);\n    --color-primary-verydark: hsl(5, 100%, 20%);\n    --color-primary-light: hsl(5, 100%, 83%);\n    --color-primary-lighter: hsl(5, 100%, 70%);\n    --color-fg-11: #111111;\n    --color-fg-22: #222222;\n    --color-fg-33: #333333;\n    --color-bg-cc: #cccccc;\n    --color-bg-dd: #dddddd;\n    --color-bg-ee: #eeeeee;\n    --color-bg-f8: #f8f8f8;\n    --color-shadow: rgba(0, 0, 0, .5);\n}\n\n.no-selection {\n    user-select: none;\n    -ms-user-select: none;\n    -moz-user-select: none;\n    -webkit-user-select: none;\n}\n\n/* listview item */\n\n.item {\n    display: block;\n    position: relative;\n    padding: 10px;\n    /* background: #ddd; */\n    /* animation: showing .3s forwards; */\n    text-decoration: none;\n    line-height: 1.2;\n}\n\na.item {\n    color: inherit;\n}\n\n.clickable, .item {\n    cursor: pointer;\n    transition: transform .3s;\n    -webkit-tap-highlight-color: transparent;\n}\n\n.item:hover, .dragover {\n    background: var(--color-bg-ee);\n}\n\n.keyboard-input .item:focus {\n    outline-offset: -2px;\n}\n\n.dragover-placeholder {\n    /* border-top: 2px solid gray; */\n    position: relative;\n}\n\n.dragover-placeholder::before {\n    content: \"\";\n    display: block;\n    position: absolute;\n    transform: translate(0, -1px);\n    height: 2px;\n    width: 100%;\n    background: gray;\n    z-index: 100;\n    pointer-events: none;\n}\n\n.clickable:active, .item:active {\n    transition: transform .07s;\n    transform: scale(.97);\n}\n\n.item:active {\n    background: var(--color-bg-dd);\n}\n\n.item.no-transform:active {\n    transform: none;\n}\n\n.item.active {\n    background: var(--color-bg-dd);\n}\n\n.loading-indicator {\n    position: relative;\n    margin: .3em;\n    margin-top: 3em;\n    margin-bottom: 1em;\n    text-align: center;\n    white-space: pre-wrap;\n    cursor: default;\n    animation: loading-fadein .3s;\n}\n\n.loading-indicator-text {\n    margin: 0 auto;\n}\n\n.loading-indicator.running .loading-indicator-inner {\n    display: inline-block;\n    position: relative;\n    vertical-align: bottom;\n}\n\n.loading-indicator.running .loading-indicator-inner::after {\n    content: \"\";\n    height: 1px;\n    margin: 0%;\n    background: var(--color-text);\n    display: block;\n    animation: fadein .5s 1s backwards;\n}\n\n.loading-indicator.running .loading-indicator-text {\n    margin: 0 .5em;\n    animation: fadein .3s, loading-first .3s .5s cubic-bezier(0.55, 0.055, 0.675, 0.19) reverse, loading-second .3s .8s cubic-bezier(0.55, 0.055, 0.675, 0.19), loading .25s 1.1s cubic-bezier(0.55, 0.055, 0.675, 0.19) alternate-reverse infinite;\n}\n\n.loading-indicator.error {\n    color: red;\n}\n\n.loading-indicator.fading-out {\n    transition: max-height;\n    animation: loading-fadein .3s reverse;\n}\n\n@keyframes loading-fadein {\n    0% {\n        opacity: 0;\n        max-height: 0;\n    }\n    100% {\n        opacity: 1;\n        max-height: 200px;\n    }\n}\n\n@keyframes fadein {\n    0% {\n        opacity: 0;\n    }\n    100% {\n        opacity: 1;\n    }\n}\n\n@keyframes loading-first {\n    0% {\n        transform: translate(0, -2em) scale(1) rotate(360deg);\n    }\n    100% {\n        transform: translate(0, 0) scale(1) rotate(0deg);\n    }\n}\n\n@keyframes loading-second {\n    0% {\n        transform: translate(0, -2em);\n    }\n    100% {\n        transform: translate(0, 0);\n    }\n}\n\n@keyframes loading {\n    0% {\n        transform: translate(0, -1em);\n    }\n    100% {\n        transform: translate(0, 0);\n    }\n}\n\n@keyframes showing {\n    0% {\n        opacity: .3;\n        transform: translate(-20px, 0)\n    }\n    100% {\n        opacity: 1;\n        transform: translate(0, 0)\n    }\n}\n\n@keyframes showing-top {\n    0% {\n        opacity: .3;\n        transform: translate(0, -20px)\n    }\n    100% {\n        opacity: 1;\n        transform: translate(0, 0)\n    }\n}\n\n@keyframes showing-right {\n    0% {\n        opacity: .3;\n        transform: translate(20px, 0)\n    }\n    100% {\n        opacity: 1;\n        transform: translate(0, 0)\n    }\n}\n\n.overlay {\n    background: rgba(0, 0, 0, .2);\n    position: absolute;\n    top: 0;\n    left: 0;\n    right: 0;\n    bottom: 0;\n    animation: fadein .3s;\n    z-index: 10001;\n    overflow: hidden;\n    contain: strict;\n    will-change: transform;\n}\n\n.overlay.fixed {\n    position: fixed;\n}\n\n.overlay.nobg {\n    background: none;\n    will-change: auto;\n}\n\n.overlay.centerChild {\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.overlay.clickThrough {\n    pointer-events: none;\n}\n\n.dialog * {\n    box-sizing: border-box;\n}\n\n.dialog {\n    font-size: 14px;\n    position: relative;\n    overflow: auto;\n    background: var(--color-bg);\n    border-radius: 5px;\n    box-shadow: 0 0 12px var(--color-shadow);\n    animation: dialogin .2s ease-out;\n    z-index: 10001;\n    display: flex;\n    flex-direction: column;\n    max-height: 100%;\n    contain: content;\n    will-change: transform;\n    pointer-events: auto;\n}\n\n.dialog.resize {\n    resize: both;\n}\n\n.fading-out .dialog {\n    transition: transform .3s ease-in;\n    transform: scale(.85);\n}\n\n.dialog-title, .dialog-content, .dialog-bottom {\n    padding: 10px;\n}\n\n.dialog-title {\n    background: var(--color-bg-ee);\n}\n\n.dialog-content {\n    flex: 1;\n    padding: 5px 10px;\n    overflow: auto;\n}\n\n.dialog-content.flex {\n    display: flex;\n    flex-direction: column;\n}\n\n.dialog-bottom {\n    padding: 5px 10px;\n}\n\n@keyframes dialogin {\n    0% {\n        transform: scale(.85);\n    }\n    100% {\n        transform: scale(1);\n    }\n}\n\n.input-label {\n    font-size: 80%;\n    color: var(--color-text-gray);\n    margin: 5px 0 3px 0;\n}\n\n.input-text {\n    display: block;\n    width: 100%;\n    padding: 5px;\n    border: solid 1px gray;\n    background: var(--color-bg);\n    color: var(--color-text);\n}\n\n.dialog .input-text {\n    margin: 5px 0;\n}\n\ntextarea.input-text {\n    resize: vertical;\n}\n\n.labeled-input {\n    display: flex;\n    flex-direction: column;\n}\n\n.labeled-input .input-text {\n    flex: 1;\n}\n\n.labeled-input:focus-within .input-label {\n    color: var(--color-primary-darker);\n}\n\n.input-text:focus {\n    border-color: var(--color-primary-darker);\n}\n\n.input-text:active {\n    border-color: var(--color-primary-dark);\n}\n\n.btn {\n    display: block;\n    text-align: center;\n    transition: all .2s;\n    padding: 0 .4em;\n    min-width: 3em;\n    line-height: 1.5em;\n    background: var(--color-primary);\n    color: white;\n    text-shadow: 0 0 4px var(--color-primary-verydark);\n    box-shadow: 0 0 3px var(--color-shadow);\n    cursor: pointer;\n    -ms-user-select: none;\n    -moz-user-select: none;\n    -webkit-user-select: none;\n    user-select: none;\n    position: relative;\n    overflow: hidden;\n}\n\n.btn:hover {\n    transition: all .05s;\n    background: var(--color-primary-darker);\n}\n\n.btn.btn-down, .btn:active {\n    transition: all .05s;\n    background: var(--color-primary-dark);\n    box-shadow: 0 0 1px var(--color-shadow);\n}\n\n.btn.disabled {\n    background: var(--color-primary-light);\n}\n\n.dialog .btn {\n    margin: 10px 0;\n}\n\n.btn-big {\n    padding: 5px;\n}\n\n.btn-inline {\n    display: inline;\n}\n\n.textbtn {\n    display: inline-block;\n    color: var(--color-text-gray);\n    margin: 0 5px;\n}\n\n.textbtn.active {\n    color: var(--color-text);\n}\n\n*[hidden] {\n    display: none !important;\n}\n\n.context-menu {\n    position: absolute;\n    overflow-y: auto;\n    background: var(--color-bg);\n    border: solid 1px #777;\n    box-shadow: 0 0px 12px var(--color-shadow);\n    min-width: 100px;\n    max-width: 450px;\n    outline: none;\n    z-index: 10001;\n    animation: context-menu-in .2s ease-out forwards;\n    will-change: transform;\n}\n\n.context-menu .item.dangerous {\n    transition: color .3s, background .3s;\n    color: red;\n}\n\n.context-menu .item.dangerous:hover {\n    transition: color .1s, background .1s;\n    background: red;\n    color: white;\n}\n\n@keyframes context-menu-in {\n    0% {\n        transform: scale(.9);\n    }\n    100% {\n        transform: scale(1);\n    }\n}\n\n*.menu-shown {\n    background: var(--color-bg-dd);\n}\n\n.menu-info {\n    white-space: pre-wrap;\n    color: var(--color-text-gray);\n    padding: 5px 10px;\n    /* animation: showing .3s; */\n    cursor: default;\n}\n\n.toasts-container {\n    position: fixed;\n    bottom: 0;\n    right: 0;\n    padding: 5px;\n    width: 300px;\n    z-index: 10001;\n    overflow: hidden;\n}\n\n.toast {\n    margin: 5px;\n    padding: 10px;\n    border-radius: 5px;\n    box-shadow: 0 0 10px var(--color-shadow);\n    background: var(--color-bg);\n    white-space: pre-wrap;\n    animation: showing-right .3s;\n}\n\n.fading-out {\n    transition: opacity .3s;\n    opacity: 0;\n    pointer-events: none;\n}\n\n.anchor-bottom {\n    transform: translate(-50%, -100%);\n}\n\n.tooltip {\n    position: absolute;\n    background: var(--color-bg);\n    box-shadow: 0 0 5px var(--color-shadow);\n    border-radius: 5px;\n    padding: .2em .25em;\n}\n";
 
 // file: viewlib.ts
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 function getWebfxCss() { return css; }
 let cssInjected = false;
 function injectWebfxCss() {
     if (!cssInjected) {
         injectCss(getWebfxCss(), { tag: 'style.webfx-injected-style' });
         cssInjected = true;
+    }
+}
+// Views and helpers are moved to ../views/
+
+class TextView extends View {
+    get text() { return this.dom.textContent; }
+    set text(val) { this.dom.textContent = val; }
+}
+class ButtonView extends TextView {
+    constructor(init) {
+        super();
+        this.disabled = false;
+        this.type = 'normal';
+        objectInit(this, init);
+        this.updateDom();
+    }
+    createDom() {
+        return { tag: 'div.btn', tabIndex: 0 };
+    }
+    updateDom() {
+        super.updateDom();
+        this.toggleClass('disabled', this.disabled);
+        this.toggleClass('btn-big', this.type === 'big');
+        this.toggleClass('btn-inline', this.type === 'inline');
+    }
+}
+class TextBtn extends View {
+    constructor(init) {
+        super();
+        this.text = '';
+        this.clickable = true;
+        this.active = false;
+        this.right = false;
+        objectInit(this, init);
+    }
+    createDom() {
+        return {
+            tag: 'span.textbtn.no-selection'
+        };
+    }
+    updateDom() {
+        this.dom.textContent = this.text;
+        this.dom.tabIndex = this.clickable ? 0 : -1;
+        this.toggleClass('clickable', this.clickable);
+        this.toggleClass('active', this.active);
+        this.dom.style.float = this.right ? 'right' : 'left';
+    }
+}
+const TabBtn = TextBtn;
+
+function setPosition(dom, options) {
+    let { x = 0, y = 0, anchor = 'bottom' } = options;
+    dom.style.left = x + 'px';
+    dom.style.top = y + 'px';
+    if (!dom.classList.contains('anchor-' + anchor)) {
+        dom.classList.forEach(x => {
+            if (x.startsWith('anchor-')) {
+                dom.classList.remove(x);
+            }
+        });
+        dom.classList.add('anchor-' + anchor);
     }
 }
 /** DragManager is used to help exchange information between views */
@@ -1443,6 +1495,480 @@ var dragManager = new class DragManager {
         this.onDragEnd.invoke();
     }
 };
+class EditableHelper {
+    constructor(element) {
+        this.editing = false;
+        this.beforeEdit = null;
+        this.onComplete = null;
+        this.element = element;
+    }
+    startEdit(onComplete) {
+        if (this.editing)
+            return;
+        this.editing = true;
+        var ele = this.element;
+        var beforeEdit = this.beforeEdit = ele.textContent;
+        toggleClass(ele, 'editing', true);
+        var input = buildDOM({
+            tag: 'input', type: 'text', value: beforeEdit
+        });
+        while (ele.firstChild)
+            ele.removeChild(ele.firstChild);
+        ele.appendChild(input);
+        input.select();
+        input.focus();
+        var stopEdit = () => {
+            var _a;
+            this.editing = false;
+            toggleClass(ele, 'editing', false);
+            events.forEach(x => x.remove());
+            input.remove();
+            (_a = this.onComplete) === null || _a === void 0 ? void 0 : _a.call(this, input.value);
+            onComplete === null || onComplete === void 0 ? void 0 : onComplete(input.value);
+        };
+        var events = [
+            listenEvent(input, 'keydown', (evv) => {
+                if (evv.code === 'Enter') {
+                    stopEdit();
+                    evv.preventDefault();
+                }
+            }),
+            listenEvent(input, 'focusout', (evv) => { stopEdit(); }),
+        ];
+    }
+    startEditAsync() {
+        return new Promise((resolve) => this.startEdit(resolve));
+    }
+}
+class ViewToggle {
+    constructor(init) {
+        this.shownKeys = [];
+        this.toggleMode = 'remove';
+        this.container = null;
+        objectInit(this, init);
+        this.setShownKeys(this.shownKeys);
+    }
+    add(key, view) {
+        const oldVal = this.items[key];
+        if (oldVal) {
+            if (oldVal instanceof Array) {
+                this.items[key].push(view);
+            }
+            else {
+                this.items[key] = [oldVal, view];
+            }
+        }
+        else {
+            this.items[key] = view;
+        }
+        this.toggleView(view, this.shownKeys.indexOf(key) >= 0);
+    }
+    setShownKeys(keys) {
+        this.shownKeys = keys;
+        const items = this.items;
+        for (const key in items) {
+            const show = keys.indexOf(key) >= 0;
+            if (Object.prototype.hasOwnProperty.call(items, key)) {
+                const val = items[key];
+                if (val) {
+                    if (val instanceof Array) {
+                        for (const v of val) {
+                            this.toggleView(v, show);
+                        }
+                    }
+                    else if (val) {
+                        this.toggleView(val, show);
+                    }
+                }
+            }
+        }
+    }
+    toggleView(view, show, mode) {
+        if (!mode)
+            mode = this.toggleMode;
+        if (mode == 'display') {
+            view.dom.style.display = show ? '' : 'none';
+        }
+        else if (mode == 'hidden') {
+            view.dom.hidden = !show;
+        }
+        else if (mode == 'remove') {
+            if (show) {
+                this.container.appendView(view);
+            }
+            else {
+                view.dom.remove();
+            }
+        }
+        else {
+            throw new Error('Unknown toggle mode');
+        }
+    }
+}
+class ItemActiveHelper {
+    constructor(init) {
+        this.funcSetActive = (item, val) => item.toggleClass('active', val);
+        this.current = null;
+        objectInit(this, init);
+    }
+    set(item) {
+        if (this.current === item)
+            return;
+        if (this.current)
+            this.funcSetActive(this.current, false);
+        this.current = item;
+        if (this.current)
+            this.funcSetActive(this.current, true);
+    }
+}
+
+class ToolTip extends TextView {
+    constructor() {
+        super(...arguments);
+        this._shown = false;
+        this._timer = new Timer(() => this.close());
+        this._cancelClose = null;
+    }
+    createDom() {
+        return {
+            tag: 'div.tooltip'
+        };
+    }
+    get shown() { return this._shown; }
+    show(options) {
+        var _a;
+        if (this.shown)
+            return;
+        this._shown = true;
+        (_a = this._cancelClose) === null || _a === void 0 ? void 0 : _a.call(this);
+        let { parent = document.body, timeout } = options;
+        if (timeout)
+            this._timer.timeout(timeout);
+        const dom = this.dom;
+        setPosition(dom, options);
+        parent.appendChild(dom);
+    }
+    close(fadeOutOptions) {
+        if (!this.shown)
+            return;
+        this._timer.tryCancel();
+        this._shown = false;
+        this._cancelClose = fadeout(this.dom, fadeOutOptions).cancel;
+    }
+}
+var FlagsInput;
+(function (FlagsInput_1) {
+    class FlagsInput extends ContainerView {
+        constructor(flags) {
+            super();
+            flags === null || flags === void 0 ? void 0 : flags.forEach(f => {
+                var flag = f instanceof Flag ? f : new Flag({ text: Object.prototype.toString.call(f) });
+                this.addView(flag);
+            });
+        }
+        createDom() {
+            return { tag: 'div.flags-input' };
+        }
+    }
+    FlagsInput_1.FlagsInput = FlagsInput;
+    class Flag extends TextView {
+        get parentInput() { return this.parentView; }
+        constructor(init) {
+            super();
+            objectInit(this, init);
+        }
+        createDom() {
+            return { tag: 'div.flags-input-item' };
+        }
+    }
+    FlagsInput_1.Flag = Flag;
+})(FlagsInput || (FlagsInput = {}));
+
+class Overlay extends View {
+    createDom() {
+        return { tag: 'div.overlay' };
+    }
+    /** @deprecated Use `setFlags` instead. */
+    setCenterChild(centerChild) {
+        return this.setFlags({ centerChild });
+    }
+    /** @deprecated Use `setFlags` instead. */
+    setNoBg(nobg) {
+        return this.setFlags({ nobg });
+    }
+    /** @deprecated Use `setFlags` instead. */
+    setFixed(fixed) {
+        return this.setFlags({ fixed });
+    }
+    setFlags(flags) {
+        for (const key in flags) {
+            if (Object.prototype.hasOwnProperty.call(flags, key)) {
+                this.toggleClass(key, flags[key]);
+            }
+        }
+        return this;
+    }
+}
+
+var __awaiter$1 = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+class Dialog extends View {
+    constructor() {
+        super();
+        this.parent = Dialog.defaultParent;
+        this.overlay = new Overlay().setFlags({ centerChild: true, nobg: true });
+        this.content = new ContainerView({ tag: 'div.dialog-content' });
+        this.shown = false;
+        this.btnTitle = new TextBtn({ active: true, clickable: false });
+        this.btnClose = new TextBtn({ text: I `Close`, right: true });
+        this.title = 'Dialog';
+        this.allowClose = true;
+        this.showCloseButton = true;
+        this.onShown = new Callbacks();
+        this.onClose = new Callbacks();
+        this.focusTrap = new View({ tag: 'div.focustrap', tabIndex: 0 });
+        this.btnClose.onActive.add(() => this.allowClose && this.close());
+    }
+    static get defaultParent() {
+        if (!Dialog._defaultParent)
+            Dialog._defaultParent = new DialogParent();
+        return Dialog._defaultParent;
+    }
+    static set defaultParent(val) {
+        Dialog._defaultParent = val;
+    }
+    get width() { return this.dom.style.width; }
+    set width(val) { this.dom.style.width = val; }
+    get contentFlex() { return this.content.dom.classList.contains('flex'); }
+    set contentFlex(val) { this.content.toggleClass('flex', !!val); }
+    get resizable() { return this.dom.classList.contains('resize'); }
+    set resizable(val) { this.toggleClass('resize', !!val); }
+    createDom() {
+        return {
+            _ctx: this,
+            _key: 'dialog',
+            tag: 'div.dialog',
+            tabIndex: 0,
+            style: 'width: 300px',
+            child: [
+                {
+                    _key: 'domheader',
+                    tag: 'div.dialog-title',
+                    child: [
+                        { tag: 'div', style: 'clear: both;' }
+                    ]
+                },
+                this.content,
+                this.focusTrap
+            ]
+        };
+    }
+    postCreateDom() {
+        super.postCreateDom();
+        this.addBtn(this.btnTitle);
+        this.addBtn(this.btnClose);
+        this.overlay.dom.appendView(this);
+        this.overlay.dom.addEventListener('mousedown', (ev) => {
+            if (this.allowClose && ev.button === 0 && ev.target === this.overlay.dom) {
+                ev.preventDefault();
+                this.close();
+            }
+        });
+        this.overlay.dom.addEventListener('keydown', (ev) => {
+            if (this.allowClose && ev.keyCode === 27) { // ESC
+                ev.preventDefault();
+                this.close();
+            }
+            else if (ev.target === this.dom && ev.code === 'Tab' && ev.shiftKey) {
+                ev.preventDefault();
+                let tabables = this.dom.querySelectorAll('a, [tabindex]');
+                if (tabables.length >= 2 && tabables[tabables.length - 2]['focus']) {
+                    // the last tabable is `focusTrap`, so the index used here is `length - 2`
+                    tabables[tabables.length - 2]['focus']();
+                }
+            }
+        });
+        // title bar pointer event handler:
+        {
+            let offset;
+            listenPointerEvents(this.domheader, (e) => {
+                if (e.action === 'down') {
+                    if (e.ev.target !== this.domheader && e.ev.target !== this.btnTitle.dom)
+                        return;
+                    e.ev.preventDefault();
+                    const rectOverlay = this.overlay.dom.getBoundingClientRect();
+                    const rect = this.dom.getBoundingClientRect();
+                    offset = {
+                        x: e.point.pageX - rectOverlay.x - rect.x,
+                        y: e.point.pageY - rectOverlay.y - rect.y
+                    };
+                    return 'track';
+                }
+                else if (e.action === 'move') {
+                    e.ev.preventDefault();
+                    const rect = this.overlay.dom.getBoundingClientRect();
+                    const pageX = numLimit(e.point.pageX, rect.left, rect.right);
+                    const pageY = numLimit(e.point.pageY, rect.top, rect.bottom);
+                    this.setOffset(pageX - offset.x, pageY - offset.y);
+                }
+            });
+        }
+        this.focusTrap.dom.addEventListener('focus', (ev) => {
+            this.dom.focus();
+        });
+    }
+    updateDom() {
+        this.btnTitle.updateWith({ text: this.title });
+        this.btnTitle.hidden = !this.title;
+        this.btnClose.hidden = !(this.allowClose && this.showCloseButton);
+    }
+    addBtn(btn) {
+        this.ensureDom();
+        this.domheader.insertBefore(btn.dom, this.domheader.lastChild);
+    }
+    addContent(view, replace) {
+        this.ensureDom();
+        if (replace)
+            this.content.removeAllView();
+        this.content.addView(View.getView(view));
+    }
+    addChild(view) {
+        this.addContent(view);
+    }
+    setOffset(x, y) {
+        this.dom.style.left = x ? x + 'px' : '';
+        this.dom.style.top = y ? y + 'px' : '';
+        this.overlay.setCenterChild(false);
+    }
+    getOffset() {
+        var x = this.dom.style.left ? parseFloat(this.dom.style.left) : 0;
+        var y = this.dom.style.top ? parseFloat(this.dom.style.top) : 0;
+        return { x, y };
+    }
+    center() {
+        this.setOffset(0, 0);
+        this.overlay.setCenterChild(true);
+    }
+    show(ev) {
+        var _a;
+        if (this.shown)
+            return;
+        this.shown = true;
+        (_a = this._cancelFadeout) === null || _a === void 0 ? void 0 : _a.call(this);
+        this.ensureDom();
+        this.parent.onDialogShowing(this);
+        this.setTransformOrigin(ev);
+        this.dom.focus();
+        (this.autoFocus || this).dom.focus();
+        this.onShown.invoke();
+    }
+    setTransformOrigin(ev) {
+        if (ev) {
+            const rect = this.dom.getBoundingClientRect();
+            this.dom.style.transformOrigin = `${ev.x - rect.x}px ${ev.y - rect.y}px`;
+        }
+        else {
+            this.dom.style.transformOrigin = '';
+        }
+    }
+    close() {
+        if (!this.shown)
+            return;
+        this.shown = false;
+        this.setTransformOrigin(undefined);
+        this.onClose.invoke();
+        this._cancelFadeout = fadeout(this.overlay.dom).cancel;
+        Dialog.defaultParent.onDialogClosing(this);
+    }
+    waitClose() {
+        return new Promise((resolve) => {
+            var cb = this.onClose.add(() => {
+                this.onClose.remove(cb);
+                resolve();
+            });
+        });
+    }
+}
+Dialog._defaultParent = null;
+class MessageBox extends Dialog {
+    constructor() {
+        super(...arguments);
+        this.allowClose = false;
+        this.title = 'Message';
+        this.result = 'none';
+    }
+    addResultBtns(results) {
+        for (const r of results) {
+            this.addBtnWithResult(new TextBtn({ text: i18n.get('msgbox_' + r), right: true }), r);
+        }
+        return this;
+    }
+    setTitle(title) {
+        this.title = title;
+        if (this.domCreated)
+            this.updateDom();
+        return this;
+    }
+    addText(text) {
+        this.addContent(new TextView({ tag: 'div.messagebox-text', textContent: text }));
+        return this;
+    }
+    allowCloseWithResult(result, showCloseButton) {
+        this.result = result;
+        this.allowClose = true;
+        this.showCloseButton = !!showCloseButton;
+        if (this.domCreated)
+            this.updateDom();
+        return this;
+    }
+    addBtnWithResult(btn, result) {
+        btn.onActive.add(() => { this.result = result; this.close(); });
+        this.addBtn(btn);
+        return this;
+    }
+    showAndWaitResult() {
+        return __awaiter$1(this, void 0, void 0, function* () {
+            this.show();
+            yield this.waitClose();
+            return this.result;
+        });
+    }
+}
+class DialogParent extends View {
+    constructor(dom = document.body) {
+        super(dom);
+        this.bgOverlay = new Overlay();
+        this.dialogCount = 0;
+        this.fixed = false;
+        this._cancelFadeout = null;
+        if (dom === document.body) {
+            this.fixed = true;
+        }
+    }
+    onDialogShowing(dialog) {
+        var _a;
+        if (this.dialogCount++ === 0) {
+            (_a = this._cancelFadeout) === null || _a === void 0 ? void 0 : _a.call(this);
+            this.bgOverlay.setFlags({ fixed: this.fixed, clickThrough: true });
+            this.appendView(this.bgOverlay);
+        }
+        dialog.overlay.setFlags({ fixed: this.fixed });
+        this.appendView(dialog.overlay);
+    }
+    onDialogClosing(dialog) {
+        if (--this.dialogCount === 0) {
+            this._cancelFadeout = fadeout(this.bgOverlay.dom).cancel;
+        }
+    }
+}
+
 class ListViewItem extends View {
     constructor() {
         super(...arguments);
@@ -1789,22 +2315,6 @@ class SelectionHelper {
             this.enabled = false;
     }
 }
-class ItemActiveHelper {
-    constructor(init) {
-        this.funcSetActive = (item, val) => item.toggleClass('active', val);
-        this.current = null;
-        objectInit(this, init);
-    }
-    set(item) {
-        if (this.current === item)
-            return;
-        if (this.current)
-            this.funcSetActive(this.current, false);
-        this.current = item;
-        if (this.current)
-            this.funcSetActive(this.current, true);
-    }
-}
 class LazyListView extends ListView {
     constructor() {
         super(...arguments);
@@ -1909,191 +2419,7 @@ class LazyListView extends ListView {
         }
     }
 }
-class TextView extends View {
-    get text() { return this.dom.textContent; }
-    set text(val) { this.dom.textContent = val; }
-}
-class Section extends View {
-    constructor(arg) {
-        super();
-        this.titleView = new TextView({ tag: 'span.section-title' });
-        this.headerView = new View({
-            tag: 'div.section-header',
-            child: [
-                this.titleView
-            ]
-        });
-        this.ensureDom();
-        if (arg) {
-            if (arg.title)
-                this.setTitle(arg.title);
-            if (arg.content)
-                this.setContent(arg.content);
-            if (arg.actions)
-                arg.actions.forEach(x => this.addAction(x));
-        }
-    }
-    createDom() {
-        return {
-            _ctx: this,
-            tag: 'div.section',
-            child: [
-                this.headerView
-            ]
-        };
-    }
-    setTitle(text) {
-        this.titleView.text = text;
-    }
-    setContent(view) {
-        var dom = this.dom;
-        var firstChild = dom.firstChild;
-        while (dom.lastChild !== firstChild)
-            dom.removeChild(dom.lastChild);
-        dom.appendChild(view.getDOM());
-    }
-    addAction(arg) {
-        var view = arg instanceof View ?
-            arg :
-            new SectionAction({ text: arg.text, onActive: arg.onclick });
-        this.headerView.dom.appendChild(view.dom);
-    }
-}
-class SectionAction extends TextView {
-    constructor(init) {
-        super();
-        objectInit(this, init);
-    }
-    createDom() {
-        return {
-            tag: 'div.section-action.clickable',
-            tabIndex: 0
-        };
-    }
-}
-class LoadingIndicator extends View {
-    constructor(init) {
-        super();
-        this._status = 'running';
-        this.onclick = null;
-        if (init)
-            objectInit(this, init);
-    }
-    get state() { return this._status; }
-    set state(val) {
-        this._status = val;
-        ['running', 'error', 'normal'].forEach(x => this.toggleClass(x, val === x));
-    }
-    get content() { return this._text; }
-    set content(val) { this._text = val; this.ensureDom(); this._textdom.textContent = val; }
-    reset() {
-        this.state = 'running';
-        this.content = I `Loading`;
-        this.onclick = null;
-    }
-    error(err, retry) {
-        this.state = 'error';
-        this.content = I `Oh no! Something just goes wrong:` + '\r\n' + err;
-        if (retry) {
-            this.content += '\r\n' + I `[Click here to retry]`;
-        }
-        this.onclick = retry;
-    }
-    action(func) {
-        return __awaiter(this, void 0, void 0, function* () {
-            try {
-                yield func();
-            }
-            catch (error) {
-                this.error(error, () => this.action(func));
-            }
-        });
-    }
-    createDom() {
-        return {
-            _ctx: this,
-            tag: 'div.loading-indicator',
-            child: [{
-                    tag: 'div.loading-indicator-inner',
-                    child: [{ tag: 'div.loading-indicator-text', _key: '_textdom' }]
-                }],
-            onclick: (e) => { var _a; return (_a = this.onclick) === null || _a === void 0 ? void 0 : _a.call(this, e); }
-        };
-    }
-    postCreateDom() {
-        this.reset();
-    }
-}
-class Overlay extends View {
-    createDom() {
-        return { tag: 'div.overlay' };
-    }
-    /** @deprecated Use `setFlags` instead. */
-    setCenterChild(centerChild) {
-        return this.setFlags({ centerChild });
-    }
-    /** @deprecated Use `setFlags` instead. */
-    setNoBg(nobg) {
-        return this.setFlags({ nobg });
-    }
-    /** @deprecated Use `setFlags` instead. */
-    setFixed(fixed) {
-        return this.setFlags({ fixed });
-    }
-    setFlags(flags) {
-        for (const key in flags) {
-            if (Object.prototype.hasOwnProperty.call(flags, key)) {
-                this.toggleClass(key, flags[key]);
-            }
-        }
-        return this;
-    }
-}
-class EditableHelper {
-    constructor(element) {
-        this.editing = false;
-        this.beforeEdit = null;
-        this.onComplete = null;
-        this.element = element;
-    }
-    startEdit(onComplete) {
-        if (this.editing)
-            return;
-        this.editing = true;
-        var ele = this.element;
-        var beforeEdit = this.beforeEdit = ele.textContent;
-        toggleClass(ele, 'editing', true);
-        var input = buildDOM({
-            tag: 'input', type: 'text', value: beforeEdit
-        });
-        while (ele.firstChild)
-            ele.removeChild(ele.firstChild);
-        ele.appendChild(input);
-        input.select();
-        input.focus();
-        var stopEdit = () => {
-            var _a;
-            this.editing = false;
-            toggleClass(ele, 'editing', false);
-            events.forEach(x => x.remove());
-            input.remove();
-            (_a = this.onComplete) === null || _a === void 0 ? void 0 : _a.call(this, input.value);
-            onComplete === null || onComplete === void 0 ? void 0 : onComplete(input.value);
-        };
-        var events = [
-            listenEvent(input, 'keydown', (evv) => {
-                if (evv.code === 'Enter') {
-                    stopEdit();
-                    evv.preventDefault();
-                }
-            }),
-            listenEvent(input, 'focusout', (evv) => { stopEdit(); }),
-        ];
-    }
-    startEditAsync() {
-        return new Promise((resolve) => this.startEdit(resolve));
-    }
-}
+
 class MenuItem extends ListViewItem {
     constructor(init) {
         super();
@@ -2270,335 +2596,7 @@ class ContextMenu extends ListView {
         }
     }
 }
-class Dialog extends View {
-    constructor() {
-        super();
-        this.parent = Dialog.defaultParent;
-        this.overlay = new Overlay().setFlags({ centerChild: true, nobg: true });
-        this.content = new ContainerView({ tag: 'div.dialog-content' });
-        this.shown = false;
-        this.btnTitle = new TabBtn({ active: true, clickable: false });
-        this.btnClose = new TabBtn({ text: I `Close`, right: true });
-        this.title = 'Dialog';
-        this.allowClose = true;
-        this.showCloseButton = true;
-        this.onShown = new Callbacks();
-        this.onClose = new Callbacks();
-        this.focusTrap = new View({ tag: 'div.focustrap', tabIndex: 0 });
-        this.btnClose.onActive.add(() => this.allowClose && this.close());
-    }
-    static get defaultParent() {
-        if (!Dialog._defaultParent)
-            Dialog._defaultParent = new DialogParent();
-        return Dialog._defaultParent;
-    }
-    static set defaultParent(val) {
-        Dialog._defaultParent = val;
-    }
-    get width() { return this.dom.style.width; }
-    set width(val) { this.dom.style.width = val; }
-    get contentFlex() { return this.content.dom.classList.contains('flex'); }
-    set contentFlex(val) { this.content.toggleClass('flex', !!val); }
-    get resizable() { return this.dom.classList.contains('resize'); }
-    set resizable(val) { this.toggleClass('resize', !!val); }
-    createDom() {
-        return {
-            _ctx: this,
-            _key: 'dialog',
-            tag: 'div.dialog',
-            tabIndex: 0,
-            style: 'width: 300px',
-            child: [
-                {
-                    _key: 'domheader',
-                    tag: 'div.dialog-title',
-                    child: [
-                        { tag: 'div', style: 'clear: both;' }
-                    ]
-                },
-                this.content,
-                this.focusTrap
-            ]
-        };
-    }
-    postCreateDom() {
-        super.postCreateDom();
-        this.addBtn(this.btnTitle);
-        this.addBtn(this.btnClose);
-        this.overlay.dom.appendView(this);
-        this.overlay.dom.addEventListener('mousedown', (ev) => {
-            if (this.allowClose && ev.button === 0 && ev.target === this.overlay.dom) {
-                ev.preventDefault();
-                this.close();
-            }
-        });
-        this.overlay.dom.addEventListener('keydown', (ev) => {
-            if (this.allowClose && ev.keyCode === 27) { // ESC
-                ev.preventDefault();
-                this.close();
-            }
-            else if (ev.target === this.dom && ev.code === 'Tab' && ev.shiftKey) {
-                ev.preventDefault();
-                let tabables = this.dom.querySelectorAll('a, [tabindex]');
-                if (tabables.length >= 2 && tabables[tabables.length - 2]['focus']) {
-                    // the last tabable is `focusTrap`, so the index used here is `length - 2`
-                    tabables[tabables.length - 2]['focus']();
-                }
-            }
-        });
-        // title bar pointer event handler:
-        {
-            let offset;
-            listenPointerEvents(this.domheader, (e) => {
-                if (e.action === 'down') {
-                    if (e.ev.target !== this.domheader && e.ev.target !== this.btnTitle.dom)
-                        return;
-                    e.ev.preventDefault();
-                    const rectOverlay = this.overlay.dom.getBoundingClientRect();
-                    const rect = this.dom.getBoundingClientRect();
-                    offset = {
-                        x: e.point.pageX - rectOverlay.x - rect.x,
-                        y: e.point.pageY - rectOverlay.y - rect.y
-                    };
-                    return 'track';
-                }
-                else if (e.action === 'move') {
-                    e.ev.preventDefault();
-                    const rect = this.overlay.dom.getBoundingClientRect();
-                    const pageX = numLimit(e.point.pageX, rect.left, rect.right);
-                    const pageY = numLimit(e.point.pageY, rect.top, rect.bottom);
-                    this.setOffset(pageX - offset.x, pageY - offset.y);
-                }
-            });
-        }
-        this.focusTrap.dom.addEventListener('focus', (ev) => {
-            this.dom.focus();
-        });
-    }
-    updateDom() {
-        this.btnTitle.updateWith({ text: this.title });
-        this.btnTitle.hidden = !this.title;
-        this.btnClose.hidden = !(this.allowClose && this.showCloseButton);
-    }
-    addBtn(btn) {
-        this.ensureDom();
-        this.domheader.insertBefore(btn.dom, this.domheader.lastChild);
-    }
-    addContent(view, replace) {
-        this.ensureDom();
-        if (replace)
-            this.content.removeAllView();
-        this.content.addView(View.getView(view));
-    }
-    addChild(view) {
-        this.addContent(view);
-    }
-    setOffset(x, y) {
-        this.dom.style.left = x ? x + 'px' : '';
-        this.dom.style.top = y ? y + 'px' : '';
-        this.overlay.setCenterChild(false);
-    }
-    getOffset() {
-        var x = this.dom.style.left ? parseFloat(this.dom.style.left) : 0;
-        var y = this.dom.style.top ? parseFloat(this.dom.style.top) : 0;
-        return { x, y };
-    }
-    center() {
-        this.setOffset(0, 0);
-        this.overlay.setCenterChild(true);
-    }
-    show(ev) {
-        var _a;
-        if (this.shown)
-            return;
-        this.shown = true;
-        (_a = this._cancelFadeout) === null || _a === void 0 ? void 0 : _a.call(this);
-        this.ensureDom();
-        this.parent.onDialogShowing(this);
-        this.setTransformOrigin(ev);
-        this.dom.focus();
-        (this.autoFocus || this).dom.focus();
-        this.onShown.invoke();
-    }
-    setTransformOrigin(ev) {
-        if (ev) {
-            const rect = this.dom.getBoundingClientRect();
-            this.dom.style.transformOrigin = `${ev.x - rect.x}px ${ev.y - rect.y}px`;
-        }
-        else {
-            this.dom.style.transformOrigin = '';
-        }
-    }
-    close() {
-        if (!this.shown)
-            return;
-        this.shown = false;
-        this.setTransformOrigin(undefined);
-        this.onClose.invoke();
-        this._cancelFadeout = fadeout(this.overlay.dom).cancel;
-        Dialog.defaultParent.onDialogClosing(this);
-    }
-    waitClose() {
-        return new Promise((resolve) => {
-            var cb = this.onClose.add(() => {
-                this.onClose.remove(cb);
-                resolve();
-            });
-        });
-    }
-}
-Dialog._defaultParent = null;
-class DialogParent extends View {
-    constructor(dom = document.body) {
-        super(dom);
-        this.bgOverlay = new Overlay();
-        this.dialogCount = 0;
-        this.fixed = false;
-        this._cancelFadeout = null;
-        if (dom === document.body) {
-            this.fixed = true;
-        }
-    }
-    onDialogShowing(dialog) {
-        var _a;
-        if (this.dialogCount++ === 0) {
-            (_a = this._cancelFadeout) === null || _a === void 0 ? void 0 : _a.call(this);
-            this.bgOverlay.setFlags({ fixed: this.fixed, clickThrough: true });
-            this.appendView(this.bgOverlay);
-        }
-        dialog.overlay.setFlags({ fixed: this.fixed });
-        this.appendView(dialog.overlay);
-    }
-    onDialogClosing(dialog) {
-        if (--this.dialogCount === 0) {
-            this._cancelFadeout = fadeout(this.bgOverlay.dom).cancel;
-        }
-    }
-}
-class TabBtn extends View {
-    constructor(init) {
-        super();
-        this.text = '';
-        this.clickable = true;
-        this.active = false;
-        this.right = false;
-        objectInit(this, init);
-    }
-    createDom() {
-        return {
-            tag: 'span.tab.no-selection'
-        };
-    }
-    updateDom() {
-        this.dom.textContent = this.text;
-        this.dom.tabIndex = this.clickable ? 0 : -1;
-        this.toggleClass('clickable', this.clickable);
-        this.toggleClass('active', this.active);
-        this.dom.style.float = this.right ? 'right' : 'left';
-    }
-}
-class InputView extends View {
-    constructor(init) {
-        super();
-        this.multiline = false;
-        this.type = 'text';
-        this.placeholder = '';
-        objectInit(this, init);
-    }
-    get value() { return this.dom.value; }
-    set value(val) { this.dom.value = val; }
-    createDom() {
-        return this.multiline ? { tag: 'textarea.input-text' } : { tag: 'input.input-text' };
-    }
-    updateDom() {
-        super.updateDom();
-        if (this.dom instanceof HTMLInputElement) {
-            this.dom.type = this.type;
-            this.dom.placeholder = this.placeholder;
-        }
-    }
-}
-class ButtonView extends TextView {
-    constructor(init) {
-        super();
-        this.disabled = false;
-        this.type = 'normal';
-        objectInit(this, init);
-        this.updateDom();
-    }
-    createDom() {
-        return { tag: 'div.btn', tabIndex: 0 };
-    }
-    updateDom() {
-        super.updateDom();
-        this.toggleClass('disabled', this.disabled);
-        this.toggleClass('btn-big', this.type === 'big');
-        this.toggleClass('btn-inline', this.type === 'inline');
-    }
-}
-class LabeledInputBase extends View {
-    constructor(init) {
-        super();
-        this.label = '';
-        objectInit(this, init);
-    }
-    get dominput() { return this.input.dom; }
-    createDom() {
-        return {
-            _ctx: this,
-            tag: 'div.labeled-input',
-            child: [
-                { tag: 'div.input-label', text: () => this.label },
-                this.input
-            ]
-        };
-    }
-    updateDom() {
-        super.updateDom();
-        this.input.domCreated && this.input.updateDom();
-    }
-}
-class LabeledInput extends LabeledInputBase {
-    constructor(init) {
-        super();
-        objectInit(this, init);
-        if (!this.input)
-            this.input = new InputView();
-    }
-    get value() { return this.dominput.value; }
-    set value(val) { this.dominput.value = val; }
-    updateDom() {
-        this.input.type = this.type;
-        super.updateDom();
-    }
-}
-var FlagsInput;
-(function (FlagsInput_1) {
-    class FlagsInput extends ContainerView {
-        constructor(flags) {
-            super();
-            flags === null || flags === void 0 ? void 0 : flags.forEach(f => {
-                var flag = f instanceof Flag ? f : new Flag({ text: Object.prototype.toString.call(f) });
-                this.addView(flag);
-            });
-        }
-        createDom() {
-            return { tag: 'div.flags-input' };
-        }
-    }
-    FlagsInput_1.FlagsInput = FlagsInput;
-    class Flag extends TextView {
-        get parentInput() { return this.parentView; }
-        constructor(init) {
-            super();
-            objectInit(this, init);
-        }
-        createDom() {
-            return { tag: 'div.flags-input-item' };
-        }
-    }
-    FlagsInput_1.Flag = Flag;
-})(FlagsInput || (FlagsInput = {}));
+
 class ToastsContainer extends View {
     constructor() {
         super(...arguments);
@@ -2667,161 +2665,68 @@ class Toast extends View {
         return toast;
     }
 }
-class MessageBox extends Dialog {
-    constructor() {
-        super(...arguments);
-        this.allowClose = false;
-        this.title = 'Message';
-        this.result = 'none';
-    }
-    addResultBtns(results) {
-        for (const r of results) {
-            this.addBtnWithResult(new TabBtn({ text: i18n.get('msgbox_' + r), right: true }), r);
-        }
-        return this;
-    }
-    setTitle(title) {
-        this.title = title;
-        if (this.domCreated)
-            this.updateDom();
-        return this;
-    }
-    addText(text) {
-        this.addContent(new TextView({ tag: 'div.messagebox-text', textContent: text }));
-        return this;
-    }
-    allowCloseWithResult(result, showCloseButton) {
-        this.result = result;
-        this.allowClose = true;
-        this.showCloseButton = !!showCloseButton;
-        if (this.domCreated)
-            this.updateDom();
-        return this;
-    }
-    addBtnWithResult(btn, result) {
-        btn.onActive.add(() => { this.result = result; this.close(); });
-        this.addBtn(btn);
-        return this;
-    }
-    showAndWaitResult() {
-        return __awaiter(this, void 0, void 0, function* () {
-            this.show();
-            yield this.waitClose();
-            return this.result;
-        });
-    }
-}
-class ViewToggle {
+
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+class LoadingIndicator extends View {
     constructor(init) {
-        this.shownKeys = [];
-        this.toggleMode = 'remove';
-        this.container = null;
-        objectInit(this, init);
-        this.setShownKeys(this.shownKeys);
+        super();
+        this._status = 'running';
+        this.onclick = null;
+        if (init)
+            objectInit(this, init);
     }
-    add(key, view) {
-        const oldVal = this.items[key];
-        if (oldVal) {
-            if (oldVal instanceof Array) {
-                this.items[key].push(view);
-            }
-            else {
-                this.items[key] = [oldVal, view];
-            }
-        }
-        else {
-            this.items[key] = view;
-        }
-        this.toggleView(view, this.shownKeys.indexOf(key) >= 0);
+    get state() { return this._status; }
+    set state(val) {
+        this._status = val;
+        ['running', 'error', 'normal'].forEach(x => this.toggleClass(x, val === x));
     }
-    setShownKeys(keys) {
-        this.shownKeys = keys;
-        const items = this.items;
-        for (const key in items) {
-            const show = keys.indexOf(key) >= 0;
-            if (Object.prototype.hasOwnProperty.call(items, key)) {
-                const val = items[key];
-                if (val) {
-                    if (val instanceof Array) {
-                        for (const v of val) {
-                            this.toggleView(v, show);
-                        }
-                    }
-                    else if (val) {
-                        this.toggleView(val, show);
-                    }
-                }
-            }
-        }
+    get content() { return this._text; }
+    set content(val) { this._text = val; this.ensureDom(); this._textdom.textContent = val; }
+    reset() {
+        this.state = 'running';
+        this.content = I `Loading`;
+        this.onclick = null;
     }
-    toggleView(view, show, mode) {
-        if (!mode)
-            mode = this.toggleMode;
-        if (mode == 'display') {
-            view.dom.style.display = show ? '' : 'none';
+    error(err, retry) {
+        this.state = 'error';
+        this.content = I `Oh no! Something just goes wrong:` + '\r\n' + err;
+        if (retry) {
+            this.content += '\r\n' + I `[Click here to retry]`;
         }
-        else if (mode == 'hidden') {
-            view.dom.hidden = !show;
-        }
-        else if (mode == 'remove') {
-            if (show) {
-                this.container.appendView(view);
-            }
-            else {
-                view.dom.remove();
-            }
-        }
-        else {
-            throw new Error('Unknown toggle mode');
-        }
+        this.onclick = retry;
     }
-}
-class ToolTip extends TextView {
-    constructor() {
-        super(...arguments);
-        this._shown = false;
-        this._timer = new Timer(() => this.close());
-        this._cancelClose = null;
+    action(func) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                yield func();
+            }
+            catch (error) {
+                this.error(error, () => this.action(func));
+            }
+        });
     }
     createDom() {
         return {
-            tag: 'div.tooltip'
+            _ctx: this,
+            tag: 'div.loading-indicator',
+            child: [{
+                    tag: 'div.loading-indicator-inner',
+                    child: [{ tag: 'div.loading-indicator-text', _key: '_textdom' }]
+                }],
+            onclick: (e) => { var _a; return (_a = this.onclick) === null || _a === void 0 ? void 0 : _a.call(this, e); }
         };
     }
-    get shown() { return this._shown; }
-    show(options) {
-        var _a;
-        if (this.shown)
-            return;
-        this._shown = true;
-        (_a = this._cancelClose) === null || _a === void 0 ? void 0 : _a.call(this);
-        let { parent = document.body, timeout } = options;
-        if (timeout)
-            this._timer.timeout(timeout);
-        const dom = this.dom;
-        setPosition(dom, options);
-        parent.appendChild(dom);
-    }
-    close(fadeOutOptions) {
-        if (!this.shown)
-            return;
-        this._timer.tryCancel();
-        this._shown = false;
-        this._cancelClose = fadeout(this.dom, fadeOutOptions).cancel;
-    }
-}
-function setPosition(dom, options) {
-    let { x = 0, y = 0, anchor = 'bottom' } = options;
-    dom.style.left = x + 'px';
-    dom.style.top = y + 'px';
-    if (!dom.classList.contains('anchor-' + anchor)) {
-        dom.classList.forEach(x => {
-            if (x.startsWith('anchor-')) {
-                dom.classList.remove(x);
-            }
-        });
-        dom.classList.add('anchor-' + anchor);
+    postCreateDom() {
+        this.reset();
     }
 }
 
-export { AutoResetEvent, BuildDOMCtx, ButtonView, Callbacks, CancelToken, ContainerView, ContextMenu, DataUpdatingHelper, Dialog, DialogParent, EditableHelper, EventRegistrations, FlagsInput, I, I18n, InputStateTracker, InputView, ItemActiveHelper, JsxNode, LabeledInput, LabeledInputBase, Lazy, LazyListView, ListView, ListViewItem, LoadingIndicator, MenuInfoItem, MenuItem, MenuLinkItem, MessageBox, Overlay, Ref, Section, SectionAction, SelectionHelper, Semaphore, SettingItem, TabBtn, TextCompositionWatcher, TextView, Timer, Toast, ToastsContainer, ToolTip, View, ViewToggle, arrayFind, arrayForeach, arrayInsert, arrayMap, arrayRemove, arraySum, base64EncodeUtf8, buildDOM, clearChildren, createArrayBuilder, createName, createStringBuilder, dragManager, fadeout, formatDateTime, formatFileSize, formatTime, getWebfxCss, i18n, injectCss, injectWebfxCss, jsx, jsxBuild, jsxFactory, listenEvent, listenEvents, listenPointerEvents, mod, numLimit, objectApply, objectInit, readBlobAsDataUrl, replaceChild, sleepAsync, startBlockingDetect, strPadLeft, toggleClass, utils, version };
+export { AutoResetEvent, BuildDOMCtx, ButtonView, Callbacks, CancelToken, ContainerView, ContextMenu, DataUpdatingHelper, Dialog, DialogParent, EditableHelper, EventRegistrations, FlagsInput, I, I18n, InputStateTracker, ItemActiveHelper, JsxNode, Lazy, LazyListView, ListView, ListViewItem, LoadingIndicator, MenuInfoItem, MenuItem, MenuLinkItem, MessageBox, Overlay, Ref, SelectionHelper, Semaphore, SettingItem, TabBtn, TextBtn, TextCompositionWatcher, TextView, Timer, Toast, ToastsContainer, ToolTip, View, ViewToggle, arrayFind, arrayForeach, arrayInsert, arrayMap, arrayRemove, arraySum, base64EncodeUtf8, buildDOM, clearChildren, createArrayBuilder, createName, createStringBuilder, dragManager, fadeout, formatDateTime, formatFileSize, formatTime, getWebfxCss, i18n, injectCss, injectWebfxCss, jsx, jsxBuild, jsxFactory, listenEvent, listenEvents, listenPointerEvents, mod, numLimit, objectApply, objectInit, readBlobAsDataUrl, replaceChild, setPosition, sleepAsync, startBlockingDetect, strPadLeft, toggleClass, utils, version };
