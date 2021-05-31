@@ -40,13 +40,13 @@
             class App extends webfx.View {
                 constructor() {
                     super();
-                    this.clickEvent = new webfx.AutoResetEvent();
-                    this.text = new webfx.Ref();
-                    this.routine();
                     this.onclick = (e) => {
                         e.preventDefault();
                         this.clickEvent.set();
                     };
+                    this.clickEvent = new webfx.AutoResetEvent();
+                    this.text = new webfx.Ref();
+                    this.routine();
                 }
                 createDom() {
                     return {
