@@ -165,10 +165,15 @@ var buildDOMHandleKey = function (key, val, node, ctx, ttl) {
 };
 /**
  * Build a DOM tree from a JavaScript object.
- * @example utils.buildDOM({
-        tag: 'div.item#firstitem',
-        child: ['Name: ', { tag: 'span.name', textContent: name } ],
-    })
+ * @example
+ * buildDOM({
+ *     tag: 'div.item#firstitem',
+ *     onclick: () => console.info('clicked'),
+ *     child: [
+ *         'Name: ',
+ *         { tag: 'span.name', text: name },
+ *     ],
+ * });
  */
 function buildDOM(obj, ctx) {
     return buildDomCore(obj, 32, ctx || null);
