@@ -8,11 +8,11 @@ It was originally created for [MusicCloud](https://github.com/lideming/MusicClou
 
 ## Demos
 
-* [Counter & viewlib](https://gh.yuuza.net/webfx/demo/counter.html)
+* [Counter & viewlib](https://webfx.yuuza.net/counter.html)
 ([HTML + JS](https://github.com/lideming/webfx/blob/master/demo/counter.html))
 ([JSX](https://github.com/lideming/webfx/blob/master/demo/counter.jsx))
 
-* [Human-ping](https://gh.yuuza.net/webfx/demo/human-ping.html)
+* [Human-ping](https://webfx.yuuza.net/human-ping.html)
 ([HTML + JS](https://github.com/lideming/webfx/blob/master/demo/human-ping.html))
 
 * And of cource [MusicCloud (GitHub repo)](https://github.com/lideming/MusicCloud)

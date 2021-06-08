@@ -42,11 +42,11 @@ jobs:
         run: npm run build
 
       - name: Pre depoly
-        run: mkdir ghpages && cp -R dist/ demo/ ghpages/
+        run: npm run buildpages
 
       # Runs a set of commands using the runners shell
       - name: Deploy Github Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ghpages/
+          publish_dir: demo/

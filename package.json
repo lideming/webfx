@@ -11,7 +11,8 @@
     "build": "tsc && rollup -c",
     "watch": "tsc && rollup -c -w",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "prepack": "npm run build"
+    "prepack": "npm run build",
+    "buildpages": "cp -R dist demo/"
   },
   "files": [
     "dist/",
