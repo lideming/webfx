@@ -26,20 +26,21 @@ jobs:
           node-version: 14.x
           registry-url: 'https://registry.npmjs.org'
 
-      - name: Cache node_modules
-        id: cache_node_modules
-        uses: actions/cache@v2
+      - name: Cache .pnpm-store
+        uses: actions/cache@v1
         with:
-          path: |
-            node_modules
-          key: ${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-node14-${{ hashFiles('**/pnpm-lock.yaml') }}
 
-      - name: Install npm dependencies
+      - name: Install pnpm
+        run: curl -f https://get.pnpm.io/v6.js | node - add --global pnpm@6
+
+      - name: Install dependencies
         if: steps.cache_node_modules.outputs.cache-hit != 'true'
         run: |
-          npm ci
+          pnpm install --frozen-lockfile
 
       - name: Build & publish to npm registry
-        run: npm publish
+        run: pnpm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
