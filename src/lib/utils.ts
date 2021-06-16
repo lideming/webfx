@@ -707,7 +707,7 @@ export class TextCompositionWatcher {
         this.onCompositingChanged.invoke();
     }
     constructor(dom: IDOM) {
-        this.dom = dom.getDOM();
+        this.dom = dom.getDOM() as HTMLElement;
         this.dom.addEventListener('compositionstart', (ev) => {
             this.isCompositing = true;
         });

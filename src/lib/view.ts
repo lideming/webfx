@@ -1,8 +1,8 @@
 import { Action, Callbacks, objectApply, toggleClass, arrayFind, arrayForeach, arrayMap } from "./utils";
-import { buildDOM, BuildDOMCtx, BuildDomExpr, IDOM } from "./buildDOM";
+import { buildDOM, BuildDOMCtx, BuildDomExpr, IDOM, IDOMInstance } from "./buildDOM";
 
 
-export class View<T extends HTMLElement = HTMLElement> implements IDOM {
+export class View<T extends HTMLElement = HTMLElement> implements IDOMInstance {
     constructor(dom?: BuildDomExpr) {
         if (dom) this.domExprCreated(dom);
     }
@@ -53,7 +53,7 @@ export class View<T extends HTMLElement = HTMLElement> implements IDOM {
     }
     appendView(view: View) { return this.dom.appendView(view); }
     getDOM() { return this.dom; }
-    addChild(child: IDOM) {
+    addChild(child: BuildDomExpr) {
         if (child instanceof View) {
             this.appendView(child);
         } else {
@@ -85,23 +85,66 @@ export class View<T extends HTMLElement = HTMLElement> implements IDOM {
             e.preventDefault();
         }
     }
+
+    static tryGetDOM(idom: IDOM | null | undefined) {
+        if (!idom) return idom;
+        if (idom instanceof View) {
+            return idom.getDOM();
+        } else if (idom instanceof Node) {
+            return idom;
+        } else if (idom && "getDOM" in idom) {
+            return idom.getDOM();
+        }
+    }
+
+    static getDOM(idom: IDOM) {
+        var dom = View.tryGetDOM(idom);
+        if (!dom) {
+            console.error("getDOM(): unsupported parameter:", idom);
+            throw new Error("getDOM(): unsupported parameter: " + idom);
+        }
+        return dom;
+    }
+
+    static appendView(parent: IDOM, childView: View) {
+        View.getDOM(parent).appendChild(childView.dom);
+    }
+
+    static addChild(parent: IDOM, child: BuildDomExpr) {
+        // fast path
+        if (parent instanceof View) parent.addChild(child);
+        if (parent instanceof Node) parent.appendChild(buildDOM(child));
+        // slow path
+        if ('addChild' in parent) {
+            parent.addChild(child);
+        }
+    }
 }
 
 declare global {
     interface Node {
+        /** @deprecated Use the static method `View.getDOM()` instead. */
         getDOM(): this;
+        /** @deprecated Use the static method `View.appendView()` instead. */
         appendView(view: View);
-        addChild(child: IDOM): void;
+        /** @deprecated Use the static method `View.addChild()` instead. */
+        addChild(child: BuildDomExpr): void;
     }
 }
 
-Node.prototype.getDOM = function () { return this; };
+
+Node.prototype.getDOM = function () {
+    console.trace("webfx: Node.getDOM() is deprecated. Please use the static method `View.getDOM()` instead.");
+    return this;
+};
 
 Node.prototype.addChild = function (child) {
+    console.trace("webfx: Node.addChild() is deprecated. Please use the static method `View.addChild()` instead.");
     this.appendChild(buildDOM(child));
 };
 
 Node.prototype.appendView = function (this: Node, view: View) {
+    console.trace("webfx: Node.appendView() is deprecated. Please use the static method `View.appendView()` instead.");
     this.appendChild(view.dom);
 };
 

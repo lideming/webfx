@@ -4,9 +4,13 @@ import { View } from "./view";
 // BuildDOM types & implementation:
 export type BuildDomExpr = string | BuildDomNode | HTMLElement | Node | IDOM;
 
-export interface IDOM {
+export type IDOM = Node | View | IDOMInstance;
+
+export interface IDOMInstance {
+    /** @deprecated Use the static method `View.getDOM()` instaed. */
     getDOM(): HTMLElement;
-    addChild(child: IDOM): void;
+    /** @deprecated Use the static method `View.addChild()` instead. */
+    addChild(child: BuildDomExpr): void;
 }
 
 export type BuildDomTag = string;
@@ -117,7 +121,7 @@ function tryHandleValues(obj: BuildDomExpr, ctx: BuildDOMCtx | null) {
         const val = (obj as any)();
         if (!val || typeof val !== 'object') {
             const node = document.createTextNode(val);
-            ctx?.addUpdateAction(new TextAction(node, val));
+            ctx?.addUpdateAction(new TextAction(node, obj));
             return node;
         } else {
             throw new Error('Unexpected function return value');
@@ -164,7 +168,7 @@ var buildDOMHandleKey = function (key: string, val: any, node: HTMLElement, ctx:
         } else {
             node.appendChild(buildDomCore(val, ttl, ctx));
         }
-    } else if (key === '_id') {
+    } else if (key === '_id' || key === '_key') {
         ctx!.setDict(val, node);
     } else if (key === 'ref') {
         (val as Ref<any>).value = node;
@@ -203,7 +207,7 @@ export function buildDOM<T extends BuildDomReturn = BuildDomReturn>(obj: BuildDo
     return buildDomCore(obj, 32, ctx || null) as T;
 };
 
-export class JsxNode<T extends IDOM> implements IDOM {
+export class JsxNode<T extends IDOM> implements IDOMInstance {
     tag: T | string;
     attrs: Record<any, any> | undefined;
     child: any[] | undefined;
@@ -291,12 +295,12 @@ export function jsxBuild<T extends IDOM>(node: JsxNode<T>, ctx?: BuildDOMCtx): T
 }
 
 export type JsxTag = JsxDOMTag | JsxCtorTag;
-export type JsxCtorTag = new(...args) => IDOM; ;
+export type JsxCtorTag = new (...args) => IDOM;;
 export type JsxDOMTag = keyof HTMLElementTagNameMap;
 
 export type JsxTagInstance<T> =
     T extends keyof HTMLElementTagNameMap ? HTMLElementTagNameMap[T] :
-    T extends (new(...args) => infer U) ? U extends IDOM ? U :
+    T extends (new (...args) => infer U) ? U extends IDOM ? U :
     never : never;
 
 export type JsxAttrs<T extends JsxTag> =
