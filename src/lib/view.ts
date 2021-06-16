@@ -51,7 +51,7 @@ export class View<T extends HTMLElement = HTMLElement> implements IDOMInstance {
     toggleClass(clsName: string, force?: boolean) {
         toggleClass(this.dom, clsName, force);
     }
-    appendView(view: View) { return this.dom.appendView(view); }
+    appendView(view: View) { this.dom.appendChild(view.dom); }
     getDOM() { return this.dom; }
     addChild(child: BuildDomExpr) {
         if (child instanceof View) {
@@ -85,67 +85,67 @@ export class View<T extends HTMLElement = HTMLElement> implements IDOMInstance {
             e.preventDefault();
         }
     }
+}
 
-    static tryGetDOM(idom: IDOM | null | undefined) {
-        if (!idom) return idom;
-        if (idom instanceof View) {
-            return idom.getDOM();
-        } else if (idom instanceof Node) {
-            return idom;
-        } else if (idom && "getDOM" in idom) {
-            return idom.getDOM();
-        }
+export function tryGetDOM(idom: IDOM | null | undefined) {
+    if (!idom) return idom;
+    if (idom instanceof View) {
+        return idom.getDOM();
+    } else if (idom instanceof Node) {
+        return idom;
+    } else if (idom && "getDOM" in idom) {
+        return idom.getDOM();
     }
+}
 
-    static getDOM(idom: IDOM) {
-        var dom = View.tryGetDOM(idom);
-        if (!dom) {
-            console.error("getDOM(): unsupported parameter:", idom);
-            throw new Error("getDOM(): unsupported parameter: " + idom);
-        }
-        return dom;
+export function getDOM(idom: IDOM) {
+    var dom = tryGetDOM(idom);
+    if (!dom) {
+        console.error("getDOM(): unsupported parameter:", idom);
+        throw new Error("getDOM(): unsupported parameter: " + idom);
     }
+    return dom;
+}
 
-    static appendView(parent: IDOM, childView: View) {
-        View.getDOM(parent).appendChild(childView.dom);
-    }
+export function appendView(parent: IDOM, childView: View) {
+    getDOM(parent).appendChild(childView.dom);
+}
 
-    static addChild(parent: IDOM, child: BuildDomExpr) {
-        // fast path
-        if (parent instanceof View) parent.addChild(child);
-        if (parent instanceof Node) parent.appendChild(buildDOM(child));
-        // slow path
-        if ('addChild' in parent) {
-            parent.addChild(child);
-        }
+export function addChild(parent: IDOM, child: BuildDomExpr) {
+    // fast path
+    if (parent instanceof View) parent.addChild(child);
+    else if (parent instanceof Node) parent.appendChild(buildDOM(child));
+    // slow path
+    else if ('addChild' in parent) {
+        parent.addChild(child);
     }
 }
 
 declare global {
     interface Node {
-        /** @deprecated Use the static method `View.getDOM()` instead. */
+        /** @deprecated Use the exported function `getDOM()` instead. */
         getDOM(): this;
-        /** @deprecated Use the static method `View.appendView()` instead. */
+        /** @deprecated Use the exported function `appendView()` instead. */
         appendView(view: View);
-        /** @deprecated Use the static method `View.addChild()` instead. */
+        /** @deprecated Use the exported function `addChild()` instead. */
         addChild(child: BuildDomExpr): void;
     }
 }
 
 
 Node.prototype.getDOM = function () {
-    console.trace("webfx: Node.getDOM() is deprecated. Please use the static method `View.getDOM()` instead.");
+    console.trace("webfx: Node.getDOM() is deprecated. Please use the exported function `getDOM()` instead.");
     return this;
 };
 
 Node.prototype.addChild = function (child) {
-    console.trace("webfx: Node.addChild() is deprecated. Please use the static method `View.addChild()` instead.");
-    this.appendChild(buildDOM(child));
+    console.trace("webfx: Node.addChild() is deprecated. Please use the exported function `addChild()` instead.");
+    addChild(this, child);
 };
 
 Node.prototype.appendView = function (this: Node, view: View) {
-    console.trace("webfx: Node.appendView() is deprecated. Please use the static method `View.appendView()` instead.");
-    this.appendChild(view.dom);
+    console.trace("webfx: Node.appendView() is deprecated. Please use the exported function `appendView()` instead.");
+    appendView(this, view);
 };
 
 export class ContainerView<T extends View> extends View {

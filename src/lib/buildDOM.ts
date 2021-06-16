@@ -1,5 +1,5 @@
 import { Action, Callbacks, Func, FuncOrVal, Ref } from "./utils";
-import { View } from "./view";
+import { addChild, getDOM, View } from "./view";
 
 // BuildDOM types & implementation:
 export type BuildDomExpr = string | BuildDomNode | HTMLElement | Node | IDOM;
@@ -7,9 +7,9 @@ export type BuildDomExpr = string | BuildDomNode | HTMLElement | Node | IDOM;
 export type IDOM = Node | View | IDOMInstance;
 
 export interface IDOMInstance {
-    /** @deprecated Use the static method `View.getDOM()` instaed. */
+    /** @deprecated Use the exported function `getDOM()` instaed, unless this object is known as `View`. */
     getDOM(): HTMLElement;
-    /** @deprecated Use the static method `View.addChild()` instead. */
+    /** @deprecated Use the exported function `addChild()` instead, unless this object is known as `View`. */
     addChild(child: BuildDomExpr): void;
 }
 
@@ -220,7 +220,7 @@ export class JsxNode<T extends IDOM> implements IDOMInstance {
         return this.buildDom(null, 64) as any;
     }
     buildDom(ctx: BuildDOMCtx | null, ttl: number) {
-        return this.buildView(ctx, ttl).getDOM();
+        return getDOM(this.buildView(ctx, ttl));
     }
     buildView(ctx: BuildDOMCtx | null, ttl: number)
         : T extends IDOM ? T : T extends keyof HTMLElementTagNameMap ? HTMLElementTagNameMap[T] : HTMLElement {
@@ -264,9 +264,9 @@ export class JsxNode<T extends IDOM> implements IDOMInstance {
         }
         if (this.child) for (const it of this.child) {
             if (it instanceof Array) {
-                it.forEach(it => view.addChild(jsxBuildCore(it, ttl, ctx) as any));
+                it.forEach(it => addChild(view, jsxBuildCore(it, ttl, ctx) as any));
             } else {
-                view.addChild(jsxBuildCore(it, ttl, ctx) as any);
+                addChild(view, jsxBuildCore(it, ttl, ctx) as any);
             }
         }
         return view as any;
