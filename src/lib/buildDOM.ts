@@ -15,19 +15,28 @@ export type BuildDomReturn = HTMLElement | Text | Node;
 
 export interface BuildDomNode {
     tag?: BuildDomTag;
+
     child?: BuildDomExpr[] | BuildDomExpr;
+
     text?: FuncOrVal<string>;
     hidden?: FuncOrVal<boolean>;
     init?: Action<HTMLElement>;
     update?: Action<HTMLElement>;
+
+    ref?: Ref<HTMLElement | Text | Node>;
+
     _ctx?: BuildDOMCtx | {};
+
+    _id?: string;
+    /** @deprecated Use `_id` instead */
     _key?: string;
+
     [key: string]: any;
 }
 
 export class BuildDOMCtx {
     dict: Record<string, HTMLElement>;
-    actions: BuildDOMUpdateAction[];
+    actions: DOMUpdateAction[];
     constructor(dict?: BuildDOMCtx['dict'] | {}) {
         this.dict = dict ?? {};
     }
@@ -45,7 +54,7 @@ export class BuildDOMCtx {
         if (!this.dict) this.dict = {};
         this.dict[key] = node;
     }
-    addUpdateAction(action: BuildDOMUpdateAction) {
+    addUpdateAction(action: DOMUpdateAction) {
         if (!this.actions) this.actions = [];
         this.actions.push(action);
         // BuildDOMCtx.executeAction(action);
@@ -53,32 +62,35 @@ export class BuildDOMCtx {
     update() {
         if (!this.actions) return;
         for (const a of this.actions) {
-            BuildDOMCtx.executeAction(a);
-        }
-    }
-    static executeAction(a: BuildDOMUpdateAction) {
-        switch (a[0]) {
-            case 'text':
-                a[1].textContent = a[2]();
-                break;
-            case 'hidden':
-                a[1].hidden = a[2]();
-                break;
-            case 'update':
-                a[2](a[1]);
-                break;
-            default:
-                console.warn('unknown action', a);
-                break;
+            a.run();
         }
     }
 }
 
-type BuildDOMUpdateAction =
-    | ['text', Node, Func<string>]
-    | ['hidden', HTMLElement, Func<boolean>]
-    | ['update', HTMLElement, Action<HTMLElement>];
+interface DOMUpdateAction {
+    run(): void;
+}
 
+class TextAction implements DOMUpdateAction {
+    constructor(readonly node: Node, readonly func: Func<string>) { }
+    run() {
+        this.node.textContent = this.func();
+    }
+}
+
+class HiddenAction implements DOMUpdateAction {
+    constructor(readonly node: HTMLElement, readonly func: Func<boolean>) { }
+    run() {
+        this.node.hidden = this.func();
+    }
+}
+
+class UpdateAction implements DOMUpdateAction {
+    constructor(readonly node: HTMLElement, readonly func: Action<HTMLElement>) { }
+    run() {
+        this.func(this.node);
+    }
+}
 
 var createElementFromTag = function (tag: BuildDomTag): HTMLElement {
     var reg = /[#\.^]?[\w\-]+/y;
@@ -105,7 +117,7 @@ function tryHandleValues(obj: BuildDomExpr, ctx: BuildDOMCtx | null) {
         const val = (obj as any)();
         if (!val || typeof val !== 'object') {
             const node = document.createTextNode(val);
-            ctx?.addUpdateAction(['text', node, obj]);
+            ctx?.addUpdateAction(new TextAction(node, val));
             return node;
         } else {
             throw new Error('Unexpected function return value');
@@ -152,22 +164,22 @@ var buildDOMHandleKey = function (key: string, val: any, node: HTMLElement, ctx:
         } else {
             node.appendChild(buildDomCore(val, ttl, ctx));
         }
-    } else if (key === '_key') {
+    } else if (key === '_id') {
         ctx!.setDict(val, node);
     } else if (key === 'ref') {
         (val as Ref<any>).value = node;
     } else if (key === 'text') {
         if (typeof val === 'function') {
-            ctx!.addUpdateAction(['text', node, val]);
+            ctx!.addUpdateAction(new TextAction(node, val));
         } else {
             node.textContent = val;
         }
     } else if (key === 'class') {
         node.className = val;
     } else if (key === 'hidden' && typeof val === 'function') {
-        ctx!.addUpdateAction(['hidden', node, val]);
+        ctx!.addUpdateAction(new HiddenAction(node, val));
     } else if (key === 'update' && typeof val === 'function') {
-        ctx!.addUpdateAction(['update', node, val]);
+        ctx!.addUpdateAction(new UpdateAction(node, val));
     } else if (key === 'init') {
         // no-op
     } else {
@@ -211,6 +223,7 @@ export class JsxNode<T extends IDOM> implements IDOM {
         if (ttl-- < 0) throw new Error('ran out of TTL');
         let view: IDOM;
         if (typeof this.tag === 'string') {
+            // tag is an HTML tag
             const dom = document.createElement(this.tag);
             view = dom;
             if (this.attrs) {
@@ -224,6 +237,7 @@ export class JsxNode<T extends IDOM> implements IDOM {
                 if (init) init(dom);
             }
         } else {
+            // tag is a View
             view = this.tag;
             if (this.attrs) {
                 let init: Action<IDOM> | null = null;
@@ -277,12 +291,12 @@ export function jsxBuild<T extends IDOM>(node: JsxNode<T>, ctx?: BuildDOMCtx): T
 }
 
 export type JsxTag = JsxDOMTag | JsxCtorTag;
-export type JsxCtorTag = { new(...args): IDOM; };
+export type JsxCtorTag = new(...args) => IDOM; ;
 export type JsxDOMTag = keyof HTMLElementTagNameMap;
 
 export type JsxTagInstance<T> =
     T extends keyof HTMLElementTagNameMap ? HTMLElementTagNameMap[T] :
-    T extends { new(...args): infer U; } ? U extends IDOM ? JsxNode<U> :
+    T extends (new(...args) => infer U) ? U extends IDOM ? U :
     never : never;
 
 export type JsxAttrs<T extends JsxTag> =
@@ -297,8 +311,8 @@ export type JsxCtorAttrs<T extends JsxCtorTag> = {
 
 export type JsxDOMAttrs<T extends JsxDOMTag> = Omit<BuildDomNode, "key"> & Partial<JsxTagInstance<T>>;
 
-export function jsxFactory<T extends JsxTag>(tag: T, attrs: JsxAttrs<T>, ...childs: any)
-    : JsxTagInstance<T> {
+export function jsxFactory<T extends JsxTag, TInstance extends IDOM = JsxTagInstance<T>>(tag: T, attrs: JsxAttrs<T>, ...childs: any)
+    : JsxNode<TInstance> {
     if (typeof tag === 'string') {
         return new JsxNode(tag, attrs, childs) as any;
     } else {
