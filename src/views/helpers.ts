@@ -1,5 +1,6 @@
 import { Callbacks, listenEvent, ObjectInit, objectInit, toggleClass } from "../lib/utils";
-import { buildDOM, View } from "../lib/view";
+import { View } from "../lib/view";
+import { buildDOM } from "../lib/buildDOM";
 
 
 export interface PositionOptions {

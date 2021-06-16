@@ -1,5 +1,5 @@
 import { ObjectInit, objectInit, Callbacks, Action, fadeout } from "../lib/utils";
-import { BuildDomExpr, BuildDomNode } from "../lib/view";
+import { BuildDomExpr, BuildDomNode } from "../lib/buildDOM";
 import { ListViewItem, ListView } from "./ListView";
 import { Overlay } from "./Overlay";
 

@@ -1,8 +1,9 @@
 import { Action, Callbacks, fadeout, listenPointerEvents, numLimit } from "../lib/utils";
-import { BuildDomExpr, ContainerView, IDOM, View } from "../lib/view";
+import { ContainerView, View } from "../lib/view";
 import { I, i18n } from "../lib/I18n";
 import { TextBtn, TextView } from "./Basics";
 import { Overlay } from "./Overlay";
+import { BuildDomExpr, IDOM } from "../lib/buildDOM";
 
 
 export class Dialog extends View {

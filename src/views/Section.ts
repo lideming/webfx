@@ -1,5 +1,6 @@
 import { Action, ObjectInit, objectInit } from "../lib/utils";
-import { View, IDOM, BuildDomExpr } from "../lib/view";
+import { View } from "../lib/view";
+import { IDOM, BuildDomExpr } from "../lib/buildDOM";
 import { TextView } from "./Basics";
 
 

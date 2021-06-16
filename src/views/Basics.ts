@@ -1,5 +1,6 @@
+import { BuildDomExpr } from "../lib/buildDOM";
 import { ObjectInit, objectInit } from "../lib/utils";
-import { BuildDomExpr, View } from "../lib/view";
+import { View } from "../lib/view";
 
 export class TextView extends View {
     get text() { return this.dom.textContent; }

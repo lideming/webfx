@@ -1,5 +1,6 @@
+import { BuildDomExpr } from "../lib/buildDOM";
 import { ObjectInit, objectInit } from "../lib/utils";
-import { View, BuildDomExpr } from "../lib/view";
+import { View } from "../lib/view";
 
 
 export class InputView extends View {

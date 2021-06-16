@@ -1,5 +1,6 @@
+import { buildDOM, BuildDomExpr, IDOM } from "../lib/buildDOM";
 import { Action, Callbacks, clearChildren } from "../lib/utils";
-import { View, buildDOM, ContainerView, BuildDomExpr, IDOM } from "../lib/view";
+import { View, ContainerView } from "../lib/view";
 import { dragManager } from "./helpers";
 
 export abstract class ListViewItem extends View implements ISelectable {
