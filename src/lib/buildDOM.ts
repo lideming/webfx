@@ -1,4 +1,4 @@
-import { Action, Callbacks, Func, FuncOrVal, Ref } from "./utils";
+import { Action, Callbacks, ConvertObjectWithCallbacks, Func, FuncOrVal, Ref } from "./utils";
 import { addChild, getDOM, View } from "./view";
 
 // BuildDOM types & implementation:
@@ -308,10 +308,10 @@ export type JsxAttrs<T extends JsxTag> =
     T extends JsxDOMTag ? JsxDOMAttrs<T> :
     never;
 
-export type JsxCtorAttrs<T extends JsxCtorTag> = {
+export type JsxCtorAttrs<T extends JsxCtorTag, TI = InstanceType<T>> = {
     args?: ConstructorParameters<T>;
-    init?: Action<JsxTagInstance<T>>;
-} & JsxTagInstance<T>;
+    init?: Action<TI>;
+} & Partial<ConvertObjectWithCallbacks<TI>>;
 
 export type JsxDOMAttrs<T extends JsxDOMTag> = Omit<BuildDomNode, "key"> & Partial<JsxTagInstance<T>>;
 

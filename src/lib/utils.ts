@@ -315,9 +315,13 @@ declare global {
     }
 }
 
-export type ObjectInit<T> = {
-    [P in keyof T]?: T[P] extends Callbacks<infer U> ? T[P] | U : T[P];
+export type ObjectInit<T> = Partial<ConvertObjectWithCallbacks<T>>;
+
+export type ConvertObjectWithCallbacks<T> = {
+    [P in keyof T]: P extends `on${string}` ? CallbackInit<T[P]> : T[P];
 };
+
+export type CallbackInit<T> = T extends Callbacks<infer U> ? T | U : T;
 
 export function startBlockingDetect(threshold = 20) {
     var begin = Date.now();
