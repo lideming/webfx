@@ -1,8 +1,8 @@
 import { Action, Callbacks, objectApply, toggleClass, arrayFind, arrayForeach, arrayMap } from "./utils";
-import { buildDOM, BuildDOMCtx, BuildDomExpr, IDOM, IDOMInstance } from "./buildDOM";
+import { buildDOM, BuildDOMCtx, BuildDomExpr, IDOM, IView } from "./buildDOM";
 
 
-export class View<T extends HTMLElement = HTMLElement> implements IDOMInstance {
+export class View<T extends HTMLElement = HTMLElement> implements IView {
     constructor(dom?: BuildDomExpr) {
         if (dom) this.domExprCreated(dom);
     }

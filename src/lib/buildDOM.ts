@@ -4,12 +4,10 @@ import { addChild, getDOM, View } from "./view";
 // BuildDOM types & implementation:
 export type BuildDomExpr = string | BuildDomNode | HTMLElement | Node | IDOM;
 
-export type IDOM = Node | View | IDOMInstance;
+export type IDOM = Node | View | IView;
 
-export interface IDOMInstance {
-    /** @deprecated Use the exported function `getDOM()` instaed, unless this object is known as `View`. */
+export interface IView {
     getDOM(): HTMLElement;
-    /** @deprecated Use the exported function `addChild()` instead, unless this object is known as `View`. */
     addChild(child: BuildDomExpr): void;
 }
 
@@ -207,7 +205,7 @@ export function buildDOM<T extends BuildDomReturn = BuildDomReturn>(obj: BuildDo
     return buildDomCore(obj, 32, ctx || null) as T;
 };
 
-export class JsxNode<T extends IDOM> implements IDOMInstance {
+export class JsxNode<T extends IDOM> implements IView {
     tag: T | string;
     attrs: Record<any, any> | undefined;
     child: any[] | undefined;
