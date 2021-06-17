@@ -7,7 +7,7 @@ export class View<T extends HTMLElement = HTMLElement> implements IView {
         if (dom) this.domExprCreated(dom);
     }
 
-    static getView(obj: IDOM) { return obj instanceof View ? obj : new View(obj); }
+    static getView(obj: BuildDomExpr) { return obj instanceof View ? obj : new View(obj); }
 
     public parentView?: ContainerView<View> = undefined;
     public _position?: number = undefined;

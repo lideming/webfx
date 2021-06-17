@@ -132,13 +132,13 @@ export class Dialog extends View {
         this.ensureDom();
         this.domheader.insertBefore(btn.dom, this.domheader.lastChild);
     }
-    addContent(view: IDOM, replace?: boolean) {
+    addContent(view: BuildDomExpr, replace?: boolean) {
         this.ensureDom();
         if (replace)
             this.content.removeAllView();
         this.content.addView(View.getView(view));
     }
-    addChild(view: IDOM) {
+    addChild(view: BuildDomExpr) {
         this.addContent(view);
     }
     setOffset(x: number, y: number) {
