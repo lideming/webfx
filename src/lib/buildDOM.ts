@@ -6,9 +6,16 @@ export type BuildDomExpr = string | BuildDomNode | HTMLElement | Node | IDOM;
 
 export type IDOM = Node | View | IView;
 
+export enum MountState {
+    Unmounted,
+    Mounting,
+    Mounted,
+}
+
 export interface IView {
     getDOM(): HTMLElement;
     addChild(child: BuildDomExpr): void;
+    mountStateChanged(state: MountState): void;
 }
 
 export type BuildDomTag = string;
@@ -205,7 +212,7 @@ export function buildDOM<T extends BuildDomReturn = BuildDomReturn>(obj: BuildDo
     return buildDomCore(obj, 32, ctx || null) as T;
 };
 
-export class JsxNode<T extends IDOM> implements IView {
+export class JsxNode<T extends IDOM> {
     tag: T | string;
     attrs: Record<any, any> | undefined;
     child: any[] | undefined;
