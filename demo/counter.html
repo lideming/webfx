@@ -78,9 +78,9 @@
                 //     super.updateDom();
                 // }
             }
-            document.body.appendView(new CounterView());
+            webfx.appendView(document.body, new CounterView());
 
-            document.body.appendView(new View({
+            webfx.appendView(document.body, new View({
                 tag: 'div.buttons.card',
                 child: [
                     new ButtonView({

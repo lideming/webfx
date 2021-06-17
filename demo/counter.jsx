@@ -30,9 +30,9 @@
             </Card>;
         }
     }
-    document.body.appendView(new CounterView2());
+    webfx.appendView(document.body, new CounterView2());
 
-    document.body.appendView(new View(
+    webfx.appendView(document.body, new View(
         <Card cardClass="buttons">
             <ButtonView onActive={() => Toast.show("This is a toast!", 3000)}>Show toast</ButtonView>
             <ButtonView onActive={(ev) => {
@@ -68,6 +68,6 @@
             setInterval(() => this.updateDom(), 500);
         }
     }
-    document.body.appendView(new TimeView());
+    webfx.appendView(document.body, new TimeView());
 
 })();
