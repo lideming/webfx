@@ -14,35 +14,48 @@ export class View<T extends HTMLElement = HTMLElement> implements IDOMInstance {
     get position() { return this._position; }
 
     domctx = new BuildDOMCtx();
+    
     protected _dom: T | undefined = undefined;
-    public get domCreated() { return !!this._dom; }
     public get dom() {
         this.ensureDom();
         return this._dom!;
     }
+    public get domCreated() { return !!this._dom; }
+
     public get hidden() { return this.dom.hidden; }
     public set hidden(val: boolean) { this.dom.hidden = val; }
+
     public ensureDom() {
         if (!this._dom) {
             var r = this.createDom();
             this.domExprCreated(r);
         }
     }
+
     private domExprCreated(r: BuildDomExpr) {
         this._dom = buildDOM(r, this.domctx) as T;
         this.postCreateDom();
         this.updateDom();
     }
+
     protected createDom(): BuildDomExpr {
         return document.createElement('div');
     }
+
     /** Will be called when the dom is created */
     protected postCreateDom() {
     }
+    
     /** Will be called when the dom is created, after postCreateDom() */
     public updateDom() {
         this.domctx.update();
     }
+
+    public getDomById(id: string): HTMLElement {
+        this.ensureDom();
+        return this.domctx.dict[id];
+    }
+
     /** Assign key-values and call `updateDom()` */
     updateWith(kv: Partial<this>) {
         objectApply(this, kv);
@@ -51,6 +64,8 @@ export class View<T extends HTMLElement = HTMLElement> implements IDOMInstance {
     toggleClass(clsName: string, force?: boolean) {
         toggleClass(this.dom, clsName, force);
     }
+
+    // Implements `IDOMInstance`
     appendView(view: View) { this.dom.appendChild(view.dom); }
     getDOM() { return this.dom; }
     addChild(child: BuildDomExpr) {
