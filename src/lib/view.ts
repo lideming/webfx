@@ -59,6 +59,10 @@ export class View<T extends HTMLElement = HTMLElement> implements IView {
 
     /** Will be called when the mounting state is changed  */
     public mountStateChanged(state: MountState) {
+        if (state == this._mountState) {
+            console.trace("mountState unchanged", state, this);
+            return;
+        }
         this._mountState = state;
         if (View.debugging) {
             if (this.dom.dataset)
@@ -210,22 +214,36 @@ export function getDOM(idom: IDOM) {
 }
 
 export function appendView(parent: IDOM, childView: View) {
+    warnMountingView(parent, childView);
     getDOM(parent).appendChild(childView.dom);
 }
 
 export function addChild(parent: IDOM, child: BuildDomExpr) {
     // fast path
     if (parent instanceof View) parent.addChild(child);
-    else if (parent instanceof Node) parent.appendChild(buildDOM(child));
+    else if (parent instanceof Node) {
+        warnMountingView(parent, child);
+        parent.appendChild(buildDOM(child));
+    }
     // slow path
     else if ('addChild' in parent) {
         parent.addChild(child);
     }
 }
 
+function warnMountingView(parent: IDOM, child: BuildDomExpr) {
+    if (child instanceof View) {
+        const data = { parent, child };
+        if (parent instanceof Node)
+            console.trace("Should use `mountView()` to mount a view to DOM.", data);
+        else
+            console.trace("Should use `View.addChild()` or `View.appendView()` to add a view into another view.", data);
+    }
+}
+
 export function mountView(parent: Node, view: View) {
     view.mountStateChanged(MountState.Mounting);
-    appendView(parent, view);
+    parent.appendChild(view.dom);
     view.mountStateChanged(MountState.Mounted);
 }
 
