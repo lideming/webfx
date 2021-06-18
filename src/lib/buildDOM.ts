@@ -1,4 +1,4 @@
-import { Action, Callbacks, ConvertObjectWithCallbacks, Func, FuncOrVal, Ref } from "./utils";
+import { Action, Callbacks, ConvertObjectWithCallbacks, foreachFlaten, Func, FuncOrVal, Ref } from "./utils";
 import { addChild, getDOM, View } from "./view";
 
 // BuildDOM types & implementation:
@@ -7,8 +7,11 @@ export type BuildDomExpr = string | BuildDomNode | HTMLElement | Node | IDOM;
 export type IDOM = Node | View | IView;
 
 export enum MountState {
+    /** The view is unmounted. */
     Unmounted,
+    /** The view will be mounted soon. */
     Mounting,
+    /** The view is mounted (i.e. the DOM is in the document). */
     Mounted,
 }
 
@@ -34,8 +37,6 @@ export interface BuildDomNode {
 
     ref?: Ref<HTMLElement | Text | Node>;
 
-    _ctx?: BuildDOMCtx | {};
-
     _id?: string;
     /** @deprecated Use `_id` instead */
     _key?: string;
@@ -44,21 +45,10 @@ export interface BuildDomNode {
 }
 
 export class BuildDOMCtx {
-    dict: Record<string, HTMLElement>;
-    actions: DOMUpdateAction[];
-    constructor(dict?: BuildDOMCtx['dict'] | {}) {
-        this.dict = dict ?? {};
-    }
-    static EnsureCtx(ctxOrDict: BuildDOMCtx | {}, origctx: BuildDOMCtx | null): BuildDOMCtx {
-        var ctx: BuildDOMCtx;
-        if (ctxOrDict instanceof BuildDOMCtx) ctx = ctxOrDict;
-        else ctx = new BuildDOMCtx(ctxOrDict);
-        if (origctx) {
-            if (!origctx.actions) origctx.actions = [];
-            ctx.actions = origctx.actions;
-        }
-        return ctx;
-    }
+    dict: Record<string, HTMLElement> | undefined = undefined;
+    actions: DOMUpdateAction[] | undefined = undefined;
+    view: View | undefined = undefined;
+
     setDict(key: string, node: HTMLElement) {
         if (!this.dict) this.dict = {};
         this.dict[key] = node;
@@ -66,7 +56,6 @@ export class BuildDOMCtx {
     addUpdateAction(action: DOMUpdateAction) {
         if (!this.actions) this.actions = [];
         this.actions.push(action);
-        // BuildDOMCtx.executeAction(action);
     }
     update() {
         if (!this.actions) return;
@@ -140,12 +129,18 @@ var buildDomCore = function (obj: BuildDomExpr, ttl: number, ctx: BuildDOMCtx | 
     if (ttl-- < 0) throw new Error('ran out of TTL');
     var r = tryHandleValues(obj, ctx);
     if (r) return r;
-    if (obj instanceof JsxNode) return obj.buildDom(ctx, ttl);
-    if ('getDOM' in (obj as any)) return (obj as any).getDOM();
+    if (obj instanceof JsxNode) {
+        obj = obj.buildView(ctx, ttl);
+        if (!(obj instanceof View)) return obj as Node;
+    }
+    if (obj instanceof View) {
+        ctx?.view?._registerChild(obj);
+        return obj.getDOM();
+    }
+    // if ('getDOM' in (obj as any)) return (obj as any).getDOM();
     const tag = (obj as BuildDomNode).tag;
     if (!tag) throw new Error('no tag');
     var node = createElementFromTag(tag);
-    if (obj['_ctx']) ctx = BuildDOMCtx.EnsureCtx(obj['_ctx'], ctx);
     for (var key in obj as any) {
         if (obj.hasOwnProperty(key)) {
             var val = obj[key];

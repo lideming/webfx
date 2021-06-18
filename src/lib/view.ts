@@ -4,16 +4,19 @@ import { buildDOM, BuildDOMCtx, BuildDomExpr, IDOM, IView, MountState } from "./
 
 export class View<T extends HTMLElement = HTMLElement> implements IView {
     constructor(dom?: BuildDomExpr) {
+        this._domctx.view = this;
         if (dom) this.domExprCreated(dom);
     }
 
     static getView(obj: BuildDomExpr) { return obj instanceof View ? obj : new View(obj); }
 
+    static debugging = false;
+
     public parentView?: View = undefined;
     public _position?: number = undefined;
     get position() { return this._position; }
 
-    domctx = new BuildDOMCtx();
+    private _domctx = new BuildDOMCtx();
 
     protected _dom: T | undefined = undefined;
     public get dom() {
@@ -36,7 +39,7 @@ export class View<T extends HTMLElement = HTMLElement> implements IView {
     }
 
     private domExprCreated(r: BuildDomExpr) {
-        this._dom = buildDOM(r, this.domctx) as T;
+        this._dom = buildDOM(r, this._domctx) as T;
         this.postCreateDom();
         this.updateDom();
     }
@@ -48,19 +51,27 @@ export class View<T extends HTMLElement = HTMLElement> implements IView {
     /** Will be called when the dom is created */
     protected postCreateDom() {
     }
-    
+
     /** Will be called when the dom is created, after postCreateDom() */
     public updateDom() {
-        this.domctx.update();
+        this._domctx.update();
     }
 
+    /** Will be called when the mounting state is changed  */
     public mountStateChanged(state: MountState) {
-
+        this._mountState = state;
+        if (View.debugging) {
+            if (this.dom.dataset)
+                this.dom.dataset['webfxMount'] = MountState[state];
+        }
+        if (this._children) for (const child of this._children) {
+            child.mountStateChanged(state);
+        }
     }
 
-    public getDomById(id: string): HTMLElement {
+    public getDomById(id: string): HTMLElement | null {
         this.ensureDom();
-        return this.domctx.dict[id];
+        return this._domctx.dict?.[id] ?? null;
     }
 
     /** Assign key-values and call `updateDom()` */
@@ -79,7 +90,7 @@ export class View<T extends HTMLElement = HTMLElement> implements IView {
         this.appendView(View.getView(child));
     }
 
-    _onActive: Callbacks<Action<MouseEvent>> | undefined = undefined;
+    private _onActive: Callbacks<Action<MouseEvent>> | undefined = undefined;
     get onActive() {
         if (!this._onActive) {
             this._onActive = new Callbacks<Action<MouseEvent>>();
@@ -127,6 +138,19 @@ export class View<T extends HTMLElement = HTMLElement> implements IView {
             }
             this._insertToDom(view, pos);
         }
+        if (this._mountState != MountState.Unmounted) {
+            view.mountStateChanged(this._mountState);
+        }
+    }
+    _registerChild(view: View) {
+        const items = this.children;
+        if (view.parentView) throw new Error('the view is already in a container view');
+        view.parentView = this;
+        view._position = items.length;
+        items.push(view);
+        if (this._mountState != MountState.Unmounted) {
+            view.mountStateChanged(this._mountState);
+        }
     }
     removeView(view: View | number) {
         view = this._ensureItem(view);
@@ -136,6 +160,9 @@ export class View<T extends HTMLElement = HTMLElement> implements IView {
         this.children.splice(pos, 1);
         for (let i = pos; i < this.children.length; i++) {
             this.children[i]._position = i;
+        }
+        if (this._mountState != MountState.Unmounted) {
+            view.mountStateChanged(MountState.Unmounted);
         }
     }
     removeAllView() {
@@ -194,6 +221,17 @@ export function addChild(parent: IDOM, child: BuildDomExpr) {
     else if ('addChild' in parent) {
         parent.addChild(child);
     }
+}
+
+export function mountView(parent: Node, view: View) {
+    view.mountStateChanged(MountState.Mounting);
+    appendView(parent, view);
+    view.mountStateChanged(MountState.Mounted);
+}
+
+export function unmountView(parent: Node, view: View) {
+    view.dom.remove();
+    view.mountStateChanged(MountState.Unmounted);
 }
 
 declare global {
