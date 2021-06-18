@@ -219,7 +219,7 @@ export class JsxNode<T extends IDOM> {
     buildView(ctx: BuildDOMCtx | null, ttl: number)
         : T extends IDOM ? T : T extends keyof HTMLElementTagNameMap ? HTMLElementTagNameMap[T] : HTMLElement {
         if (ttl-- < 0) throw new Error('ran out of TTL');
-        let view: IDOM;
+        let view: Node | View;
         if (typeof this.tag === 'string') {
             // tag is an HTML tag
             const dom = document.createElement(this.tag);
@@ -236,7 +236,7 @@ export class JsxNode<T extends IDOM> {
             }
         } else {
             // tag is a View
-            view = this.tag;
+            view = this.tag as View;
             if (this.attrs) {
                 let init: Action<IDOM> | null = null;
                 for (const key in this.attrs) {
@@ -256,9 +256,23 @@ export class JsxNode<T extends IDOM> {
                 if (init) init(view);
             }
         }
-        if (this.child) foreachFlaten(this.child, it => {
-            addChild(view, jsxBuildCore(it, ttl, ctx) as any);
-        });
+        if (this.child) {
+            if (view instanceof View) {
+                foreachFlaten(this.child, it => {
+                    (view as View).addChild(jsxBuildCore(it, ttl, ctx) as any);
+                });
+            } else {
+                foreachFlaten(this.child, it => {
+                    const c = jsxBuildCore(it, ttl, ctx);
+                    if (c instanceof View) {
+                        (view as Node).appendChild(c.dom);
+                        ctx?.view?._registerChild(c);
+                    } else {
+                        addChild(view, c);
+                    }
+                });
+            }
+        }
         return view as any;
     }
     addChild(child: IDOM): void {
