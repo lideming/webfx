@@ -125,6 +125,7 @@ export function fadeout(element: HTMLElement, options?: { className?: string, du
         onFinished(callback: Action) {
             if (!end) callback();
             else cb = callback;
+            return this;
         },
         cancel() { end?.(); }
     };

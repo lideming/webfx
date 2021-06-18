@@ -25,7 +25,6 @@ export class Section extends View {
     }
     createDom(): BuildDomExpr {
         return {
-            _ctx: this,
             tag: 'div.section',
             child: [
                 this.headerView

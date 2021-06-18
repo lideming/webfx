@@ -35,7 +35,6 @@ export class LabeledInputBase<T extends View> extends View {
     }
     createDom(): BuildDomExpr {
         return {
-            _ctx: this,
             tag: 'div.labeled-input',
             child: [
                 { tag: 'div.input-label', text: () => this.label },

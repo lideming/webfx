@@ -145,10 +145,12 @@ export class ViewToggle<T extends keyof any> {
         } else if (mode == 'hidden') {
             view.dom.hidden = !show;
         } else if (mode == 'remove') {
-            if (show) {
-                this.container!.appendView(view);
-            } else {
-                view.dom.remove();
+            if (show != !!view.parentView) {
+                if (show) {
+                    this.container!.appendView(view);
+                } else {
+                    this.container!.removeView(view);
+                }
             }
         } else {
             throw new Error('Unknown toggle mode');

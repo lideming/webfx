@@ -2,6 +2,7 @@ import { ObjectInit, objectInit, Callbacks, Action, fadeout } from "../lib/utils
 import { BuildDomExpr, BuildDomNode } from "../lib/buildDOM";
 import { ListViewItem, ListView } from "./ListView";
 import { Overlay } from "./Overlay";
+import { mountView, unmountView } from "../lib/view";
 
 
 export class MenuItem extends ListViewItem {
@@ -120,9 +121,9 @@ export class ContextMenu extends ListView {
                 });
             }
             this.overlay.appendView(this);
-            document.body.appendChild(this.overlay.dom);
+            mountView(document.body, this.overlay);
         } else {
-            document.body.appendChild(this.dom);
+            mountView(document.body, this);
         }
         this._originalFocused = document.activeElement;
         this.setPosition(arg);
@@ -165,8 +166,8 @@ export class ContextMenu extends ListView {
             this.onClose.invoke();
             this._originalFocused?.['focus']?.();
             this._originalFocused = null;
-            if (this.overlay) fadeout(this.overlay.dom);
-            fadeout(this.dom);
+            if (this.overlay) fadeout(this.overlay.dom).onFinished(() => unmountView(document.body, this.overlay!));
+            fadeout(this.dom).onFinished(() => !this.overlay && unmountView(document.body, this));
         }
     }
 }

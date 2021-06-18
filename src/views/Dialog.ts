@@ -3,15 +3,15 @@ import { ContainerView, View } from "../lib/view";
 import { I, i18n } from "../lib/I18n";
 import { TextBtn, TextView } from "./Basics";
 import { Overlay } from "./Overlay";
-import { BuildDomExpr, IDOM } from "../lib/buildDOM";
+import { BuildDomExpr, IDOM, MountState } from "../lib/buildDOM";
 
 
 export class Dialog extends View {
     parent: DialogParent = Dialog.defaultParent;
     overlay = new Overlay().setFlags({ centerChild: true, nobg: true });
 
-    domheader: HTMLElement;
-    content = new ContainerView({ tag: 'div.dialog-content' });
+    get domheader() { return this.getDomById('header')!; }
+    content = new View({ tag: 'div.dialog-content' });
     shown = false;
 
     btnTitle = new TextBtn({ active: true, clickable: false });
@@ -51,14 +51,12 @@ export class Dialog extends View {
     }
     createDom(): BuildDomExpr {
         return {
-            _ctx: this,
-            _key: 'dialog',
             tag: 'div.dialog',
             tabIndex: 0,
             style: 'width: 300px',
             child: [
                 {
-                    _key: 'domheader',
+                    _id: 'header',
                     tag: 'div.dialog-title',
                     child: [
                         { tag: 'div', style: 'clear: both;' }
@@ -73,7 +71,7 @@ export class Dialog extends View {
         super.postCreateDom();
         this.addBtn(this.btnTitle);
         this.addBtn(this.btnClose);
-        this.overlay.dom.appendView(this);
+        this.overlay.appendView(this);
         this.overlay.dom.addEventListener('mousedown', (ev) => {
             if (this.allowClose && ev.button === 0 && ev.target === this.overlay.dom) {
                 ev.preventDefault();
@@ -136,7 +134,7 @@ export class Dialog extends View {
         this.ensureDom();
         if (replace)
             this.content.removeAllView();
-        this.content.addView(View.getView(view));
+        this.content.addChild(view);
     }
     addChild(view: BuildDomExpr) {
         this.addContent(view);
@@ -182,7 +180,9 @@ export class Dialog extends View {
         this.shown = false;
         this.setTransformOrigin(undefined);
         this.onClose.invoke();
-        this._cancelFadeout = fadeout(this.overlay.dom).cancel;
+        this._cancelFadeout = fadeout(this.overlay.dom)
+            .onFinished(() => this.overlay.parentView?.removeView(this.overlay))
+            .cancel;
         Dialog.defaultParent.onDialogClosing(this);
     }
     waitClose(): Promise<void> {
@@ -234,30 +234,34 @@ export class MessageBox extends Dialog {
     }
 }
 
-export class DialogParent extends View {
+export class DialogParent {
     bgOverlay = new Overlay();
     dialogCount = 0;
     fixed = false;
+    view: View;
     private _cancelFadeout: Action | null = null;
 
-    constructor(dom: BuildDomExpr = document.body) {
-        super(dom);
-        if (dom === document.body) {
+    constructor(view: BuildDomExpr = document.body) {
+        this.view = View.getView(view);
+        if (view === document.body) {
             this.fixed = true;
+            this.view.mountStateChanged(MountState.Mounted);
         }
     }
     onDialogShowing(dialog: Dialog) {
         if (this.dialogCount++ === 0) {
             this._cancelFadeout?.();
             this.bgOverlay.setFlags({ fixed: this.fixed, clickThrough: true });
-            this.appendView(this.bgOverlay);
+            this.view.appendView(this.bgOverlay);
         }
         dialog.overlay.setFlags({ fixed: this.fixed });
-        this.appendView(dialog.overlay);
+        this.view.appendView(dialog.overlay);
     }
     onDialogClosing(dialog: Dialog) {
         if (--this.dialogCount === 0) {
-            this._cancelFadeout = fadeout(this.bgOverlay.dom).cancel;
+            this._cancelFadeout = fadeout(this.bgOverlay.dom)
+                .onFinished(() => this.view.removeView(this.bgOverlay))
+                .cancel;
         }
     }
 }

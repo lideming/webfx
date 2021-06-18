@@ -43,16 +43,16 @@ export class LoadingIndicator extends View {
     }
     createDom(): BuildDomExpr {
         return {
-            _ctx: this,
             tag: 'div.loading-indicator',
             child: [{
                 tag: 'div.loading-indicator-inner',
-                child: [{ tag: 'div.loading-indicator-text', _key: '_textdom' }]
+                child: [{ tag: 'div.loading-indicator-text', _id: 'text' }]
             }],
             onclick: (e) => this.onclick?.(e)
         };
     }
     postCreateDom() {
+        this._textdom = this.getDomById('text')!;
         this.reset();
     }
 }
