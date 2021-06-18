@@ -22,6 +22,9 @@ export class View<T extends HTMLElement = HTMLElement> implements IView {
     }
     public get domCreated() { return !!this._dom; }
 
+    private _mountState: MountState = MountState.Unmounted;
+    public get mountState() { return this._mountState; }
+
     public get hidden() { return this.dom.hidden; }
     public set hidden(val: boolean) { this.dom.hidden = val; }
 
@@ -101,12 +104,16 @@ export class View<T extends HTMLElement = HTMLElement> implements IView {
         }
     }
 
-    items: View[] = [];
+    private _children: View[] | undefined = undefined;
+    get children() {
+        if (!this._children) this._children = [];
+        return this._children;
+    }
     appendView(view: View) {
         this.addView(view);
     }
     addView(view: View, pos?: number) {
-        const items = this.items;
+        const items = this.children;
         if (view.parentView) throw new Error('the view is already in a container view');
         view.parentView = this;
         if (pos === undefined) {
@@ -126,28 +133,28 @@ export class View<T extends HTMLElement = HTMLElement> implements IView {
         this._removeFromDom(view);
         var pos = view._position!;
         view.parentView = view._position = undefined;
-        this.items.splice(pos, 1);
-        for (let i = pos; i < this.items.length; i++) {
-            this.items[i]._position = i;
+        this.children.splice(pos, 1);
+        for (let i = pos; i < this.children.length; i++) {
+            this.children[i]._position = i;
         }
     }
     removeAllView() {
-        while (this.items.length) this.removeView(this.items.length - 1);
+        while (this.children.length) this.removeView(this.children.length - 1);
     }
     updateChildrenDom() {
-        for (const item of this.items) {
+        for (const item of this.children) {
             item.updateDom();
         }
     }
     protected _insertToDom(item: View, pos: number) {
-        if (pos == this.items.length - 1) this.dom.appendChild(item.dom);
-        else this.dom.insertBefore(item.dom, this.items[pos + 1]?.dom || null);
+        if (pos == this.children.length - 1) this.dom.appendChild(item.dom);
+        else this.dom.insertBefore(item.dom, this.children[pos + 1]?.dom || null);
     }
     protected _removeFromDom(item: View) {
         if (item.domCreated) item.dom.remove();
     }
     protected _ensureItem(item: View | number) {
-        if (typeof item === 'number') item = this.items[item];
+        if (typeof item === 'number') item = this.children[item];
         else if (!item) throw new Error('item is null or undefined.');
         else if (item.parentView !== this) throw new Error('the item is not in this listview.');
         return item;
@@ -233,10 +240,11 @@ export class ContainerView<T extends View> extends View {
         return super._ensureItem(item) as T;
     }
 
-    [Symbol.iterator]() { return (this.items as T[])[Symbol.iterator](); }
-    get length() { return this.items.length; }
+    get items() { return this.children as T[]; }
+    [Symbol.iterator]() { return (this.children as T[])[Symbol.iterator](); }
+    get length() { return this.children.length; }
     get(idx: number) {
-        return this.items[idx] as T;
+        return this.children[idx] as T;
     }
     map<TRet>(func: (lvi: T) => TRet) { return arrayMap(this, func); }
     find(func: (lvi: T, idx: number) => any) { return arrayFind(this, func); }
