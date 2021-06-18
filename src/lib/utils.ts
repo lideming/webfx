@@ -238,6 +238,17 @@ export function arrayForeach<T>(arr: Iterable<T>, func: (item: T, idx: number) =
     }
 }
 
+
+export function foreachFlaten<T>(arr: T[], func: Action<T>) {
+    for (const it of arr) {
+        if (it instanceof Array) {
+            foreachFlaten(it as T[], func);
+        } else {
+            func(it);
+        }
+    }
+}
+
 export function arrayFind<T>(arr: Iterable<T>, func: (item: T, idx: number) => any): T | null {
     if (arr instanceof Array) return arr.find(func);
     var idx = 0;

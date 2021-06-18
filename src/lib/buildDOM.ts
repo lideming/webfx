@@ -161,14 +161,8 @@ var buildDomCore = function (obj: BuildDomExpr, ttl: number, ctx: BuildDOMCtx | 
 var buildDOMHandleKey = function (key: string, val: any, node: HTMLElement, ctx: BuildDOMCtx | null, ttl: number) {
     if (key === 'child') {
         if (val instanceof Array) {
-            val.forEach(function (val) {
-                if (val instanceof Array) {
-                    val.forEach(function (val) {
-                        node.appendChild(buildDomCore(val, ttl, ctx));
-                    });
-                } else {
-                    node.appendChild(buildDomCore(val, ttl, ctx));
-                }
+            foreachFlaten(val, function (val) {
+                node.appendChild(buildDomCore(val, ttl, ctx));
             });
         } else {
             node.appendChild(buildDomCore(val, ttl, ctx));
@@ -267,13 +261,9 @@ export class JsxNode<T extends IDOM> {
                 if (init) init(view);
             }
         }
-        if (this.child) for (const it of this.child) {
-            if (it instanceof Array) {
-                it.forEach(it => addChild(view, jsxBuildCore(it, ttl, ctx) as any));
-            } else {
-                addChild(view, jsxBuildCore(it, ttl, ctx) as any);
-            }
-        }
+        if (this.child) foreachFlaten(this.child, it => {
+            addChild(view, jsxBuildCore(it, ttl, ctx) as any);
+        });
         return view as any;
     }
     addChild(child: IDOM): void {
