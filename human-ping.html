@@ -85,7 +85,7 @@
                 }
             }
             const app = new App();
-            document.body.appendChild(app.dom);
+            webfx.appendView(document.body, app);
             window.addEventListener('keydown', app.onclick)
         })();
     </script>

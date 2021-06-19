@@ -4,22 +4,346 @@
     (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.webfx = {}));
 }(this, (function (exports) { 'use strict';
 
-    class BuildDOMCtx {
-        constructor(dict) {
-            this.dict = dict !== null && dict !== void 0 ? dict : {};
+    class View {
+        constructor(dom) {
+            this.parentView = undefined;
+            this._position = undefined;
+            this._domctx = new BuildDOMCtx();
+            this._dom = undefined;
+            this._baseView = undefined;
+            this._mountState = exports.MountState.Unmounted;
+            this._onActive = undefined;
+            this._childViews = undefined;
+            this._domctx.view = this;
+            if (dom)
+                this.domExprCreated(dom);
         }
-        static EnsureCtx(ctxOrDict, origctx) {
-            var ctx;
-            if (ctxOrDict instanceof BuildDOMCtx)
-                ctx = ctxOrDict;
-            else
-                ctx = new BuildDOMCtx(ctxOrDict);
-            if (origctx) {
-                if (!origctx.actions)
-                    origctx.actions = [];
-                ctx.actions = origctx.actions;
+        static getView(obj) { return obj instanceof View ? obj : new View(obj); }
+        get position() { return this._position; }
+        get dom() {
+            this.ensureDom();
+            return this._dom;
+        }
+        get domCreated() { return !!this._dom; }
+        get baseView() { return this._baseView; }
+        get mountState() { return this._mountState; }
+        get hidden() { return this.dom.hidden; }
+        set hidden(val) { this.dom.hidden = val; }
+        ensureDom() {
+            if (!this._dom) {
+                var r = this.createDom();
+                this.domExprCreated(r);
             }
-            return ctx;
+        }
+        domExprCreated(r) {
+            var view = buildView(r, this._domctx);
+            if (view instanceof View) {
+                this._baseView = view;
+                this._dom = view.dom;
+            }
+            else {
+                this._dom = view;
+            }
+            this.postCreateDom();
+            this.updateDom();
+        }
+        createDom() {
+            return document.createElement('div');
+        }
+        /** Will be called when the dom is created */
+        postCreateDom() {
+            if (View.debugging) {
+                if (this.dom.dataset)
+                    this.dom.dataset['webfx'] = exports.MountState[this._mountState];
+            }
+        }
+        /** Will be called when the dom is created, after postCreateDom() */
+        updateDom() {
+            this._domctx.update();
+        }
+        /** Will be called when the mounting state is changed  */
+        mountStateChanged(state) {
+            if (state == this._mountState) {
+                console.trace("mountState unchanged", state, this);
+                return;
+            }
+            this._mountState = state;
+            if (View.debugging) {
+                if (!this._baseView && this.domCreated && this.dom.dataset) {
+                    if (this.dom.dataset['webfx'] == exports.MountState[state]) {
+                        console.trace('mountState on the DOM is changed by other view', state, this);
+                    }
+                    this.dom.dataset['webfx'] = exports.MountState[state];
+                }
+            }
+            if (this._baseView) {
+                // let the baseView do the rest
+                this._baseView.mountStateChanged(state);
+                return;
+            }
+            if (this._childViews)
+                for (const child of this._childViews) {
+                    child.mountStateChanged(state);
+                }
+        }
+        getDomById(id) {
+            var _a, _b;
+            this.ensureDom();
+            return (_b = (_a = this._domctx.dict) === null || _a === void 0 ? void 0 : _a[id]) !== null && _b !== void 0 ? _b : null;
+        }
+        /** Assign key-values and call `updateDom()` */
+        updateWith(kv) {
+            objectApply(this, kv);
+            this.updateDom();
+        }
+        updateAllWith(kv) {
+            objectApply(this, kv);
+            this.updateAll();
+        }
+        toggleClass(clsName, force) {
+            toggleClass(this.dom, clsName, force);
+        }
+        // Implements `IDOMInstance`
+        // appendView(view: View) { this.dom.appendChild(view.dom); }
+        getDOM() { return this.dom; }
+        addChild(child) {
+            const view = buildView(child, this._domctx);
+            if (view instanceof View) {
+                this.appendView(view);
+            }
+            else {
+                this.dom.appendChild(view);
+            }
+        }
+        get onActive() {
+            if (!this._onActive) {
+                this._onActive = new Callbacks();
+                this.dom.addEventListener('click', (e) => {
+                    this._onActive.invoke(e);
+                });
+                this.dom.addEventListener('keydown', (e) => {
+                    this.handleKeyDown(e);
+                });
+            }
+            return this._onActive;
+        }
+        handleKeyDown(e) {
+            var _a;
+            if (e.code === 'Enter') {
+                const rect = this.dom.getBoundingClientRect();
+                (_a = this._onActive) === null || _a === void 0 ? void 0 : _a.invoke(new MouseEvent('click', {
+                    clientX: rect.x, clientY: rect.y,
+                    relatedTarget: this.dom
+                }));
+                e.preventDefault();
+            }
+        }
+        get childViews() {
+            // Return the childViews of the baseView if exists
+            if (this._baseView) {
+                return this._baseView.childViews;
+            }
+            // Lazy creating childViews array
+            if (!this._childViews)
+                this._childViews = [];
+            return this._childViews;
+        }
+        appendView(view) {
+            this.addView(view);
+        }
+        addView(view, pos) {
+            this._registerChild(view, pos, false);
+            if (this._mountState == exports.MountState.Mounted)
+                view.mountStateChanged(exports.MountState.Mounting);
+            this._insertToDom(view, pos);
+            if (this._mountState != exports.MountState.Unmounted)
+                view.mountStateChanged(this._mountState);
+        }
+        _registerChild(view, pos, changeMountState = true) {
+            const items = this.childViews;
+            if (view.parentView)
+                throw new Error('the view is already in a container view');
+            view.parentView = this;
+            if (pos === undefined) {
+                view._position = items.length;
+                items.push(view);
+            }
+            else {
+                items.splice(pos, 0, view);
+                for (let i = pos; i < items.length; i++) {
+                    items[i]._position = i;
+                }
+            }
+            if (changeMountState && this._mountState != exports.MountState.Unmounted) {
+                view.mountStateChanged(this._mountState);
+            }
+        }
+        removeView(view) {
+            view = this._ensureItem(view);
+            this._removeFromDom(view);
+            var pos = view._position;
+            view.parentView = view._position = undefined;
+            this.childViews.splice(pos, 1);
+            for (let i = pos; i < this.childViews.length; i++) {
+                this.childViews[i]._position = i;
+            }
+            if (this._mountState != exports.MountState.Unmounted) {
+                view.mountStateChanged(exports.MountState.Unmounted);
+            }
+        }
+        removeAllView() {
+            while (this.childViews.length)
+                this.removeView(this.childViews.length - 1);
+        }
+        /** updateDom() then updateChildren() */
+        updateAll() {
+            this.updateDom();
+            if (this.baseView)
+                return this.baseView.updateAll();
+            this.updateChildren();
+        }
+        /** Call updateDom() on the whole tree */
+        updateChildren() {
+            if (this._childViews)
+                for (const child of this._childViews) {
+                    child.updateAll();
+                }
+        }
+        _insertToDom(item, pos) {
+            var _a;
+            if (pos == undefined)
+                this.dom.appendChild(item.dom);
+            else
+                this.dom.insertBefore(item.dom, ((_a = this.childViews[pos + 1]) === null || _a === void 0 ? void 0 : _a.dom) || null);
+        }
+        _removeFromDom(item) {
+            if (item.domCreated)
+                item.dom.remove();
+        }
+        _ensureItem(item) {
+            if (typeof item === 'number')
+                item = this.childViews[item];
+            else if (!item)
+                throw new Error('item is null or undefined.');
+            else if (item.parentView !== this)
+                throw new Error('the item is not in this listview.');
+            return item;
+        }
+    }
+    View.debugging = false;
+    function tryGetDOM(idom) {
+        if (!idom)
+            return idom;
+        if (idom instanceof View) {
+            return idom.getDOM();
+        }
+        else if (idom instanceof Node) {
+            return idom;
+        }
+        else if (idom && "getDOM" in idom) {
+            return idom.getDOM();
+        }
+    }
+    function getDOM(idom) {
+        var dom = tryGetDOM(idom);
+        if (!dom) {
+            console.error("getDOM():", idom);
+            throw new Error("getDOM(): unsupported parameter: " + idom);
+        }
+        return dom;
+    }
+    function appendView(parent, childView) {
+        warnMountingView(parent, childView);
+        getDOM(parent).appendChild(childView.dom);
+    }
+    function addChild(parent, child) {
+        // fast path
+        if (parent instanceof View)
+            parent.addChild(child);
+        else if (parent instanceof Node) {
+            warnMountingView(parent, child);
+            parent.appendChild(buildDOM(child));
+        }
+        // slow path
+        else if ('addChild' in parent) {
+            parent.addChild(child);
+        }
+        else {
+            console.error("addChild():", { parent, child });
+            throw new Error("addChild(): unsupported parent");
+        }
+    }
+    function warnMountingView(parent, child) {
+        if (child instanceof View) {
+            const data = { parent, child };
+            if (parent instanceof Node)
+                console.trace("Should use `mountView()` to mount a view to DOM.", data);
+            else
+                console.trace("Should use `View.addChild()` or `View.appendView()` to add a view into another view.", data);
+        }
+    }
+    function mountView(parent, view) {
+        view.mountStateChanged(exports.MountState.Mounting);
+        parent.appendChild(view.dom);
+        view.mountStateChanged(exports.MountState.Mounted);
+    }
+    function unmountView(parent, view) {
+        view.dom.remove();
+        view.mountStateChanged(exports.MountState.Unmounted);
+    }
+    Node.prototype.getDOM = function () {
+        console.trace("webfx: Node.getDOM() is deprecated. Please use the exported function `getDOM()` instead.");
+        return this;
+    };
+    Node.prototype.addChild = function (child) {
+        console.trace("webfx: Node.addChild() is deprecated. Please use the exported function `addChild()` instead.");
+        addChild(this, child);
+    };
+    Node.prototype.appendView = function (view) {
+        console.trace("webfx: Node.appendView() is deprecated. Please use the exported function `appendView()` instead.");
+        appendView(this, view);
+    };
+    class ContainerView extends View {
+        addView(view, pos) {
+            return super.addView(view, pos);
+        }
+        removeView(view) {
+            super.removeView(view);
+        }
+        _insertToDom(item, pos) {
+            super._insertToDom(item, pos);
+        }
+        _removeFromDom(item) {
+            super._removeFromDom(item);
+        }
+        _ensureItem(item) {
+            return super._ensureItem(item);
+        }
+        get items() { return this.childViews; }
+        [Symbol.iterator]() { return this.childViews[Symbol.iterator](); }
+        get length() { return this.childViews.length; }
+        get(idx) {
+            return this.childViews[idx];
+        }
+        map(func) { return arrayMap(this, func); }
+        find(func) { return arrayFind(this, func); }
+        forEach(func) { return arrayForeach(this, func); }
+    }
+
+    exports.MountState = void 0;
+    (function (MountState) {
+        /** The view is unmounted. */
+        MountState[MountState["Unmounted"] = 0] = "Unmounted";
+        /** The view will be mounted soon. */
+        MountState[MountState["Mounting"] = 1] = "Mounting";
+        /** The view is mounted (i.e. the DOM is in the document). */
+        MountState[MountState["Mounted"] = 2] = "Mounted";
+    })(exports.MountState || (exports.MountState = {}));
+    class BuildDOMCtx {
+        constructor() {
+            this.dict = undefined;
+            this.actions = undefined;
+            this.view = undefined;
         }
         setDict(key, node) {
             if (!this.dict)
@@ -30,30 +354,40 @@
             if (!this.actions)
                 this.actions = [];
             this.actions.push(action);
-            // BuildDOMCtx.executeAction(action);
         }
         update() {
             if (!this.actions)
                 return;
             for (const a of this.actions) {
-                BuildDOMCtx.executeAction(a);
+                a.run();
             }
         }
-        static executeAction(a) {
-            switch (a[0]) {
-                case 'text':
-                    a[1].textContent = a[2]();
-                    break;
-                case 'hidden':
-                    a[1].hidden = a[2]();
-                    break;
-                case 'update':
-                    a[2](a[1]);
-                    break;
-                default:
-                    console.warn('unknown action', a);
-                    break;
-            }
+    }
+    class TextAction {
+        constructor(node, func) {
+            this.node = node;
+            this.func = func;
+        }
+        run() {
+            this.node.textContent = this.func();
+        }
+    }
+    class HiddenAction {
+        constructor(node, func) {
+            this.node = node;
+            this.func = func;
+        }
+        run() {
+            this.node.hidden = this.func();
+        }
+    }
+    class UpdateAction {
+        constructor(node, func) {
+            this.node = node;
+            this.func = func;
+        }
+        run() {
+            this.func(this.node);
         }
     }
     var createElementFromTag = function (tag) {
@@ -85,7 +419,7 @@
             const val = obj();
             if (!val || typeof val !== 'object') {
                 const node = document.createTextNode(val);
-                ctx === null || ctx === void 0 ? void 0 : ctx.addUpdateAction(['text', node, obj]);
+                ctx === null || ctx === void 0 ? void 0 : ctx.addUpdateAction(new TextAction(node, obj));
                 return node;
             }
             else {
@@ -97,21 +431,26 @@
         return null;
     }
     var buildDomCore = function (obj, ttl, ctx) {
+        var _a;
         if (ttl-- < 0)
             throw new Error('ran out of TTL');
         var r = tryHandleValues(obj, ctx);
         if (r)
             return r;
-        if (obj instanceof JsxNode)
-            return obj.buildDom(ctx, ttl);
-        if ('getDOM' in obj)
+        if (obj instanceof JsxNode) {
+            obj = obj.buildView(ctx, ttl);
+            if (!(obj instanceof View))
+                return obj;
+        }
+        if (obj instanceof View) {
+            (_a = ctx === null || ctx === void 0 ? void 0 : ctx.view) === null || _a === void 0 ? void 0 : _a._registerChild(obj);
             return obj.getDOM();
+        }
+        // if ('getDOM' in (obj as any)) return (obj as any).getDOM();
         const tag = obj.tag;
         if (!tag)
             throw new Error('no tag');
         var node = createElementFromTag(tag);
-        if (obj['_ctx'])
-            ctx = BuildDOMCtx.EnsureCtx(obj['_ctx'], ctx);
         for (var key in obj) {
             if (obj.hasOwnProperty(key)) {
                 var val = obj[key];
@@ -126,22 +465,15 @@
     var buildDOMHandleKey = function (key, val, node, ctx, ttl) {
         if (key === 'child') {
             if (val instanceof Array) {
-                val.forEach(function (val) {
-                    if (val instanceof Array) {
-                        val.forEach(function (val) {
-                            node.appendChild(buildDomCore(val, ttl, ctx));
-                        });
-                    }
-                    else {
-                        node.appendChild(buildDomCore(val, ttl, ctx));
-                    }
+                foreachFlaten(val, function (val) {
+                    node.appendChild(buildDomCore(val, ttl, ctx));
                 });
             }
             else {
                 node.appendChild(buildDomCore(val, ttl, ctx));
             }
         }
-        else if (key === '_key') {
+        else if (key === '_id' || key === '_key') {
             ctx.setDict(val, node);
         }
         else if (key === 'ref') {
@@ -149,7 +481,7 @@
         }
         else if (key === 'text') {
             if (typeof val === 'function') {
-                ctx.addUpdateAction(['text', node, val]);
+                ctx.addUpdateAction(new TextAction(node, val));
             }
             else {
                 node.textContent = val;
@@ -159,10 +491,10 @@
             node.className = val;
         }
         else if (key === 'hidden' && typeof val === 'function') {
-            ctx.addUpdateAction(['hidden', node, val]);
+            ctx.addUpdateAction(new HiddenAction(node, val));
         }
         else if (key === 'update' && typeof val === 'function') {
-            ctx.addUpdateAction(['update', node, val]);
+            ctx.addUpdateAction(new UpdateAction(node, val));
         }
         else if (key === 'init') ;
         else {
@@ -184,6 +516,18 @@
     function buildDOM(obj, ctx) {
         return buildDomCore(obj, 32, ctx || null);
     }
+    /** Get a View instance or a DOM Node. View is preferred. */
+    function buildView(obj, ctx) {
+        if (obj instanceof View) {
+            return obj;
+        }
+        else if (obj instanceof JsxNode) {
+            return obj.buildView(ctx, 64);
+        }
+        else {
+            return buildDOM(obj, ctx);
+        }
+    }
     class JsxNode {
         constructor(tag, attrs, childs) {
             this.tag = tag;
@@ -194,13 +538,14 @@
             return this.buildDom(null, 64);
         }
         buildDom(ctx, ttl) {
-            return this.buildView(ctx, ttl).getDOM();
+            return getDOM(this.buildView(ctx, ttl));
         }
         buildView(ctx, ttl) {
             if (ttl-- < 0)
                 throw new Error('ran out of TTL');
             let view;
             if (typeof this.tag === 'string') {
+                // tag is an HTML tag
                 const dom = document.createElement(this.tag);
                 view = dom;
                 if (this.attrs) {
@@ -216,6 +561,7 @@
                 }
             }
             else {
+                // tag is a View
                 view = this.tag;
                 if (this.attrs) {
                     let init = null;
@@ -240,15 +586,26 @@
                         init(view);
                 }
             }
-            if (this.child)
-                for (const it of this.child) {
-                    if (it instanceof Array) {
-                        it.forEach(it => view.addChild(jsxBuildCore(it, ttl, ctx)));
-                    }
-                    else {
-                        view.addChild(jsxBuildCore(it, ttl, ctx));
-                    }
+            if (this.child) {
+                if (view instanceof View) {
+                    foreachFlaten(this.child, it => {
+                        view.addChild(jsxBuildCore(it, ttl, view['_domctx']));
+                    });
                 }
+                else {
+                    foreachFlaten(this.child, it => {
+                        var _a;
+                        const c = jsxBuildCore(it, ttl, ctx);
+                        if (c instanceof View) {
+                            view.appendChild(c.dom);
+                            (_a = ctx === null || ctx === void 0 ? void 0 : ctx.view) === null || _a === void 0 ? void 0 : _a._registerChild(c);
+                        }
+                        else {
+                            addChild(view, c);
+                        }
+                    });
+                }
+            }
             return view;
         }
         addChild(child) {
@@ -288,169 +645,6 @@
         }
     }
     const jsx = jsxFactory;
-    class View {
-        constructor(dom) {
-            this.parentView = undefined;
-            this._position = undefined;
-            this.domctx = new BuildDOMCtx();
-            this._dom = undefined;
-            this._onActive = undefined;
-            if (dom)
-                this.domExprCreated(dom);
-        }
-        static getView(obj) { return obj instanceof View ? obj : new View(obj); }
-        get position() { return this._position; }
-        get domCreated() { return !!this._dom; }
-        get dom() {
-            this.ensureDom();
-            return this._dom;
-        }
-        get hidden() { return this.dom.hidden; }
-        set hidden(val) { this.dom.hidden = val; }
-        ensureDom() {
-            if (!this._dom) {
-                var r = this.createDom();
-                this.domExprCreated(r);
-            }
-        }
-        domExprCreated(r) {
-            this._dom = buildDOM(r, this.domctx);
-            this.postCreateDom();
-            this.updateDom();
-        }
-        createDom() {
-            return document.createElement('div');
-        }
-        /** Will be called when the dom is created */
-        postCreateDom() {
-        }
-        /** Will be called when the dom is created, after postCreateDom() */
-        updateDom() {
-            this.domctx.update();
-        }
-        /** Assign key-values and call `updateDom()` */
-        updateWith(kv) {
-            objectApply(this, kv);
-            this.updateDom();
-        }
-        toggleClass(clsName, force) {
-            toggleClass(this.dom, clsName, force);
-        }
-        appendView(view) { return this.dom.appendView(view); }
-        getDOM() { return this.dom; }
-        addChild(child) {
-            if (child instanceof View) {
-                this.appendView(child);
-            }
-            else {
-                this.dom.appendChild(buildDOM(child));
-            }
-        }
-        get onActive() {
-            if (!this._onActive) {
-                this._onActive = new Callbacks();
-                this.dom.addEventListener('click', (e) => {
-                    this._onActive.invoke(e);
-                });
-                this.dom.addEventListener('keydown', (e) => {
-                    this.handleKeyDown(e);
-                });
-            }
-            return this._onActive;
-        }
-        handleKeyDown(e) {
-            var _a;
-            if (e.code === 'Enter') {
-                const rect = this.dom.getBoundingClientRect();
-                (_a = this._onActive) === null || _a === void 0 ? void 0 : _a.invoke(new MouseEvent('click', {
-                    clientX: rect.x, clientY: rect.y,
-                    relatedTarget: this.dom
-                }));
-                e.preventDefault();
-            }
-        }
-    }
-    Node.prototype.getDOM = function () { return this; };
-    Node.prototype.addChild = function (child) {
-        this.appendChild(buildDOM(child));
-    };
-    Node.prototype.appendView = function (view) {
-        this.appendChild(view.dom);
-    };
-    class ContainerView extends View {
-        constructor() {
-            super(...arguments);
-            this.items = [];
-        }
-        appendView(view) {
-            this.addView(view);
-        }
-        addView(view, pos) {
-            const items = this.items;
-            if (view.parentView)
-                throw new Error('the view is already in a container view');
-            view.parentView = this;
-            if (pos === undefined) {
-                view._position = items.length;
-                items.push(view);
-                this._insertToDom(view, items.length - 1);
-            }
-            else {
-                items.splice(pos, 0, view);
-                for (let i = pos; i < items.length; i++) {
-                    items[i]._position = i;
-                }
-                this._insertToDom(view, pos);
-            }
-        }
-        removeView(view) {
-            view = this._ensureItem(view);
-            this._removeFromDom(view);
-            var pos = view._position;
-            view.parentView = view._position = undefined;
-            this.items.splice(pos, 1);
-            for (let i = pos; i < this.items.length; i++) {
-                this.items[i]._position = i;
-            }
-        }
-        removeAllView() {
-            while (this.length)
-                this.removeView(this.length - 1);
-        }
-        updateChildrenDom() {
-            for (const item of this.items) {
-                item.updateDom();
-            }
-        }
-        _insertToDom(item, pos) {
-            var _a;
-            if (pos == this.items.length - 1)
-                this.dom.appendChild(item.dom);
-            else
-                this.dom.insertBefore(item.dom, ((_a = this.items[pos + 1]) === null || _a === void 0 ? void 0 : _a.dom) || null);
-        }
-        _removeFromDom(item) {
-            if (item.domCreated)
-                item.dom.remove();
-        }
-        _ensureItem(item) {
-            if (typeof item === 'number')
-                item = this.items[item];
-            else if (!item)
-                throw new Error('item is null or undefined.');
-            else if (item.parentView !== this)
-                throw new Error('the item is not in this listview.');
-            return item;
-        }
-        [Symbol.iterator]() { return this.items[Symbol.iterator](); }
-        get length() { return this.items.length; }
-        get(idx) {
-            return this.items[idx];
-        }
-        map(func) { return arrayMap(this, func); }
-        find(func) { return arrayFind(this, func); }
-        forEach(func) { return arrayForeach(this, func); }
-    }
 
     // file: utils.ts
     var __awaiter$2 = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
@@ -582,6 +776,7 @@
                     callback();
                 else
                     cb = callback;
+                return this;
             },
             cancel() { end === null || end === void 0 ? void 0 : end(); }
         };
@@ -686,6 +881,16 @@
         var idx = 0;
         for (var item of arr) {
             func(item, idx++);
+        }
+    }
+    function foreachFlaten(arr, func) {
+        for (const it of arr) {
+            if (it instanceof Array) {
+                foreachFlaten(it, func);
+            }
+            else {
+                func(it);
+            }
         }
     }
     function arrayFind(arr, func) {
@@ -1112,7 +1317,7 @@
         constructor(dom) {
             this.onCompositingChanged = new Callbacks();
             this._isCompositing = false;
-            this.dom = dom.getDOM();
+            this.dom = getDOM(dom);
             this.dom.addEventListener('compositionstart', (ev) => {
                 this.isCompositing = true;
             });
@@ -1399,7 +1604,7 @@
     var i18n = new I18n();
     const I = createStringBuilder(i18n);
 
-    const version = "1.8.0";
+    const version = "1.9.0";
 
     var css = ":root {\n    --color-bg: white;\n    --color-text: black;\n    --color-text-gray: #666;\n    --color-bg-selection: hsl(5, 100%, 85%);\n    --color-primary: hsl(5, 100%, 67%);\n    --color-primary-darker: hsl(5, 100%, 60%);\n    --color-primary-dark: hsl(5, 100%, 40%);\n    --color-primary-dark-depends: hsl(5, 100%, 40%);\n    --color-primary-verydark: hsl(5, 100%, 20%);\n    --color-primary-light: hsl(5, 100%, 83%);\n    --color-primary-lighter: hsl(5, 100%, 70%);\n    --color-fg-11: #111111;\n    --color-fg-22: #222222;\n    --color-fg-33: #333333;\n    --color-bg-cc: #cccccc;\n    --color-bg-dd: #dddddd;\n    --color-bg-ee: #eeeeee;\n    --color-bg-f8: #f8f8f8;\n    --color-shadow: rgba(0, 0, 0, .5);\n}\n\n.no-selection {\n    user-select: none;\n    -ms-user-select: none;\n    -moz-user-select: none;\n    -webkit-user-select: none;\n}\n\n/* listview item */\n\n.item {\n    display: block;\n    position: relative;\n    padding: 10px;\n    /* background: #ddd; */\n    /* animation: showing .3s forwards; */\n    text-decoration: none;\n    line-height: 1.2;\n}\n\na.item {\n    color: inherit;\n}\n\n.clickable, .item {\n    cursor: pointer;\n    transition: transform .3s;\n    -webkit-tap-highlight-color: transparent;\n}\n\n.item:hover, .dragover {\n    background: var(--color-bg-ee);\n}\n\n.keyboard-input .item:focus {\n    outline-offset: -2px;\n}\n\n.dragover-placeholder {\n    /* border-top: 2px solid gray; */\n    position: relative;\n}\n\n.dragover-placeholder::before {\n    content: \"\";\n    display: block;\n    position: absolute;\n    transform: translate(0, -1px);\n    height: 2px;\n    width: 100%;\n    background: gray;\n    z-index: 100;\n    pointer-events: none;\n}\n\n.clickable:active, .item:active {\n    transition: transform .07s;\n    transform: scale(.97);\n}\n\n.item:active {\n    background: var(--color-bg-dd);\n}\n\n.item.no-transform:active {\n    transform: none;\n}\n\n.item.active {\n    background: var(--color-bg-dd);\n}\n\n.loading-indicator {\n    position: relative;\n    margin: .3em;\n    margin-top: 3em;\n    margin-bottom: 1em;\n    text-align: center;\n    white-space: pre-wrap;\n    cursor: default;\n    animation: loading-fadein .3s;\n}\n\n.loading-indicator-text {\n    margin: 0 auto;\n}\n\n.loading-indicator.running .loading-indicator-inner {\n    display: inline-block;\n    position: relative;\n    vertical-align: bottom;\n}\n\n.loading-indicator.running .loading-indicator-inner::after {\n    content: \"\";\n    height: 1px;\n    margin: 0%;\n    background: var(--color-text);\n    display: block;\n    animation: fadein .5s 1s backwards;\n}\n\n.loading-indicator.running .loading-indicator-text {\n    margin: 0 .5em;\n    animation: fadein .3s, loading-first .3s .5s cubic-bezier(0.55, 0.055, 0.675, 0.19) reverse, loading-second .3s .8s cubic-bezier(0.55, 0.055, 0.675, 0.19), loading .25s 1.1s cubic-bezier(0.55, 0.055, 0.675, 0.19) alternate-reverse infinite;\n}\n\n.loading-indicator.error {\n    color: red;\n}\n\n.loading-indicator.fading-out {\n    transition: max-height;\n    animation: loading-fadein .3s reverse;\n}\n\n@keyframes loading-fadein {\n    0% {\n        opacity: 0;\n        max-height: 0;\n    }\n    100% {\n        opacity: 1;\n        max-height: 200px;\n    }\n}\n\n@keyframes fadein {\n    0% {\n        opacity: 0;\n    }\n    100% {\n        opacity: 1;\n    }\n}\n\n@keyframes loading-first {\n    0% {\n        transform: translate(0, -2em) scale(1) rotate(360deg);\n    }\n    100% {\n        transform: translate(0, 0) scale(1) rotate(0deg);\n    }\n}\n\n@keyframes loading-second {\n    0% {\n        transform: translate(0, -2em);\n    }\n    100% {\n        transform: translate(0, 0);\n    }\n}\n\n@keyframes loading {\n    0% {\n        transform: translate(0, -1em);\n    }\n    100% {\n        transform: translate(0, 0);\n    }\n}\n\n@keyframes showing {\n    0% {\n        opacity: .3;\n        transform: translate(-20px, 0)\n    }\n    100% {\n        opacity: 1;\n        transform: translate(0, 0)\n    }\n}\n\n@keyframes showing-top {\n    0% {\n        opacity: .3;\n        transform: translate(0, -20px)\n    }\n    100% {\n        opacity: 1;\n        transform: translate(0, 0)\n    }\n}\n\n@keyframes showing-right {\n    0% {\n        opacity: .3;\n        transform: translate(20px, 0)\n    }\n    100% {\n        opacity: 1;\n        transform: translate(0, 0)\n    }\n}\n\n.overlay {\n    background: rgba(0, 0, 0, .2);\n    position: absolute;\n    top: 0;\n    left: 0;\n    right: 0;\n    bottom: 0;\n    animation: fadein .3s;\n    z-index: 10001;\n    overflow: hidden;\n    contain: strict;\n    will-change: transform;\n}\n\n.overlay.fixed {\n    position: fixed;\n}\n\n.overlay.nobg {\n    background: none;\n    will-change: auto;\n}\n\n.overlay.centerChild {\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.overlay.clickThrough {\n    pointer-events: none;\n}\n\n.dialog * {\n    box-sizing: border-box;\n}\n\n.dialog {\n    font-size: 14px;\n    position: relative;\n    overflow: auto;\n    background: var(--color-bg);\n    border-radius: 5px;\n    box-shadow: 0 0 12px var(--color-shadow);\n    animation: dialogin .2s ease-out;\n    z-index: 10001;\n    display: flex;\n    flex-direction: column;\n    max-height: 100%;\n    contain: content;\n    will-change: transform;\n    pointer-events: auto;\n}\n\n.dialog.resize {\n    resize: both;\n}\n\n.fading-out .dialog {\n    transition: transform .3s ease-in;\n    transform: scale(.85);\n}\n\n.dialog-title, .dialog-content, .dialog-bottom {\n    padding: 10px;\n}\n\n.dialog-title {\n    background: var(--color-bg-ee);\n}\n\n.dialog-content {\n    flex: 1;\n    padding: 5px 10px;\n    overflow: auto;\n}\n\n.dialog-content.flex {\n    display: flex;\n    flex-direction: column;\n}\n\n.dialog-bottom {\n    padding: 5px 10px;\n}\n\n@keyframes dialogin {\n    0% {\n        transform: scale(.85);\n    }\n    100% {\n        transform: scale(1);\n    }\n}\n\n.input-label {\n    font-size: 80%;\n    color: var(--color-text-gray);\n    margin: 5px 0 3px 0;\n}\n\n.input-text {\n    display: block;\n    width: 100%;\n    padding: 5px;\n    border: solid 1px gray;\n    background: var(--color-bg);\n    color: var(--color-text);\n}\n\n.dialog .input-text {\n    margin: 5px 0;\n}\n\ntextarea.input-text {\n    resize: vertical;\n}\n\n.labeled-input {\n    display: flex;\n    flex-direction: column;\n}\n\n.labeled-input .input-text {\n    flex: 1;\n}\n\n.labeled-input:focus-within .input-label {\n    color: var(--color-primary-darker);\n}\n\n.input-text:focus {\n    border-color: var(--color-primary-darker);\n}\n\n.input-text:active {\n    border-color: var(--color-primary-dark);\n}\n\n.btn {\n    display: block;\n    text-align: center;\n    transition: all .2s;\n    padding: 0 .4em;\n    min-width: 3em;\n    line-height: 1.5em;\n    background: var(--color-primary);\n    color: white;\n    text-shadow: 0 0 4px var(--color-primary-verydark);\n    box-shadow: 0 0 3px var(--color-shadow);\n    cursor: pointer;\n    -ms-user-select: none;\n    -moz-user-select: none;\n    -webkit-user-select: none;\n    user-select: none;\n    position: relative;\n    overflow: hidden;\n}\n\n.btn:hover {\n    transition: all .05s;\n    background: var(--color-primary-darker);\n}\n\n.btn.btn-down, .btn:active {\n    transition: all .05s;\n    background: var(--color-primary-dark);\n    box-shadow: 0 0 1px var(--color-shadow);\n}\n\n.btn.disabled {\n    background: var(--color-primary-light);\n}\n\n.dialog .btn {\n    margin: 10px 0;\n}\n\n.btn-big {\n    padding: 5px;\n}\n\n.btn-inline {\n    display: inline;\n}\n\n.textbtn {\n    display: inline-block;\n    color: var(--color-text-gray);\n    margin: 0 5px;\n}\n\n.textbtn.active {\n    color: var(--color-text);\n}\n\n*[hidden] {\n    display: none !important;\n}\n\n.context-menu {\n    position: absolute;\n    overflow-y: auto;\n    background: var(--color-bg);\n    border: solid 1px #777;\n    box-shadow: 0 0px 12px var(--color-shadow);\n    min-width: 100px;\n    max-width: 450px;\n    outline: none;\n    z-index: 10001;\n    animation: context-menu-in .2s ease-out forwards;\n    will-change: transform;\n}\n\n.context-menu .item.dangerous {\n    transition: color .3s, background .3s;\n    color: red;\n}\n\n.context-menu .item.dangerous:hover {\n    transition: color .1s, background .1s;\n    background: red;\n    color: white;\n}\n\n@keyframes context-menu-in {\n    0% {\n        transform: scale(.9);\n    }\n    100% {\n        transform: scale(1);\n    }\n}\n\n*.menu-shown {\n    background: var(--color-bg-dd);\n}\n\n.menu-info {\n    white-space: pre-wrap;\n    color: var(--color-text-gray);\n    padding: 5px 10px;\n    /* animation: showing .3s; */\n    cursor: default;\n}\n\n.toasts-container {\n    position: fixed;\n    bottom: 0;\n    right: 0;\n    padding: 5px;\n    width: 300px;\n    z-index: 10001;\n    overflow: hidden;\n}\n\n.toast {\n    margin: 5px;\n    padding: 10px;\n    border-radius: 5px;\n    box-shadow: 0 0 10px var(--color-shadow);\n    background: var(--color-bg);\n    white-space: pre-wrap;\n    animation: showing-right .3s;\n}\n\n.fading-out {\n    transition: opacity .3s;\n    opacity: 0;\n    pointer-events: none;\n}\n\n.anchor-bottom {\n    transform: translate(-50%, -100%);\n}\n\n.tooltip {\n    position: absolute;\n    background: var(--color-bg);\n    box-shadow: 0 0 5px var(--color-shadow);\n    border-radius: 5px;\n    padding: .2em .25em;\n}\n";
 
@@ -1415,8 +1620,27 @@
     // Views and helpers are moved to ../views/
 
     class TextView extends View {
+        constructor() {
+            super(...arguments);
+            this.textFunc = null;
+        }
         get text() { return this.dom.textContent; }
-        set text(val) { this.dom.textContent = val; }
+        set text(val) {
+            if (typeof val == 'function') {
+                this.dom.textContent = val();
+                this.textFunc = val;
+            }
+            else {
+                this.dom.textContent = val;
+                this.textFunc = null;
+            }
+        }
+        updateDom() {
+            super.updateDom();
+            if (this.textFunc) {
+                this.dom.textContent = this.textFunc();
+            }
+        }
     }
     class ButtonView extends TextView {
         constructor(init) {
@@ -1605,11 +1829,13 @@
                 view.dom.hidden = !show;
             }
             else if (mode == 'remove') {
-                if (show) {
-                    this.container.appendView(view);
-                }
-                else {
-                    view.dom.remove();
+                if (show != !!view.parentView) {
+                    if (show) {
+                        this.container.appendView(view);
+                    }
+                    else {
+                        this.container.removeView(view);
+                    }
                 }
             }
             else {
@@ -1736,7 +1962,8 @@
             super();
             this.parent = Dialog.defaultParent;
             this.overlay = new Overlay().setFlags({ centerChild: true, nobg: true });
-            this.content = new ContainerView({ tag: 'div.dialog-content' });
+            this.header = new View({ tag: 'div.dialog-title.clearfix' });
+            this.content = new View({ tag: 'div.dialog-content' });
             this.shown = false;
             this.btnTitle = new TextBtn({ active: true, clickable: false });
             this.btnClose = new TextBtn({ text: I `Close`, right: true });
@@ -1748,6 +1975,7 @@
             this.focusTrap = new View({ tag: 'div.focustrap', tabIndex: 0 });
             this.btnClose.onActive.add(() => this.allowClose && this.close());
         }
+        get domheader() { return this.header.dom; }
         static get defaultParent() {
             if (!Dialog._defaultParent)
                 Dialog._defaultParent = new DialogParent();
@@ -1764,19 +1992,11 @@
         set resizable(val) { this.toggleClass('resize', !!val); }
         createDom() {
             return {
-                _ctx: this,
-                _key: 'dialog',
                 tag: 'div.dialog',
                 tabIndex: 0,
                 style: 'width: 300px',
                 child: [
-                    {
-                        _key: 'domheader',
-                        tag: 'div.dialog-title',
-                        child: [
-                            { tag: 'div', style: 'clear: both;' }
-                        ]
-                    },
+                    this.header,
                     this.content,
                     this.focusTrap
                 ]
@@ -1786,7 +2006,7 @@
             super.postCreateDom();
             this.addBtn(this.btnTitle);
             this.addBtn(this.btnClose);
-            this.overlay.dom.appendView(this);
+            this.overlay.appendView(this);
             this.overlay.dom.addEventListener('mousedown', (ev) => {
                 if (this.allowClose && ev.button === 0 && ev.target === this.overlay.dom) {
                     ev.preventDefault();
@@ -1810,9 +2030,9 @@
             // title bar pointer event handler:
             {
                 let offset;
-                listenPointerEvents(this.domheader, (e) => {
+                listenPointerEvents(this.header.dom, (e) => {
                     if (e.action === 'down') {
-                        if (e.ev.target !== this.domheader && e.ev.target !== this.btnTitle.dom)
+                        if (e.ev.target !== this.header.dom && e.ev.target !== this.btnTitle.dom)
                             return;
                         e.ev.preventDefault();
                         const rectOverlay = this.overlay.dom.getBoundingClientRect();
@@ -1843,13 +2063,13 @@
         }
         addBtn(btn) {
             this.ensureDom();
-            this.domheader.insertBefore(btn.dom, this.domheader.lastChild);
+            this.header.appendView(btn);
         }
         addContent(view, replace) {
             this.ensureDom();
             if (replace)
                 this.content.removeAllView();
-            this.content.addView(View.getView(view));
+            this.content.addChild(view);
         }
         addChild(view) {
             this.addContent(view);
@@ -1896,7 +2116,9 @@
             this.shown = false;
             this.setTransformOrigin(undefined);
             this.onClose.invoke();
-            this._cancelFadeout = fadeout(this.overlay.dom).cancel;
+            this._cancelFadeout = fadeout(this.overlay.dom)
+                .onFinished(() => { var _a; return (_a = this.overlay.parentView) === null || _a === void 0 ? void 0 : _a.removeView(this.overlay); })
+                .cancel;
             Dialog.defaultParent.onDialogClosing(this);
         }
         waitClose() {
@@ -1953,15 +2175,16 @@
             });
         }
     }
-    class DialogParent extends View {
-        constructor(dom = document.body) {
-            super(dom);
+    class DialogParent {
+        constructor(view = document.body) {
             this.bgOverlay = new Overlay();
             this.dialogCount = 0;
             this.fixed = false;
             this._cancelFadeout = null;
-            if (dom === document.body) {
+            this.view = View.getView(view);
+            if (view === document.body) {
                 this.fixed = true;
+                this.view.mountStateChanged(exports.MountState.Mounted);
             }
         }
         onDialogShowing(dialog) {
@@ -1969,14 +2192,16 @@
             if (this.dialogCount++ === 0) {
                 (_a = this._cancelFadeout) === null || _a === void 0 ? void 0 : _a.call(this);
                 this.bgOverlay.setFlags({ fixed: this.fixed, clickThrough: true });
-                this.appendView(this.bgOverlay);
+                this.view.appendView(this.bgOverlay);
             }
             dialog.overlay.setFlags({ fixed: this.fixed });
-            this.appendView(dialog.overlay);
+            this.view.appendView(dialog.overlay);
         }
         onDialogClosing(dialog) {
             if (--this.dialogCount === 0) {
-                this._cancelFadeout = fadeout(this.bgOverlay.dom).cancel;
+                this._cancelFadeout = fadeout(this.bgOverlay.dom)
+                    .onFinished(() => this.view.removeView(this.bgOverlay))
+                    .cancel;
             }
         }
     }
@@ -2011,7 +2236,6 @@
         get dominput() { return this.input.dom; }
         createDom() {
             return {
-                _ctx: this,
                 tag: 'div.labeled-input',
                 child: [
                     { tag: 'div.input-label', text: () => this.label },
@@ -2539,16 +2763,16 @@
         }
         createDom() {
             return {
-                _ctx: this,
                 tag: 'div.loading-indicator',
                 child: [{
                         tag: 'div.loading-indicator-inner',
-                        child: [{ tag: 'div.loading-indicator-text', _key: '_textdom' }]
+                        child: [{ tag: 'div.loading-indicator-text', _id: 'text' }]
                     }],
                 onclick: (e) => { var _a; return (_a = this.onclick) === null || _a === void 0 ? void 0 : _a.call(this, e); }
             };
         }
         postCreateDom() {
+            this._textdom = this.getDomById('text');
             this.reset();
         }
     }
@@ -2670,10 +2894,10 @@
                     });
                 }
                 this.overlay.appendView(this);
-                document.body.appendChild(this.overlay.dom);
+                mountView(document.body, this.overlay);
             }
             else {
-                document.body.appendChild(this.dom);
+                mountView(document.body, this);
             }
             this._originalFocused = document.activeElement;
             this.setPosition(arg);
@@ -2724,8 +2948,8 @@
                 (_b = (_a = this._originalFocused) === null || _a === void 0 ? void 0 : _a['focus']) === null || _b === void 0 ? void 0 : _b.call(_a);
                 this._originalFocused = null;
                 if (this.overlay)
-                    fadeout(this.overlay.dom);
-                fadeout(this.dom);
+                    fadeout(this.overlay.dom).onFinished(() => unmountView(document.body, this.overlay));
+                fadeout(this.dom).onFinished(() => !this.overlay && unmountView(document.body, this));
             }
         }
     }
@@ -2752,7 +2976,6 @@
         }
         createDom() {
             return {
-                _ctx: this,
                 tag: 'div.section',
                 child: [
                     this.headerView
@@ -2763,17 +2986,16 @@
             this.titleView.text = text;
         }
         setContent(view) {
-            var dom = this.dom;
-            var firstChild = dom.firstChild;
-            while (dom.lastChild !== firstChild)
-                dom.removeChild(dom.lastChild);
-            dom.appendChild(view.getDOM());
+            if (this.content)
+                this.removeView(this.content);
+            this.content = View.getView(view);
+            this.appendView(this.content);
         }
         addAction(arg) {
             var view = arg instanceof View ?
                 arg :
                 new SectionAction({ text: arg.text, onActive: arg.onclick });
-            this.headerView.dom.appendChild(view.dom);
+            this.headerView.appendView(view);
         }
     }
     class SectionAction extends TextView {
@@ -2904,6 +3126,8 @@
     exports.ToolTip = ToolTip;
     exports.View = View;
     exports.ViewToggle = ViewToggle;
+    exports.addChild = addChild;
+    exports.appendView = appendView;
     exports.arrayFind = arrayFind;
     exports.arrayForeach = arrayForeach;
     exports.arrayInsert = arrayInsert;
@@ -2912,15 +3136,18 @@
     exports.arraySum = arraySum;
     exports.base64EncodeUtf8 = base64EncodeUtf8;
     exports.buildDOM = buildDOM;
+    exports.buildView = buildView;
     exports.clearChildren = clearChildren;
     exports.createArrayBuilder = createArrayBuilder;
     exports.createName = createName;
     exports.createStringBuilder = createStringBuilder;
     exports.dragManager = dragManager;
     exports.fadeout = fadeout;
+    exports.foreachFlaten = foreachFlaten;
     exports.formatDateTime = formatDateTime;
     exports.formatFileSize = formatFileSize;
     exports.formatTime = formatTime;
+    exports.getDOM = getDOM;
     exports.getWebfxCss = getWebfxCss;
     exports.i18n = i18n;
     exports.injectCss = injectCss;
@@ -2932,6 +3159,7 @@
     exports.listenEvents = listenEvents;
     exports.listenPointerEvents = listenPointerEvents;
     exports.mod = mod;
+    exports.mountView = mountView;
     exports.numLimit = numLimit;
     exports.objectApply = objectApply;
     exports.objectInit = objectInit;
@@ -2942,6 +3170,8 @@
     exports.startBlockingDetect = startBlockingDetect;
     exports.strPadLeft = strPadLeft;
     exports.toggleClass = toggleClass;
+    exports.tryGetDOM = tryGetDOM;
+    exports.unmountView = unmountView;
     exports.utils = utils;
     exports.version = version;
 
