@@ -14,6 +14,7 @@ export class Section extends View {
             this.titleView
         ]
     });
+    content: View;
     constructor(arg?: { title?: string, content?: IDOM, actions?: SectionActionOptions[]; }) {
         super();
         this.ensureDom();
@@ -35,16 +36,15 @@ export class Section extends View {
         this.titleView.text = text;
     }
     setContent(view: IDOM) {
-        var dom = this.dom;
-        var firstChild = dom.firstChild;
-        while (dom.lastChild !== firstChild) dom.removeChild(dom.lastChild!);
-        dom.appendChild(view.getDOM());
+        if (this.content) this.removeView(this.content);
+        this.content = View.getView(view);
+        this.appendView(this.content);
     }
     addAction(arg: SectionAction | SectionActionOptions) {
         var view = arg instanceof View ?
             arg :
             new SectionAction({ text: arg.text, onActive: arg.onclick });
-        this.headerView.dom.appendChild(view.dom);
+        this.headerView.appendView(view);
     }
 }
 

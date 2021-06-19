@@ -10,7 +10,8 @@ export class Dialog extends View {
     parent: DialogParent = Dialog.defaultParent;
     overlay = new Overlay().setFlags({ centerChild: true, nobg: true });
 
-    get domheader() { return this.getDomById('header')!; }
+    get domheader() { return this.header.dom; }
+    header = new View({ tag: 'div.dialog-title.clearfix' });
     content = new View({ tag: 'div.dialog-content' });
     shown = false;
 
@@ -55,13 +56,7 @@ export class Dialog extends View {
             tabIndex: 0,
             style: 'width: 300px',
             child: [
-                {
-                    _id: 'header',
-                    tag: 'div.dialog-title',
-                    child: [
-                        { tag: 'div', style: 'clear: both;' }
-                    ]
-                },
+                this.header,
                 this.content,
                 this.focusTrap
             ]
@@ -95,9 +90,9 @@ export class Dialog extends View {
         // title bar pointer event handler:
         {
             let offset: { x: number; y: number; };
-            listenPointerEvents(this.domheader, (e) => {
+            listenPointerEvents(this.header.dom, (e) => {
                 if (e.action === 'down') {
-                    if (e.ev.target !== this.domheader && e.ev.target !== this.btnTitle.dom)
+                    if (e.ev.target !== this.header.dom && e.ev.target !== this.btnTitle.dom)
                         return;
                     e.ev.preventDefault();
                     const rectOverlay = this.overlay.dom.getBoundingClientRect();
@@ -128,7 +123,7 @@ export class Dialog extends View {
     }
     addBtn(btn: TextBtn) {
         this.ensureDom();
-        this.domheader.insertBefore(btn.dom, this.domheader.lastChild);
+        this.header.appendView(btn);
     }
     addContent(view: BuildDomExpr, replace?: boolean) {
         this.ensureDom();
