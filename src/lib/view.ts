@@ -1,5 +1,5 @@
 import { Action, Callbacks, objectApply, toggleClass, arrayFind, arrayForeach, arrayMap } from "./utils";
-import { buildDOM, BuildDOMCtx, BuildDomExpr, IDOM, IView, JsxNode, MountState } from "./buildDOM";
+import { buildDOM, BuildDOMCtx, BuildDomExpr, buildView, IDOM, IView, JsxNode, MountState } from "./buildDOM";
 
 
 export class View<T extends HTMLElement = HTMLElement> implements IView {
@@ -25,6 +25,9 @@ export class View<T extends HTMLElement = HTMLElement> implements IView {
     }
     public get domCreated() { return !!this._dom; }
 
+    private _baseView: View | undefined = undefined;
+    public get baseView() { return this._baseView; }
+
     private _mountState: MountState = MountState.Unmounted;
     public get mountState() { return this._mountState; }
 
@@ -39,7 +42,13 @@ export class View<T extends HTMLElement = HTMLElement> implements IView {
     }
 
     private domExprCreated(r: BuildDomExpr) {
-        this._dom = buildDOM(r, this._domctx) as T;
+        var view = buildView(r, this._domctx);
+        if (view instanceof View) {
+            this._baseView = view;
+            this._dom = view.dom as T;
+        } else {
+            this._dom = view as T;
+        }
         this.postCreateDom();
         this.updateDom();
     }
@@ -50,6 +59,10 @@ export class View<T extends HTMLElement = HTMLElement> implements IView {
 
     /** Will be called when the dom is created */
     protected postCreateDom() {
+        if (View.debugging) {
+            if (this.dom.dataset)
+                this.dom.dataset['webfx'] = MountState[this._mountState];
+        }
     }
 
     /** Will be called when the dom is created, after postCreateDom() */
@@ -65,8 +78,17 @@ export class View<T extends HTMLElement = HTMLElement> implements IView {
         }
         this._mountState = state;
         if (View.debugging) {
-            if (this.dom.dataset)
-                this.dom.dataset['webfxMount'] = MountState[state];
+            if (!this._baseView && this.domCreated && this.dom.dataset) {
+                if (this.dom.dataset['webfx'] == MountState[state]) {
+                    console.trace('mountState on the DOM is changed by other view', state, this);
+                }
+                this.dom.dataset['webfx'] = MountState[state];
+            }
+        }
+        if (this._baseView) {
+            // let the baseView do the rest
+            this._baseView.mountStateChanged(state);
+            return;
         }
         if (this._childViews) for (const child of this._childViews) {
             child.mountStateChanged(state);
@@ -83,6 +105,10 @@ export class View<T extends HTMLElement = HTMLElement> implements IView {
         objectApply(this, kv);
         this.updateDom();
     }
+    updateAllWith(kv: Partial<this>) {
+        objectApply(this, kv);
+        this.updateAll();
+    }
     toggleClass(clsName: string, force?: boolean) {
         toggleClass(this.dom, clsName, force);
     }
@@ -91,13 +117,11 @@ export class View<T extends HTMLElement = HTMLElement> implements IView {
     // appendView(view: View) { this.dom.appendChild(view.dom); }
     getDOM() { return this.dom; }
     addChild(child: BuildDomExpr) {
-        if (child instanceof JsxNode) {
-            child = child.buildView(this._domctx, 64);
-        }
-        if (child instanceof View) {
-            this.appendView(child);
+        const view = buildView(child, this._domctx);
+        if (view instanceof View) {
+            this.appendView(view);
         } else {
-            this.dom.appendChild(buildDOM(child, this._domctx));
+            this.dom.appendChild(view);
         }
     }
 
@@ -127,7 +151,11 @@ export class View<T extends HTMLElement = HTMLElement> implements IView {
     }
 
     private _childViews: View[] | undefined = undefined;
-    get childViews() {
+    get childViews(): View[] {
+        // Return the childViews of the baseView if exists
+        if (this._baseView) { return this._baseView.childViews; }
+
+        // Lazy creating childViews array
         if (!this._childViews) this._childViews = [];
         return this._childViews;
     }
@@ -173,9 +201,16 @@ export class View<T extends HTMLElement = HTMLElement> implements IView {
     removeAllView() {
         while (this.childViews.length) this.removeView(this.childViews.length - 1);
     }
-    updateChildrenDom() {
-        for (const item of this.childViews) {
-            item.updateDom();
+    /** updateDom() then updateChildren() */
+    updateAll() {
+        this.updateDom();
+        if (this.baseView) return this.baseView.updateAll();
+        this.updateChildren();
+    }
+    /** Call updateDom() on the whole tree */
+    updateChildren() {
+        if (this._childViews) for (const child of this._childViews) {
+            child.updateAll();
         }
     }
     protected _insertToDom(item: View, pos?: number) {
@@ -208,7 +243,7 @@ export function tryGetDOM(idom: IDOM | null | undefined) {
 export function getDOM(idom: IDOM) {
     var dom = tryGetDOM(idom);
     if (!dom) {
-        console.error("getDOM(): unsupported parameter:", idom);
+        console.error("getDOM():", idom);
         throw new Error("getDOM(): unsupported parameter: " + idom);
     }
     return dom;
@@ -229,6 +264,9 @@ export function addChild(parent: IDOM, child: BuildDomExpr) {
     // slow path
     else if ('addChild' in parent) {
         parent.addChild(child);
+    } else {
+        console.error("addChild():", { parent, child });
+        throw new Error("addChild(): unsupported parent");
     }
 }
 

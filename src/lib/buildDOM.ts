@@ -201,6 +201,17 @@ export function buildDOM<T extends BuildDomReturn = BuildDomReturn>(obj: BuildDo
     return buildDomCore(obj, 32, ctx || null) as T;
 };
 
+/** Get a View instance or a DOM Node. View is preferred. */
+export function buildView(obj: BuildDomExpr, ctx?: BuildDOMCtx): View | Node {
+    if (obj instanceof View) {
+        return obj;
+    } else if (obj instanceof JsxNode) {
+        return obj.buildView(ctx as any, 64);
+    } else {
+        return buildDOM(obj, ctx);
+    }
+}
+
 export class JsxNode<T extends IDOM> {
     tag: T | string;
     attrs: Record<any, any> | undefined;
