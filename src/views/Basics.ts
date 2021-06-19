@@ -1,10 +1,27 @@
 import { BuildDomExpr } from "../lib/buildDOM";
-import { ObjectInit, objectInit } from "../lib/utils";
+import { Func, FuncOrVal, ObjectInit, objectInit } from "../lib/utils";
 import { View } from "../lib/view";
 
 export class TextView extends View {
     get text() { return this.dom.textContent; }
-    set text(val) { this.dom.textContent = val; }
+    set text(val: FuncOrVal<string> | null) {
+        if (typeof val == 'function') {
+            this.dom.textContent = val();
+            this.textFunc = val;
+        } else {
+            this.dom.textContent = val;
+            this.textFunc = null;
+        }
+    }
+
+    textFunc: Func<string> | null = null;
+
+    updateDom() {
+        super.updateDom();
+        if (this.textFunc) {
+            this.dom.textContent = this.textFunc();
+        }
+    }
 }
 
 export class ButtonView extends TextView {
