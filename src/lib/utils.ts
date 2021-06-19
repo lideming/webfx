@@ -1,6 +1,7 @@
 // file: utils.ts
 
 import { IDOM, buildDOM } from "./buildDOM";
+import { getDOM } from "./view";
 
 const _object_assign = Object.assign;
 const _object_hasOwnProperty = Object.prototype.hasOwnProperty;
@@ -723,7 +724,7 @@ export class TextCompositionWatcher {
         this.onCompositingChanged.invoke();
     }
     constructor(dom: IDOM) {
-        this.dom = dom.getDOM() as HTMLElement;
+        this.dom = getDOM(dom) as HTMLElement;
         this.dom.addEventListener('compositionstart', (ev) => {
             this.isCompositing = true;
         });
