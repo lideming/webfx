@@ -47,7 +47,20 @@
                 tag: 'h1', text: 'webfx demo'
             }));
 
-            // View
+            // View class
+            class App extends View {
+                createDom() {
+                    return {
+                        tag: 'div',
+                        child: [
+                            { tag: 'h2', text: 'Without JSX' },
+                            new CounterView(),
+                            components
+                        ]
+                    }
+                }
+            }
+
             class CounterView extends View {
                 constructor() {
                     super();
@@ -78,9 +91,8 @@
                 //     super.updateDom();
                 // }
             }
-            webfx.appendView(document.body, new CounterView());
 
-            webfx.appendView(document.body, new View({
+            const components = new View({
                 tag: 'div.buttons.card',
                 child: [
                     new ButtonView({
@@ -116,7 +128,9 @@
                         }
                     })
                 ]
-            }));
+            });
+
+            webfx.mountView(document.body, new App());
         })();
     </script>
     <script type="text/jsx" src="./counter.jsx"></script>

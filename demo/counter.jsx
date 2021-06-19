@@ -6,15 +6,27 @@
     const webfx = window.webfx;
     const { View, Toast, ButtonView, jsxBuild } = webfx;
 
-    document.body.appendChild(webfx.buildDOM(
-        <h2>JSX</h2>
-    ));
+    View.debugging = true;
+
+    class App extends View {
+        createDom() {
+            return (
+                <div>
+                    <h2>JSX</h2>
+                    <CounterView2 />
+                    {components}
+                    <TimeView />
+                </div>
+            );
+        }
+    }
 
     class Card extends View {
         createDom() {
             return <div class={"card " + this.cardClass} />;
         }
     }
+
     class CounterView2 extends View {
         constructor() {
             super();
@@ -23,16 +35,15 @@
         createDom() {
             return <Card cardClass="counter">
                 You've click
-                <div class="btn inline" onclick={() => this.updateWith({ counter: this.counter + 1 })}>
+                <div class="btn inline" onclick={() => this.updateAllWith({ counter: this.counter + 1 })}>
                     this button
                 </div>
                 for {() => this.counter} time{() => this.counter > 1 ? 's' : ''}.
             </Card>;
         }
     }
-    webfx.appendView(document.body, new CounterView2());
 
-    webfx.appendView(document.body, new View(
+    const components = new View(
         <Card cardClass="buttons">
             <ButtonView onActive={() => Toast.show("This is a toast!", 3000)}>Show toast</ButtonView>
             <ButtonView onActive={(ev) => {
@@ -55,7 +66,8 @@
                 );
                 d.show(ev);
             }}>Show dialog</ButtonView>
-        </Card>));
+        </Card>
+    );
 
     class TimeView extends View {
         createDom() {
@@ -65,9 +77,10 @@
         }
         postCreateDom() {
             super.postCreateDom();
-            setInterval(() => this.updateDom(), 500);
+            setInterval(() => this.updateAll(), 500);
         }
     }
-    webfx.appendView(document.body, new TimeView());
+
+    webfx.mountView(document.body, new App());
 
 })();
