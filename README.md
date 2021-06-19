@@ -21,8 +21,9 @@ It was originally created for [MusicCloud](https://github.com/lideming/MusicClou
 
 * `utils.ts` - Utilities
 * `i18n.ts` - Internationalization (i18n) helper
-* `view.ts` - The core of a very simple Web UI framework
-* `views/` - Some built-in `View`s and helpers
+* `buildDOM.ts` - View and DOM builder
+* `view.ts` - The core of View
+* `views/` - Some built-in Views and helpers
   * `Basics`
   * `ListView`
   * `Dialog`
@@ -58,19 +59,19 @@ import { View, ButtonView } from "@yuuza/webfx";
 Add webfx to your web page:
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@yuuza/webfx@1.6.0/dist/webfx.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@yuuza/webfx@1.9.0/dist/webfx.min.js"></script>
 ```
 
 Or if you don't need the viewlib:
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@yuuza/webfx@1.6.0/dist/webfxcore.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@yuuza/webfx@1.9.0/dist/webfxcore.min.js"></script>
 ```
 
 Then the module can be accessed from global variable `webfx`:
 
 ```js
-const { View, ButtonView } = webfx;
+const { View, ButtonView, mountView } = webfx;
 ```
 
 ## Usage
@@ -89,8 +90,8 @@ class Hello extends View {
   }
 }
 
-// Create a instance of the view and append it into <body>.
-document.body.appendChild(new Hello().dom);
+// Create a instance of the view and mount it on <body>.
+mountView(document.body, new Hello());
 ```
 Renders:
 ```html
@@ -144,7 +145,7 @@ class Counter extends View {
     }
   }
 }
-document.body.appendChild(new Counter().dom);
+mountView(document.body, new Counter());
 ```
 
 Renders:
@@ -200,7 +201,7 @@ class Counter extends View {
     console.info('the counter DOM is updated', this.dom);
   }
 }
-document.body.appendChild(new Counter().dom);
+mountView(document.body, new Counter());
 ```
 
 ### ListView
@@ -235,7 +236,7 @@ class Counter extends View {
     );
   }
 }
-document.body.appendChild(new Counter().dom);
+mountView(document.body, new Counter());
 ```
 
 ### I18n Helper
@@ -269,7 +270,6 @@ sayHello('Yuuza');
 
 ## Todos
 
-- [ ] Mount / unmount events
 - [ ] Functional DOM tree updating
 - [ ] React-like function components with hooks
 
