@@ -363,7 +363,7 @@ export class LazyListView<T extends ListViewItem = ListViewItem> extends ListVie
     ensureLoaded(pos: number) {
         if (pos >= this.length) pos = this.length - 1;
         while (this._loaded <= pos) {
-            this.dom.appendChild(this.children[this._loaded].dom);
+            this.dom.appendChild(this.items[this._loaded].dom);
             this._loaded++;
         }
     }
@@ -417,7 +417,7 @@ export class LazyListView<T extends ListViewItem = ListViewItem> extends ListVie
     unload() {
         this.stopLoading();
         for (let i = this._loaded - 1; i >= 0; i--) {
-            this.children[i].dom.remove();
+            this.items[i].dom.remove();
         }
         this.lazy = true;
         this._loaded = 0;

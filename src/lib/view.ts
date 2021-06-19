@@ -1,5 +1,5 @@
 import { Action, Callbacks, objectApply, toggleClass, arrayFind, arrayForeach, arrayMap } from "./utils";
-import { buildDOM, BuildDOMCtx, BuildDomExpr, IDOM, IView, MountState } from "./buildDOM";
+import { buildDOM, BuildDOMCtx, BuildDomExpr, IDOM, IView, JsxNode, MountState } from "./buildDOM";
 
 
 export class View<T extends HTMLElement = HTMLElement> implements IView {
@@ -68,7 +68,7 @@ export class View<T extends HTMLElement = HTMLElement> implements IView {
             if (this.dom.dataset)
                 this.dom.dataset['webfxMount'] = MountState[state];
         }
-        if (this._children) for (const child of this._children) {
+        if (this._childViews) for (const child of this._childViews) {
             child.mountStateChanged(state);
         }
     }
@@ -91,7 +91,14 @@ export class View<T extends HTMLElement = HTMLElement> implements IView {
     // appendView(view: View) { this.dom.appendChild(view.dom); }
     getDOM() { return this.dom; }
     addChild(child: BuildDomExpr) {
-        this.appendView(View.getView(child));
+        if (child instanceof JsxNode) {
+            child = child.buildView(this._domctx, 64);
+        }
+        if (child instanceof View) {
+            this.appendView(child);
+        } else {
+            this.dom.appendChild(buildDOM(child, this._domctx));
+        }
     }
 
     private _onActive: Callbacks<Action<MouseEvent>> | undefined = undefined;
@@ -119,40 +126,34 @@ export class View<T extends HTMLElement = HTMLElement> implements IView {
         }
     }
 
-    private _children: View[] | undefined = undefined;
-    get children() {
-        if (!this._children) this._children = [];
-        return this._children;
+    private _childViews: View[] | undefined = undefined;
+    get childViews() {
+        if (!this._childViews) this._childViews = [];
+        return this._childViews;
     }
     appendView(view: View) {
         this.addView(view);
     }
     addView(view: View, pos?: number) {
-        const items = this.children;
+        this._registerChild(view, pos, false);
+        if (this._mountState == MountState.Mounted) view.mountStateChanged(MountState.Mounting);
+        this._insertToDom(view, pos);
+        if (this._mountState != MountState.Unmounted) view.mountStateChanged(this._mountState);
+    }
+    _registerChild(view: View, pos?: number, changeMountState = true) {
+        const items = this.childViews;
         if (view.parentView) throw new Error('the view is already in a container view');
         view.parentView = this;
         if (pos === undefined) {
             view._position = items.length;
             items.push(view);
-            this._insertToDom(view, items.length - 1);
         } else {
             items.splice(pos, 0, view);
             for (let i = pos; i < items.length; i++) {
                 items[i]._position = i;
             }
-            this._insertToDom(view, pos);
         }
-        if (this._mountState != MountState.Unmounted) {
-            view.mountStateChanged(this._mountState);
-        }
-    }
-    _registerChild(view: View) {
-        const items = this.children;
-        if (view.parentView) throw new Error('the view is already in a container view');
-        view.parentView = this;
-        view._position = items.length;
-        items.push(view);
-        if (this._mountState != MountState.Unmounted) {
+        if (changeMountState && this._mountState != MountState.Unmounted) {
             view.mountStateChanged(this._mountState);
         }
     }
@@ -161,31 +162,31 @@ export class View<T extends HTMLElement = HTMLElement> implements IView {
         this._removeFromDom(view);
         var pos = view._position!;
         view.parentView = view._position = undefined;
-        this.children.splice(pos, 1);
-        for (let i = pos; i < this.children.length; i++) {
-            this.children[i]._position = i;
+        this.childViews.splice(pos, 1);
+        for (let i = pos; i < this.childViews.length; i++) {
+            this.childViews[i]._position = i;
         }
         if (this._mountState != MountState.Unmounted) {
             view.mountStateChanged(MountState.Unmounted);
         }
     }
     removeAllView() {
-        while (this.children.length) this.removeView(this.children.length - 1);
+        while (this.childViews.length) this.removeView(this.childViews.length - 1);
     }
     updateChildrenDom() {
-        for (const item of this.children) {
+        for (const item of this.childViews) {
             item.updateDom();
         }
     }
-    protected _insertToDom(item: View, pos: number) {
-        if (pos == this.children.length - 1) this.dom.appendChild(item.dom);
-        else this.dom.insertBefore(item.dom, this.children[pos + 1]?.dom || null);
+    protected _insertToDom(item: View, pos?: number) {
+        if (pos == undefined) this.dom.appendChild(item.dom);
+        else this.dom.insertBefore(item.dom, this.childViews[pos + 1]?.dom || null);
     }
     protected _removeFromDom(item: View) {
         if (item.domCreated) item.dom.remove();
     }
     protected _ensureItem(item: View | number) {
-        if (typeof item === 'number') item = this.children[item];
+        if (typeof item === 'number') item = this.childViews[item];
         else if (!item) throw new Error('item is null or undefined.');
         else if (item.parentView !== this) throw new Error('the item is not in this listview.');
         return item;
@@ -296,11 +297,11 @@ export class ContainerView<T extends View> extends View {
         return super._ensureItem(item) as T;
     }
 
-    get items() { return this.children as T[]; }
-    [Symbol.iterator]() { return (this.children as T[])[Symbol.iterator](); }
-    get length() { return this.children.length; }
+    get items() { return this.childViews as T[]; }
+    [Symbol.iterator]() { return (this.childViews as T[])[Symbol.iterator](); }
+    get length() { return this.childViews.length; }
     get(idx: number) {
-        return this.children[idx] as T;
+        return this.childViews[idx] as T;
     }
     map<TRet>(func: (lvi: T) => TRet) { return arrayMap(this, func); }
     find(func: (lvi: T, idx: number) => any) { return arrayFind(this, func); }

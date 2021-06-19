@@ -259,7 +259,7 @@ export class JsxNode<T extends IDOM> {
         if (this.child) {
             if (view instanceof View) {
                 foreachFlaten(this.child, it => {
-                    (view as View).addChild(jsxBuildCore(it, ttl, ctx) as any);
+                    (view as View).addChild(jsxBuildCore(it, ttl, (view as View)['_domctx']) as any);
                 });
             } else {
                 foreachFlaten(this.child, it => {
