@@ -4,8 +4,8 @@ import { View, ContainerView } from "../lib/view";
 import { dragManager } from "./helpers";
 
 export abstract class ListViewItem extends View implements ISelectable {
-    get listview() { return this.parentView as ListView<this>; }
-    get selectionHelper() { return this.listview.selectionHelper; }
+    get listview() { return this.parentView instanceof ListView ? this.parentView as ListView<this> : null; }
+    get selectionHelper() { return this.listview?.selectionHelper; }
 
     get dragData() { return this.dom.textContent; }
 
@@ -90,7 +90,7 @@ export abstract class ListViewItem extends View implements ISelectable {
                 return;
             }
             var arr: ListViewItem[] = [];
-            if (this.selected) {
+            if (this.selected && this.selectionHelper) {
                 arr = [...this.selectionHelper.selectedItems];
                 arr.sort((a, b) => a.position! - b.position!); // remove this line to get a new feature!
             } else {
@@ -158,7 +158,7 @@ export abstract class ListViewItem extends View implements ISelectable {
         }
         const onDragover = this.onDragover ?? this.listview?.onDragover;
         if (!arg.accept && onDragover) {
-            onDragover(arg);
+            onDragover(arg as DragArg<any>);
             if (drop || arg.accept) ev.preventDefault();
         }
         const onContextMenu = this.onContextMenu ?? this.listview?.onContextMenu;
