@@ -15,7 +15,7 @@ export class Section extends View {
         ]
     });
     content: View;
-    constructor(arg?: { title?: string, content?: IDOM, actions?: SectionActionOptions[]; }) {
+    constructor(arg?: { title?: BuildDomExpr, content?: BuildDomExpr, actions?: SectionActionOptions[]; }) {
         super();
         this.ensureDom();
         if (arg) {
@@ -32,10 +32,11 @@ export class Section extends View {
             ]
         };
     }
-    setTitle(text: string) {
-        this.titleView.text = text;
+    setTitle(text: BuildDomExpr) {
+        this.titleView.removeAllView();
+        this.titleView.addChild(text);
     }
-    setContent(view: IDOM) {
+    setContent(view: BuildDomExpr) {
         if (this.content) this.removeView(this.content);
         this.content = View.getView(view);
         this.appendView(this.content);
