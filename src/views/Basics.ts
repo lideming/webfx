@@ -43,8 +43,7 @@ export class ButtonView extends TextView {
     }
 }
 
-export class TextBtn extends View {
-    text: string = '';
+export class TextBtn extends TextView {
     clickable = true;
     active = false;
     right = false;
@@ -58,7 +57,6 @@ export class TextBtn extends View {
         };
     }
     updateDom() {
-        this.dom.textContent = this.text;
         this.dom.tabIndex = this.clickable ? 0 : -1;
         this.toggleClass('clickable', this.clickable);
         this.toggleClass('active', this.active);
