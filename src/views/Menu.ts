@@ -29,6 +29,7 @@ export class MenuItem extends ListViewItem {
     }
     private _lastcls;
     updateDom() {
+        super.updateDom();
         this.dom.textContent = this.text;
         if (this.cls !== this._lastcls) {
             if (this._lastcls) this.dom.classList.remove(this._lastcls);

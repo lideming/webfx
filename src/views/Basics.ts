@@ -57,6 +57,7 @@ export class TextBtn extends TextView {
         };
     }
     updateDom() {
+        super.updateDom();
         this.dom.tabIndex = this.clickable ? 0 : -1;
         this.toggleClass('clickable', this.clickable);
         this.toggleClass('active', this.active);

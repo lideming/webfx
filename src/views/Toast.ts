@@ -57,6 +57,7 @@ export class Toast extends View {
         return { tag: 'div.toast' };
     }
     updateDom() {
+        super.updateDom();
         this.dom.textContent = this.text;
     }
     static show(text: string, timeout?: number) {

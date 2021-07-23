@@ -117,6 +117,7 @@ export class Dialog extends View {
         });
     }
     updateDom() {
+        super.updateDom();
         this.btnTitle.updateWith({ text: this.title });
         this.btnTitle.hidden = !this.title;
         this.btnClose.hidden = !(this.allowClose && this.showCloseButton);
