@@ -34,9 +34,9 @@ It was originally created for [MusicCloud](https://github.com/lideming/MusicClou
   * `Section`
 * `style.css` - CSS for the built-in views
 * `dist/` - Bundles
-  * `webfx.js` - for browsers (and there is a `.min.js` version)
-  * `webfxcore.min.js` - without the viewlib and style (it is much smaller)
-  * `webfx.esm.js` - ES module
+  * `webfx.js` - UMD bundle for browsers (+ `.min.js` version)
+  * `webfxcore.min.js` - UMD bundle without the viewlib and style
+  * `webfx.esm.js` - ESM bundle
 
 ## Installation
 
@@ -59,13 +59,13 @@ import { View, ButtonView } from "@yuuza/webfx";
 Add webfx to your web page:
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@yuuza/webfx@1.9.0/dist/webfx.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@yuuza/webfx@1.9.6/dist/webfx.min.js"></script>
 ```
 
 Or if you don't need the viewlib:
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@yuuza/webfx@1.9.0/dist/webfxcore.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@yuuza/webfx@1.9.6/dist/webfxcore.min.js"></script>
 ```
 
 Then the module can be accessed from global variable `webfx`:

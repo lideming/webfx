@@ -1,6 +1,6 @@
 {
   "name": "@yuuza/webfx",
-  "version": "1.9.5",
+  "version": "1.9.6",
   "description": "",
   "repository": "github:lideming/webfx",
   "main": "dist/webfx.js",
@@ -22,9 +22,9 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "rollup": "^2.52.2",
+    "rollup": "^2.53.3",
     "rollup-plugin-sourcemaps": "^0.6.3",
     "rollup-plugin-terser": "^7.0.2",
-    "typescript": "^4.3.4"
+    "typescript": "^4.3.5"
   }
 }
