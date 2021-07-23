@@ -3,18 +3,27 @@ import { Func, FuncOrVal, ObjectInit, objectInit } from "../lib/utils";
 import { View } from "../lib/view";
 
 export class TextView extends View {
-    get text() { return this.dom.textContent; }
+    private _text: string | null = "";
+    get text() { return this.dom?.textContent ?? this._text; }
     set text(val: FuncOrVal<string> | null) {
         if (typeof val == 'function') {
-            this.dom.textContent = val();
+            this._text = val();
             this.textFunc = val;
         } else {
-            this.dom.textContent = val;
+            this._text = val;
             this.textFunc = null;
+        }
+        if (this.domCreated) {
+            this.dom.textContent = this._text;
         }
     }
 
     textFunc: Func<string> | null = null;
+
+    postCreateDom() {
+        super.postCreateDom();
+        this.dom.textContent = this._text;
+    }
 
     updateDom() {
         super.updateDom();
