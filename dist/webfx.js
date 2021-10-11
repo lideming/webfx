@@ -2,7 +2,7 @@
     typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
     typeof define === 'function' && define.amd ? define(['exports'], factory) :
     (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.webfx = {}));
-}(this, (function (exports) { 'use strict';
+})(this, (function (exports) { 'use strict';
 
     class View {
         constructor(dom) {
@@ -489,6 +489,14 @@
         }
         else if (key === 'class') {
             node.className = val;
+        }
+        else if (key === 'style' && typeof val === 'object') {
+            for (const styleKey in val) {
+                if (Object.prototype.hasOwnProperty.call(val, styleKey)) {
+                    const styleVal = val[styleKey];
+                    node.style[styleKey] = styleVal;
+                }
+            }
         }
         else if (key === 'hidden' && typeof val === 'function') {
             ctx.addUpdateAction(new HiddenAction(node, val));
@@ -3188,4 +3196,4 @@
 
     Object.defineProperty(exports, '__esModule', { value: true });
 
-})));
+}));

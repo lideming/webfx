@@ -484,6 +484,14 @@ var buildDOMHandleKey = function (key, val, node, ctx, ttl) {
     else if (key === 'class') {
         node.className = val;
     }
+    else if (key === 'style' && typeof val === 'object') {
+        for (const styleKey in val) {
+            if (Object.prototype.hasOwnProperty.call(val, styleKey)) {
+                const styleVal = val[styleKey];
+                node.style[styleKey] = styleVal;
+            }
+        }
+    }
     else if (key === 'hidden' && typeof val === 'function') {
         ctx.addUpdateAction(new HiddenAction(node, val));
     }
