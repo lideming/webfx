@@ -189,6 +189,10 @@ class View {
         while (this.childViews.length)
             this.removeView(this.childViews.length - 1);
     }
+    removeFromParent() {
+        if (this.parentView)
+            this.parentView.removeView(this);
+    }
     /** updateDom() then updateChildren() */
     updateAll() {
         this.updateDom();
@@ -750,26 +754,25 @@ function toggleClass(element, clsName, force) {
 }
 /** Fade out the element and remove it */
 function fadeout(element, options) {
-    const { className = 'fading-out', duration = 500, waitTransition = true } = options || {};
+    const { className = 'fading-out', duration = 500, remove = true } = options || {};
     element.classList.add(className);
     var cb = null;
-    var end = () => {
+    var end = (finish = true) => {
         if (!end)
             return; // use a random variable as flag ;)
         end = null;
-        if (waitTransition)
-            element.removeEventListener('transitionend', onTransitionend);
+        element.removeEventListener('transitionend', onTransitionend);
         element.classList.remove(className);
-        element.remove();
-        cb && cb();
+        if (remove && finish) {
+            element.remove();
+        }
+        finish && (cb === null || cb === void 0 ? void 0 : cb());
     };
-    if (waitTransition) {
-        var onTransitionend = function (e) {
-            if (e.eventPhase === Event.AT_TARGET)
-                end();
-        };
-        element.addEventListener('transitionend', onTransitionend);
-    }
+    var onTransitionend = function (e) {
+        if (e.eventPhase === Event.AT_TARGET)
+            end === null || end === void 0 ? void 0 : end();
+    };
+    element.addEventListener('transitionend', onTransitionend);
     setTimeout(end, duration); // failsafe
     return {
         get finished() { return !end; },
@@ -780,7 +783,9 @@ function fadeout(element, options) {
                 cb = callback;
             return this;
         },
-        cancel() { end === null || end === void 0 ? void 0 : end(); }
+        cancel(finish = false) {
+            end === null || end === void 0 ? void 0 : end(finish);
+        }
     };
 }
 function listenPointerEvents(element, callback, options) {
