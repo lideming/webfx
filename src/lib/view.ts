@@ -201,6 +201,9 @@ export class View<T extends HTMLElement = HTMLElement> implements IView {
     removeAllView() {
         while (this.childViews.length) this.removeView(this.childViews.length - 1);
     }
+    removeFromParent() {
+        if (this.parentView) this.parentView.removeView(this);
+    }
     /** updateDom() then updateChildren() */
     updateAll() {
         this.updateDom();
