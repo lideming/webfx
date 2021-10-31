@@ -100,26 +100,37 @@ export function toggleClass(element: HTMLElement, clsName: string, force?: boole
     return force;
 }
 
+export interface FadeOutOptions {
+    className?: string;
+    duration?: number;
+    remove?: boolean;
+}
+
+export interface FadeoutResult {
+    readonly finished: boolean;
+    onFinished(callback: Action): this;
+    cancel(finish?: boolean): void;
+}
+
 /** Fade out the element and remove it */
-export function fadeout(element: HTMLElement, options?: { className?: string, duration?: number, waitTransition?: boolean; }) {
-    const { className = 'fading-out', duration = 500, waitTransition = true } = options || {};
+export function fadeout(element: HTMLElement, options?: FadeOutOptions): FadeoutResult {
+    const { className = 'fading-out', duration = 500, remove = true } = options || {};
     element.classList.add(className);
     var cb: Action | null = null;
-    var end: Action | null = () => {
+    var end: Action<boolean | void> | null = (finish = true) => {
         if (!end) return; // use a random variable as flag ;)
         end = null;
-        if (waitTransition)
-            element.removeEventListener('transitionend', onTransitionend);
+        element.removeEventListener('transitionend', onTransitionend);
         element.classList.remove(className);
-        element.remove();
-        cb && cb();
+        if (remove && finish) {
+            element.remove();
+        }
+        finish && cb?.();
     };
-    if (waitTransition) {
-        var onTransitionend = function (e: TransitionEvent) {
-            if (e.eventPhase === Event.AT_TARGET) end!();
-        };
-        element.addEventListener('transitionend', onTransitionend);
-    }
+    var onTransitionend = function (e: TransitionEvent) {
+        if (e.eventPhase === Event.AT_TARGET) end?.();
+    };
+    element.addEventListener('transitionend', onTransitionend);
     setTimeout(end, duration); // failsafe
     return {
         get finished() { return !end; },
@@ -128,7 +139,9 @@ export function fadeout(element: HTMLElement, options?: { className?: string, du
             else cb = callback;
             return this;
         },
-        cancel() { end?.(); }
+        cancel(finish = false) {
+            end?.(finish);
+        }
     };
 }
 

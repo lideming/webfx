@@ -25,7 +25,7 @@ export class ToolTip extends TextView {
         setPosition(dom, options);
         parent.appendChild(dom);
     }
-    private _cancelClose: Action | null = null;
+    private _cancelClose: Action<boolean | void> | null = null;
     close(fadeOutOptions?: Parameters<typeof fadeout>[1]) {
         if (!this.shown) return;
         this._timer.tryCancel();

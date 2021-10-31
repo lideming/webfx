@@ -169,7 +169,7 @@ export class Dialog extends View {
             this.dom.style.transformOrigin = '';
         }
     }
-    private _cancelFadeout: Action;
+    private _cancelFadeout: Action<boolean | void>;
     close() {
         if (!this.shown)
             return;
@@ -235,7 +235,7 @@ export class DialogParent {
     dialogCount = 0;
     fixed = false;
     view: View;
-    private _cancelFadeout: Action | null = null;
+    private _cancelFadeout: Action<boolean | void> | null = null;
 
     constructor(view: BuildDomExpr = document.body) {
         this.view = View.getView(view);
