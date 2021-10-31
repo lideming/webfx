@@ -23,6 +23,6 @@
 export * from "./lib/utils";
 export * from "./lib/buildDOM";
 export * from "./lib/view";
-export * from "./lib/I18n";
+export * from "@yuuza/i18n";
 
 export * from "./version";

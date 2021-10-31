@@ -1,6 +1,6 @@
 import { Action, objectInit, ObjectInit } from "../lib/utils";
 import { View } from "../lib/view";
-import { I } from "../lib/I18n";
+import { I } from "@yuuza/i18n";
 import { BuildDomExpr } from "../lib/buildDOM";
 
 type LoadingIndicatorState = 'normal' | 'running' | 'error';

@@ -8,7 +8,9 @@
   "types": "build/index.d.ts",
   "browser": "dist/webfx.min.js",
   "scripts": {
-    "build": "tsc && rollup -c",
+    "build": "pnpm run build:i18n && pnpm run build:webfx",
+    "build:webfx": "tsc && rollup -c",
+    "build:i18n": "cd packages/i18n && pnpm run build",
     "watch": "tsc && rollup -c -w",
     "test": "echo \"Error: no test specified\" && exit 1",
     "prepack": "pnpm run build",
@@ -22,9 +24,12 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "rollup": "^2.58.0",
+    "rollup": "^2.58.3",
     "rollup-plugin-sourcemaps": "^0.6.3",
     "rollup-plugin-terser": "^7.0.2",
-    "typescript": "^4.4.3"
+    "typescript": "^4.4.4"
+  },
+  "dependencies": {
+    "@yuuza/i18n": "workspace:^1.2.0"
   }
 }

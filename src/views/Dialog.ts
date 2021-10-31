@@ -1,6 +1,6 @@
 import { Action, Callbacks, fadeout, listenPointerEvents, numLimit } from "../lib/utils";
 import { ContainerView, View } from "../lib/view";
-import { I, i18n } from "../lib/I18n";
+import { I, i18n } from "@yuuza/i18n";
 import { TextBtn, TextView } from "./Basics";
 import { Overlay } from "./Overlay";
 import { BuildDomExpr, IDOM, MountState } from "../lib/buildDOM";

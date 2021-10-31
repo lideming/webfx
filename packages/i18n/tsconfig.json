@@ -1,0 +1,8 @@
+{
+    "extends": "../../tsconfig.json",
+    "files": ["./i18n.ts"],
+    "compilerOptions": {
+        "types": [],
+        "outDir": "./build"
+    }
+}

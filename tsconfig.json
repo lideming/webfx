@@ -10,7 +10,8 @@
         "sourceMap": true,
         "downlevelIteration": true,
         "strictNullChecks": true,
-        "outDir": "./build"
+        "outDir": "./build",
+        "moduleResolution": "node"
     },
     "exclude": [
         "node_modules",

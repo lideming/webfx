@@ -1,0 +1,20 @@
+{
+  "name": "@yuuza/i18n",
+  "version": "1.2.1",
+  "description": "",
+  "main": "build/i18n.umd.js",
+  "module": "build/i18n.js",
+  "types": "build/i18n.d.ts",
+  "scripts": {
+    "build": "tsc && rollup build/i18n.js --format umd --name i18n > build/i18n.umd.js"
+  },
+  "files": [
+    "build"
+  ],
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "typescript": "^4.4.4"
+  }
+}
