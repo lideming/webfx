@@ -22,7 +22,7 @@ export class TextView extends View {
 
     postCreateDom() {
         super.postCreateDom();
-        this.dom.textContent = this._text;
+        if (this._text) this.dom.textContent = this._text;
     }
 
     updateDom() {
