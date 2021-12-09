@@ -208,7 +208,7 @@ export class MessageBox extends Dialog {
         return this;
     }
     addText(text: string) {
-        this.addContent(new TextView({ tag: 'div.messagebox-text', textContent: text }));
+        this.addContent(new TextView({ tag: 'div.messagebox-text', text }));
         return this;
     }
     allowCloseWithResult(result: this['result'], showCloseButton?: boolean) {
