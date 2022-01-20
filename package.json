@@ -24,12 +24,12 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "rollup": "^2.58.3",
+    "rollup": "^2.64.0",
     "rollup-plugin-sourcemaps": "^0.6.3",
     "rollup-plugin-terser": "^7.0.2",
-    "typescript": "^4.4.4"
+    "typescript": "^4.5.4"
   },
   "dependencies": {
-    "@yuuza/i18n": "workspace:^1.2.0"
+    "@yuuza/i18n": "workspace:^1.2.1"
   }
 }
