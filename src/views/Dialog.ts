@@ -153,7 +153,7 @@ export class Dialog extends View {
         if (this.shown)
             return;
         this.shown = true;
-        this._cancelFadeout?.();
+        this._cancelFadeout?.(true);
         this.ensureDom();
         this.parent.onDialogShowing(this);
         this.setTransformOrigin(ev);
@@ -246,7 +246,7 @@ export class DialogParent {
     }
     onDialogShowing(dialog: Dialog) {
         if (this.dialogCount++ === 0) {
-            this._cancelFadeout?.();
+            this._cancelFadeout?.(true);
             this.bgOverlay.setFlags({ fixed: this.fixed, clickThrough: true });
             this.view.appendView(this.bgOverlay);
         }
