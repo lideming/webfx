@@ -1,6 +1,3 @@
-import { I, i18n as i18n$1 } from '@yuuza/i18n';
-export * from '@yuuza/i18n';
-
 class View {
     constructor(dom) {
         this.parentView = undefined;
@@ -1421,6 +1418,199 @@ const utils = {
     Timer,
 };
 
+// file: I18n.ts
+/** Internationalization (aka i18n) helper class */
+class I18n {
+    constructor() {
+        this.data = {};
+        this.curLang = 'en';
+        this.missing = new Map();
+    }
+    /** Get i18n string for `key`, return `key` when not found. */
+    get(key, arg) {
+        return this.get2(key, arg) || key;
+    }
+    /** Get i18n string for `key`, return `null` when not found. */
+    get2(key, arg, lang) {
+        lang = lang || this.curLang;
+        var langObj = this.data[lang];
+        if (!langObj) {
+            console.log('i18n missing lang: ' + lang);
+            return null;
+        }
+        var r = langObj[key];
+        if (!r) {
+            if (!this.missing.has(key)) {
+                this.missing.set(key, 1);
+                console.log('i18n missing key: ' + key);
+            }
+            return null;
+        }
+        if (arg) {
+            for (const key in arg) {
+                if (arg.hasOwnProperty(key)) {
+                    const val = arg[key];
+                    r = r.replace('{' + key + '}', val);
+                    // Note that it only replaces the first occurrence.
+                }
+            }
+        }
+        return r;
+    }
+    /** Fills data with an 2darray */
+    add2dArray(array) {
+        const langObjs = [];
+        const langs = array[0];
+        for (const lang of langs) {
+            langObjs.push(this.data[lang] = this.data[lang] || {});
+        }
+        for (let i = 1; i < array.length; i++) {
+            const line = array[i];
+            const key = line[0];
+            for (let j = 0; j < line.length; j++) {
+                const val = line[j];
+                langObjs[j][key] = val;
+            }
+        }
+    }
+    renderElements(elements) {
+        console.log('i18n elements rendering');
+        elements.forEach(x => {
+            for (const node of x.childNodes) {
+                if (node.nodeType === Node.TEXT_NODE) {
+                    // console.log('node', node);
+                    var r = this.get2(node.beforeI18n || node.textContent);
+                    if (r) {
+                        node.beforeI18n = node.beforeI18n || node.textContent;
+                        node.textContent = r;
+                    }
+                    else {
+                        if (node.beforeI18n) {
+                            node.textContent = node.beforeI18n;
+                        }
+                        console.log('missing key for node', node);
+                    }
+                }
+            }
+        });
+    }
+    /**
+     * Detect the best available language using
+     * the user language preferences provided by the browser.
+     * @param langs Available languages
+     */
+    static detectLanguage(langs) {
+        var cur = null;
+        var curIdx = -1;
+        var languages = [];
+        // ['en-US'] -> ['en-US', 'en']
+        (navigator.languages || [navigator.language]).forEach(lang => {
+            languages.push(lang);
+            if (lang.indexOf('-') > 0)
+                languages.push(lang.substr(0, lang.indexOf('-')));
+        });
+        langs.forEach((l) => {
+            var idx = languages.indexOf(l);
+            if (!cur || (idx !== -1 && idx < curIdx)) {
+                cur = l;
+                curIdx = idx;
+            }
+        });
+        return cur || langs[0];
+    }
+}
+function createStringBuilder(i18n) {
+    var arrBuilder = createArrayBuilder(i18n);
+    return function (literals, ...placeholders) {
+        if (placeholders.length === 0) {
+            return i18n.get(literals[0]);
+        }
+        return arrBuilder(literals, ...placeholders).join('');
+    };
+}
+function createArrayBuilder(i18n) {
+    var formatCache = new WeakMap();
+    var parseCache = new Map();
+    return function (literals, ...placeholders) {
+        if (placeholders.length === 0) {
+            return [i18n.get(literals[0])];
+        }
+        // Generate format string from template string if it's not cached:
+        let format = formatCache.get(literals);
+        if (format === undefined) {
+            format = '';
+            for (let i = 0; i < literals.length; i++) {
+                const lit = literals[i];
+                format += lit;
+                if (i < placeholders.length) {
+                    format += '{' + i + '}';
+                }
+            }
+            formatCache.set(literals, format);
+        }
+        const translatedFormat = i18n.get(format);
+        // Also cache parsed template
+        let parsed = parseCache.get(translatedFormat);
+        if (parsed === undefined) {
+            parsed = parseTemplate(translatedFormat);
+        }
+        return parsed.map(x => typeof x == 'number' ? placeholders[x] : x);
+    };
+}
+function parseTemplate(template) {
+    const result = [];
+    let state = 0; // 0: normal / 1: after '{' / 2: after '}' / 3: after '{' and numbers
+    let buf = '';
+    for (let i = 0; i < template.length; i++) {
+        const ch = template[i];
+        switch (ch) {
+            case '{':
+                if (state == 0)
+                    state = 1;
+                else if (state == 1) {
+                    state = 0;
+                    buf += '{';
+                }
+                else
+                    throw new Error(`Expected number, got '${ch}' at ${i}`);
+                break;
+            case '}':
+                if (state == 3) {
+                    state = 0;
+                    result.push(+buf);
+                    buf = '';
+                }
+                else if (state == 0) {
+                    state = 2;
+                }
+                else if (state == 2) {
+                    state = 0;
+                    buf += '}';
+                }
+                else
+                    throw new Error(`Expected number, got '${ch}' at ${i}`);
+                break;
+            default:
+                if (state == 2)
+                    throw new Error(`Expected '}', got '${ch}' at ${i}`);
+                else if (state == 1) {
+                    state = 3;
+                    if (buf)
+                        result.push(buf);
+                    buf = '';
+                }
+                buf += ch;
+        }
+    }
+    if (state != 0)
+        throw new Error("Unexpected end of template string");
+    if (buf)
+        result.push(buf);
+    return result;
+}
+var i18n = new I18n();
+const I = createStringBuilder(i18n);
+
 const version = "1.9.11";
 
 var css = ":root {\n    --color-bg: white;\n    --color-text: black;\n    --color-text-gray: #666;\n    --color-bg-selection: hsl(5, 100%, 85%);\n    --color-primary: hsl(5, 100%, 67%);\n    --color-primary-darker: hsl(5, 100%, 60%);\n    --color-primary-dark: hsl(5, 100%, 40%);\n    --color-primary-dark-depends: hsl(5, 100%, 40%);\n    --color-primary-verydark: hsl(5, 100%, 20%);\n    --color-primary-light: hsl(5, 100%, 83%);\n    --color-primary-lighter: hsl(5, 100%, 70%);\n    --color-fg-11: #111111;\n    --color-fg-22: #222222;\n    --color-fg-33: #333333;\n    --color-bg-cc: #cccccc;\n    --color-bg-dd: #dddddd;\n    --color-bg-ee: #eeeeee;\n    --color-bg-f8: #f8f8f8;\n    --color-shadow: rgba(0, 0, 0, .5);\n}\n\n.no-selection {\n    user-select: none;\n    -ms-user-select: none;\n    -moz-user-select: none;\n    -webkit-user-select: none;\n}\n\n/* listview item */\n\n.item {\n    display: block;\n    position: relative;\n    padding: 10px;\n    /* background: #ddd; */\n    /* animation: showing .3s forwards; */\n    text-decoration: none;\n    line-height: 1.2;\n}\n\na.item {\n    color: inherit;\n}\n\n.clickable, .item {\n    cursor: pointer;\n    transition: transform .3s;\n    -webkit-tap-highlight-color: transparent;\n}\n\n.item:hover, .dragover {\n    background: var(--color-bg-ee);\n}\n\n.keyboard-input .item:focus {\n    outline-offset: -2px;\n}\n\n.dragover-placeholder {\n    /* border-top: 2px solid gray; */\n    position: relative;\n}\n\n.dragover-placeholder::before {\n    content: \"\";\n    display: block;\n    position: absolute;\n    transform: translate(0, -1px);\n    height: 2px;\n    width: 100%;\n    background: gray;\n    z-index: 100;\n    pointer-events: none;\n}\n\n.clickable:active, .item:active {\n    transition: transform .07s;\n    transform: scale(.97);\n}\n\n.item:active {\n    background: var(--color-bg-dd);\n}\n\n.item.no-transform:active {\n    transform: none;\n}\n\n.item.active {\n    background: var(--color-bg-dd);\n}\n\n.loading-indicator {\n    position: relative;\n    margin: .3em;\n    margin-top: 3em;\n    margin-bottom: 1em;\n    text-align: center;\n    white-space: pre-wrap;\n    cursor: default;\n    animation: loading-fadein .3s;\n}\n\n.loading-indicator-text {\n    margin: 0 auto;\n}\n\n.loading-indicator.running .loading-indicator-inner {\n    display: inline-block;\n    position: relative;\n    vertical-align: bottom;\n}\n\n.loading-indicator.running .loading-indicator-inner::after {\n    content: \"\";\n    height: 1px;\n    margin: 0%;\n    background: var(--color-text);\n    display: block;\n    animation: fadein .5s 1s backwards;\n}\n\n.loading-indicator.running .loading-indicator-text {\n    margin: 0 .5em;\n    animation: fadein .3s, loading-first .3s .5s cubic-bezier(0.55, 0.055, 0.675, 0.19) reverse, loading-second .3s .8s cubic-bezier(0.55, 0.055, 0.675, 0.19), loading .25s 1.1s cubic-bezier(0.55, 0.055, 0.675, 0.19) alternate-reverse infinite;\n}\n\n.loading-indicator.error {\n    color: red;\n}\n\n.loading-indicator.fading-out {\n    transition: max-height;\n    animation: loading-fadein .3s reverse;\n}\n\n@keyframes loading-fadein {\n    0% {\n        opacity: 0;\n        max-height: 0;\n    }\n    100% {\n        opacity: 1;\n        max-height: 200px;\n    }\n}\n\n@keyframes fadein {\n    0% {\n        opacity: 0;\n    }\n    100% {\n        opacity: 1;\n    }\n}\n\n@keyframes loading-first {\n    0% {\n        transform: translate(0, -2em) scale(1) rotate(360deg);\n    }\n    100% {\n        transform: translate(0, 0) scale(1) rotate(0deg);\n    }\n}\n\n@keyframes loading-second {\n    0% {\n        transform: translate(0, -2em);\n    }\n    100% {\n        transform: translate(0, 0);\n    }\n}\n\n@keyframes loading {\n    0% {\n        transform: translate(0, -1em);\n    }\n    100% {\n        transform: translate(0, 0);\n    }\n}\n\n@keyframes showing {\n    0% {\n        opacity: .3;\n        transform: translate(-20px, 0)\n    }\n    100% {\n        opacity: 1;\n        transform: translate(0, 0)\n    }\n}\n\n@keyframes showing-top {\n    0% {\n        opacity: .3;\n        transform: translate(0, -20px)\n    }\n    100% {\n        opacity: 1;\n        transform: translate(0, 0)\n    }\n}\n\n@keyframes showing-right {\n    0% {\n        opacity: .3;\n        transform: translate(20px, 0)\n    }\n    100% {\n        opacity: 1;\n        transform: translate(0, 0)\n    }\n}\n\n.overlay {\n    background: rgba(0, 0, 0, .2);\n    position: absolute;\n    top: 0;\n    left: 0;\n    right: 0;\n    bottom: 0;\n    animation: fadein .3s;\n    z-index: 10001;\n    overflow: hidden;\n    contain: strict;\n    will-change: transform;\n}\n\n.overlay.fixed {\n    position: fixed;\n}\n\n.overlay.nobg {\n    background: none;\n    will-change: auto;\n}\n\n.overlay.centerChild {\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.overlay.clickThrough {\n    pointer-events: none;\n}\n\n.dialog * {\n    box-sizing: border-box;\n}\n\n.dialog {\n    font-size: 14px;\n    position: relative;\n    overflow: auto;\n    background: var(--color-bg);\n    border-radius: 5px;\n    box-shadow: 0 0 12px var(--color-shadow);\n    animation: dialogin .2s ease-out;\n    z-index: 10001;\n    display: flex;\n    flex-direction: column;\n    max-height: 100%;\n    contain: content;\n    will-change: transform;\n    pointer-events: auto;\n}\n\n.dialog.resize {\n    resize: both;\n}\n\n.fading-out .dialog {\n    transition: transform .3s ease-in;\n    transform: scale(.85);\n}\n\n.dialog-title, .dialog-content, .dialog-bottom {\n    padding: 10px;\n}\n\n.dialog-title {\n    background: var(--color-bg-ee);\n}\n\n.dialog-content {\n    flex: 1;\n    padding: 5px 10px;\n    overflow: auto;\n}\n\n.dialog-content.flex {\n    display: flex;\n    flex-direction: column;\n}\n\n.dialog-bottom {\n    padding: 5px 10px;\n}\n\n@keyframes dialogin {\n    0% {\n        transform: scale(.85);\n    }\n    100% {\n        transform: scale(1);\n    }\n}\n\n.input-label {\n    font-size: 80%;\n    color: var(--color-text-gray);\n    margin: 5px 0 3px 0;\n}\n\n.input-text {\n    display: block;\n    width: 100%;\n    padding: 5px;\n    border: solid 1px gray;\n    background: var(--color-bg);\n    color: var(--color-text);\n}\n\n.dialog .input-text {\n    margin: 5px 0;\n}\n\ntextarea.input-text {\n    resize: vertical;\n}\n\n.labeled-input {\n    display: flex;\n    flex-direction: column;\n}\n\n.labeled-input .input-text {\n    flex: 1;\n}\n\n.labeled-input:focus-within .input-label {\n    color: var(--color-primary-darker);\n}\n\n.input-text:focus {\n    border-color: var(--color-primary-darker);\n}\n\n.input-text:active {\n    border-color: var(--color-primary-dark);\n}\n\n.btn {\n    display: block;\n    text-align: center;\n    transition: all .2s;\n    padding: 0 .4em;\n    min-width: 3em;\n    line-height: 1.5em;\n    background: var(--color-primary);\n    color: white;\n    text-shadow: 0 0 4px var(--color-primary-verydark);\n    box-shadow: 0 0 3px var(--color-shadow);\n    cursor: pointer;\n    -ms-user-select: none;\n    -moz-user-select: none;\n    -webkit-user-select: none;\n    user-select: none;\n    position: relative;\n    overflow: hidden;\n}\n\n.btn:hover {\n    transition: all .05s;\n    background: var(--color-primary-darker);\n}\n\n.btn.btn-down, .btn:active {\n    transition: all .05s;\n    background: var(--color-primary-dark);\n    box-shadow: 0 0 1px var(--color-shadow);\n}\n\n.btn.disabled {\n    background: var(--color-primary-light);\n}\n\n.dialog .btn {\n    margin: 10px 0;\n}\n\n.btn-big {\n    padding: 5px;\n}\n\n.btn-inline {\n    display: inline;\n}\n\n.textbtn {\n    display: inline-block;\n    color: var(--color-text-gray);\n    margin: 0 5px;\n}\n\n.textbtn.active {\n    color: var(--color-text);\n}\n\n*[hidden] {\n    display: none !important;\n}\n\n.context-menu {\n    position: absolute;\n    overflow-y: auto;\n    background: var(--color-bg);\n    border: solid 1px #777;\n    box-shadow: 0 0px 12px var(--color-shadow);\n    min-width: 100px;\n    max-width: 450px;\n    outline: none;\n    z-index: 10001;\n    animation: context-menu-in .2s ease-out forwards;\n    will-change: transform;\n}\n\n.context-menu .item.dangerous {\n    transition: color .3s, background .3s;\n    color: red;\n}\n\n.context-menu .item.dangerous:hover {\n    transition: color .1s, background .1s;\n    background: red;\n    color: white;\n}\n\n@keyframes context-menu-in {\n    0% {\n        transform: scale(.9);\n    }\n    100% {\n        transform: scale(1);\n    }\n}\n\n*.menu-shown {\n    background: var(--color-bg-dd);\n}\n\n.menu-info {\n    white-space: pre-wrap;\n    color: var(--color-text-gray);\n    padding: 5px 10px;\n    /* animation: showing .3s; */\n    cursor: default;\n}\n\n.toasts-container {\n    position: fixed;\n    bottom: 0;\n    right: 0;\n    padding: 5px;\n    width: 300px;\n    z-index: 10001;\n    overflow: hidden;\n}\n\n.toast {\n    margin: 5px;\n    padding: 10px;\n    border-radius: 5px;\n    box-shadow: 0 0 10px var(--color-shadow);\n    background: var(--color-bg);\n    white-space: pre-wrap;\n    animation: showing-right .3s;\n}\n\n.fading-out {\n    transition: opacity .3s;\n    opacity: 0;\n    pointer-events: none;\n}\n\n.anchor-bottom {\n    transform: translate(-50%, -100%);\n}\n\n.tooltip {\n    position: absolute;\n    background: var(--color-bg);\n    box-shadow: 0 0 5px var(--color-shadow);\n    border-radius: 5px;\n    padding: .2em .25em;\n}\n";
@@ -1966,7 +2156,7 @@ class MessageBox extends Dialog {
     }
     addResultBtns(results) {
         for (const r of results) {
-            this.addBtnWithResult(new TextBtn({ text: i18n$1.get('msgbox_' + r), right: true }), r);
+            this.addBtnWithResult(new TextBtn({ text: i18n.get('msgbox_' + r), right: true }), r);
         }
         return this;
     }
@@ -2909,4 +3099,4 @@ class Toast extends View {
     }
 }
 
-export { AutoResetEvent, BuildDOMCtx, ButtonView, Callbacks, CancelToken, ContainerView, ContextMenu, DataUpdatingHelper, Dialog, DialogParent, EditableHelper, EventRegistrations, FlagsInput, InputStateTracker, InputView, ItemActiveHelper, JsxNode, LabeledInput, LabeledInputBase, Lazy, LazyListView, ListView, ListViewItem, LoadingIndicator, MenuInfoItem, MenuItem, MenuLinkItem, MessageBox, MountState, Overlay, Ref, Section, SectionAction, SelectionHelper, Semaphore, SettingItem, TabBtn, TextBtn, TextCompositionWatcher, TextView, Timer, Toast, ToastsContainer, ToolTip, View, ViewToggle, addChild, appendView, arrayFind, arrayForeach, arrayInsert, arrayMap, arrayRemove, arraySum, base64EncodeUtf8, buildDOM, buildView, clearChildren, createName, dragManager, fadeout, foreachFlaten, formatDateTime, formatFileSize, formatTime, getDOM, getWebfxCss, injectCss, injectWebfxCss, jsx, jsxBuild, jsxFactory, listenEvent, listenEvents, listenPointerEvents, mod, mountView, numLimit, objectApply, objectInit, readBlobAsDataUrl, replaceChild, setPosition, sleepAsync, startBlockingDetect, strPadLeft, toggleClass, tryGetDOM, unmountView, utils, version };
+export { AutoResetEvent, BuildDOMCtx, ButtonView, Callbacks, CancelToken, ContainerView, ContextMenu, DataUpdatingHelper, Dialog, DialogParent, EditableHelper, EventRegistrations, FlagsInput, I, I18n, InputStateTracker, InputView, ItemActiveHelper, JsxNode, LabeledInput, LabeledInputBase, Lazy, LazyListView, ListView, ListViewItem, LoadingIndicator, MenuInfoItem, MenuItem, MenuLinkItem, MessageBox, MountState, Overlay, Ref, Section, SectionAction, SelectionHelper, Semaphore, SettingItem, TabBtn, TextBtn, TextCompositionWatcher, TextView, Timer, Toast, ToastsContainer, ToolTip, View, ViewToggle, addChild, appendView, arrayFind, arrayForeach, arrayInsert, arrayMap, arrayRemove, arraySum, base64EncodeUtf8, buildDOM, buildView, clearChildren, createArrayBuilder, createName, createStringBuilder, dragManager, fadeout, foreachFlaten, formatDateTime, formatFileSize, formatTime, getDOM, getWebfxCss, i18n, injectCss, injectWebfxCss, jsx, jsxBuild, jsxFactory, listenEvent, listenEvents, listenPointerEvents, mod, mountView, numLimit, objectApply, objectInit, readBlobAsDataUrl, replaceChild, setPosition, sleepAsync, startBlockingDetect, strPadLeft, toggleClass, tryGetDOM, unmountView, utils, version };
