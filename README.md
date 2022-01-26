@@ -59,13 +59,13 @@ import { View, ButtonView } from "@yuuza/webfx";
 Add webfx to your web page:
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@yuuza/webfx@1.9.6/dist/webfx.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@yuuza/webfx@1.9.12/dist/webfx.min.js"></script>
 ```
 
 Or if you don't need the viewlib:
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@yuuza/webfx@1.9.6/dist/webfxcore.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@yuuza/webfx@1.9.12/dist/webfxcore.min.js"></script>
 ```
 
 Then the module can be accessed from global variable `webfx`:
@@ -242,6 +242,8 @@ mountView(document.body, new Counter());
 ### I18n Helper
 
 Using the [tagged templates](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals#tagged_templates) feature, the i18n is very easy.
+
+This feature is also available as a standalone package `@yuuza/i18n`.
 
 ```js
 import { i18n, I } from "@yuuza/webfx";
