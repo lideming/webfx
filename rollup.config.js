@@ -1,6 +1,7 @@
 // rollup index.js --file dist/webfx.js --format umd --name webfx --context this
 import { terser } from "rollup-plugin-terser";
 import sourcemaps from 'rollup-plugin-sourcemaps';
+import resolve from '@rollup/plugin-node-resolve';
 
 var pkgVersion = require('./package.json').version;
 
@@ -78,6 +79,7 @@ export default [{
     ],
     plugins: [
         sourcemaps(),
+        resolve(),
         myVersion(),
         myText(),
     ],
@@ -96,6 +98,7 @@ export default [{
     ],
     plugins: [
         sourcemaps(),
+        resolve(),
         myVersion(),
     ],
     context: 'this'
