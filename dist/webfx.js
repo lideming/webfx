@@ -343,14 +343,11 @@
         /** The view is mounted (i.e. the DOM is in the document). */
         MountState[MountState["Mounted"] = 2] = "Mounted";
     })(exports.MountState || (exports.MountState = {}));
-    const emptyAction = () => { };
-    const updateFunctionFactoryCache = new Map();
     class BuildDOMCtx {
         constructor() {
             this.dict = undefined;
             this.actions = undefined;
             this.view = undefined;
-            this.update = this._compileUpdate;
         }
         setDict(key, node) {
             if (!this.dict)
@@ -362,26 +359,12 @@
                 this.actions = [];
             this.actions.push(action);
         }
-        _compileUpdate() {
-            if (!this.actions) {
-                this.update = emptyAction;
+        update() {
+            if (!this.actions)
                 return;
-            }
-            let statements = [];
-            let values = [];
             for (const a of this.actions) {
-                a.compile(statements, values);
+                a.run();
             }
-            const funcBody = `return function() {
-            ${statements.join(';\n')}
-        }`;
-            let updateFuncFactory = updateFunctionFactoryCache.get(funcBody);
-            if (!updateFuncFactory) {
-                updateFuncFactory = new Function(...values.map((x, i) => 'v' + i), funcBody);
-                updateFunctionFactoryCache.set(funcBody, updateFuncFactory);
-            }
-            this.update = updateFuncFactory.apply(null, values);
-            this.update();
         }
     }
     class TextAction {
@@ -392,10 +375,6 @@
         run() {
             this.node.textContent = this.func();
         }
-        compile(statements, values) {
-            statements.push(`v${values.length}.textContent = v${values.length + 1}()`);
-            values.push(this.node, this.func);
-        }
     }
     class HiddenAction {
         constructor(node, func) {
@@ -405,10 +384,6 @@
         run() {
             this.node.hidden = this.func();
         }
-        compile(statements, values) {
-            statements.push(`v${values.length}.hidden = v${values.length + 1}()`);
-            values.push(this.node, this.func);
-        }
     }
     class UpdateAction {
         constructor(node, func) {
@@ -417,10 +392,6 @@
         }
         run() {
             this.func(this.node);
-        }
-        compile(statements, values) {
-            statements.push(`v${values.length + 1}(v${values.length})`);
-            values.push(this.node, this.func);
         }
     }
     var createElementFromTag = function (tag) {
@@ -1951,7 +1922,7 @@
             if (this.shown)
                 return;
             this.shown = true;
-            (_a = this._cancelFadeout) === null || _a === void 0 ? void 0 : _a.call(this);
+            (_a = this._cancelFadeout) === null || _a === void 0 ? void 0 : _a.call(this, true);
             this.ensureDom();
             this.parent.onDialogShowing(this);
             this.setTransformOrigin(ev);
@@ -2048,7 +2019,7 @@
         onDialogShowing(dialog) {
             var _a;
             if (this.dialogCount++ === 0) {
-                (_a = this._cancelFadeout) === null || _a === void 0 ? void 0 : _a.call(this);
+                (_a = this._cancelFadeout) === null || _a === void 0 ? void 0 : _a.call(this, true);
                 this.bgOverlay.setFlags({ fixed: this.fixed, clickThrough: true });
                 this.view.appendView(this.bgOverlay);
             }
