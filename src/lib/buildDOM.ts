@@ -1,4 +1,4 @@
-import { Action, Callbacks, ConvertObjectWithCallbacks, foreachFlaten, Func, FuncOrVal, Ref } from "./utils";
+import { Action, Callbacks, ConvertObjectWithCallbacks, foreachFlaten, Func, FuncOrVal, Ref } from "@yuuza/utils";
 import { addChild, getDOM, View } from "./view";
 
 // BuildDOM types & implementation:

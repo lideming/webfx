@@ -1,20 +1,20 @@
 {
   "name": "@yuuza/i18n",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "",
   "main": "build/i18n.umd.js",
   "module": "build/i18n.js",
   "types": "build/i18n.d.ts",
   "scripts": {
-    "build": "tsc && rollup build/i18n.js --format umd --name i18n > build/i18n.umd.js"
+    "build": "tsc && rollup build/i18n.js --format umd --name i18n -o build/i18n.umd.js"
   },
   "files": [
     "build"
   ],
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "devDependencies": {
-    "typescript": "^4.4.4"
+    "typescript": "^4.6.4"
   }
 }

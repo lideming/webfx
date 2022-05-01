@@ -1,7 +1,8 @@
 import { buildDOM, BuildDomExpr, IDOM } from "../lib/buildDOM";
-import { Action, Callbacks, clearChildren } from "../lib/utils";
+import { Action, Callbacks } from "@yuuza/utils";
 import { View, ContainerView } from "../lib/view";
 import { dragManager } from "./helpers";
+import { clearChildren } from "../lib/viewUtils";
 
 export abstract class ListViewItem extends View implements ISelectable {
     get listview() { return this.parentView instanceof ListView ? this.parentView as ListView<this> : null; }

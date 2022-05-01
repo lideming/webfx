@@ -1,6 +1,7 @@
-import { Callbacks, listenEvent, ObjectInit, objectInit, toggleClass } from "../lib/utils";
+import { Callbacks, ObjectInit, objectInit } from "@yuuza/utils";
 import { View } from "../lib/view";
 import { buildDOM } from "../lib/buildDOM";
+import { listenEvent, toggleClass } from "../lib/viewUtils";
 
 
 export interface PositionOptions {

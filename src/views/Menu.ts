@@ -1,8 +1,9 @@
-import { ObjectInit, objectInit, Callbacks, Action, fadeout } from "../lib/utils";
+import { ObjectInit, objectInit, Callbacks, Action } from "@yuuza/utils";
 import { BuildDomExpr, BuildDomNode } from "../lib/buildDOM";
 import { ListViewItem, ListView } from "./ListView";
 import { Overlay } from "./Overlay";
 import { mountView, unmountView } from "../lib/view";
+import { fadeout } from "../lib/viewUtils";
 
 
 export class MenuItem extends ListViewItem {

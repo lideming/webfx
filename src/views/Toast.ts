@@ -1,5 +1,6 @@
-import { Timer, ObjectInit, objectInit, fadeout } from "../lib/utils";
+import { ObjectInit, objectInit } from "@yuuza/utils";
 import { View } from "../lib/view";
+import { fadeout, Timer } from "../lib/viewUtils";
 
 
 export class ToastsContainer extends View {

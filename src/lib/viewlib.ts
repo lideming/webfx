@@ -1,6 +1,6 @@
 // file: viewlib.ts
 
-import { injectCss } from "./utils";
+import { injectCss } from "./viewUtils";
 import css from "../../style.css";
 
 export function getWebfxCss() { return css; }

@@ -20,7 +20,8 @@
     SOFTWARE.
 ************************************************* */
 
-export * from "./lib/utils";
+export * from "@yuuza/utils";
+export * from "./lib/viewUtils";
 export * from "./lib/buildDOM";
 export * from "./lib/view";
 export * from "@yuuza/i18n";

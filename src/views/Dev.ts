@@ -1,5 +1,6 @@
-import { Timer, Action, fadeout, ObjectInit, objectInit } from "../lib/utils";
+import { Action, ObjectInit, objectInit } from "@yuuza/utils";
 import { ContainerView } from "../lib/view";
+import { fadeout, Timer } from "../lib/viewUtils";
 import { TextView } from "./Basics";
 import { setPosition, PositionOptions } from "./helpers";
 

@@ -1,5 +1,6 @@
-import { Action, Callbacks, objectApply, toggleClass, arrayFind, arrayForeach, arrayMap } from "./utils";
+import { Action, Callbacks, objectApply, arrayFind, arrayForeach, arrayMap } from "@yuuza/utils";
 import { buildDOM, BuildDOMCtx, BuildDomExpr, buildView, IDOM, IView, JsxNode, MountState } from "./buildDOM";
+import { toggleClass } from "./viewUtils";
 
 
 export class View<T extends HTMLElement = HTMLElement> implements IView {

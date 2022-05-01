@@ -40,7 +40,7 @@ jobs:
           pnpm install --frozen-lockfile
 
       - name: Build
-        run: pnpm run build
+        run: pnpm run buildall
 
       - name: Pre depoly
         run: pnpm run buildpages

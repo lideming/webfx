@@ -1,4 +1,4 @@
-import { Action, ObjectInit, objectInit } from "../lib/utils";
+import { Action, ObjectInit, objectInit } from "@yuuza/utils";
 import { View } from "../lib/view";
 import { IDOM, BuildDomExpr } from "../lib/buildDOM";
 import { TextView } from "./Basics";

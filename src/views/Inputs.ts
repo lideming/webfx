@@ -1,5 +1,5 @@
 import { BuildDomExpr } from "../lib/buildDOM";
-import { ObjectInit, objectInit } from "../lib/utils";
+import { ObjectInit, objectInit } from "@yuuza/utils";
 import { View } from "../lib/view";
 
 

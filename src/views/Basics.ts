@@ -1,5 +1,5 @@
 import { BuildDomExpr } from "../lib/buildDOM";
-import { Func, FuncOrVal, ObjectInit, objectInit } from "../lib/utils";
+import { Func, FuncOrVal, ObjectInit, objectInit } from "@yuuza/utils";
 import { View } from "../lib/view";
 
 export class TextView extends View {
