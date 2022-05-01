@@ -242,6 +242,9 @@ export const Callbacks: { new <T extends AnyFunc = Action>(): Callbacks<T>; } = 
 export class Ref<T> {
     private _value: T | undefined = undefined;
     private _onChanged: Callbacks<Action<Ref<T>>> | undefined = undefined;
+    constructor(value?: T) {
+        this._value = value;
+    }
     get onChanged() {
         if (!this._onChanged) this._onChanged = new Callbacks();
         return this._onChanged;
@@ -250,6 +253,11 @@ export class Ref<T> {
     set value(val) {
         this._value = val;
         if (this._onChanged) this.onChanged.invoke(this);
+    }
+    static from<T>(value: T) {
+        const ref = new Ref<T>();
+        ref._value = value;
+        return ref as (Ref<T> & { value: T });
     }
 }
 
