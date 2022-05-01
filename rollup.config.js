@@ -57,6 +57,7 @@ function myVersion() {
     };
 }
 
+/** @type {import("rollup").RollupOptions} */
 export default [{
     input: 'build/index.js',
     output: [
@@ -94,7 +95,15 @@ export default [{
             sourcemap: true,
             sourcemapPathTransform: transformSourcemapPath(),
             plugins: [terser()]
-        }
+        },
+        {
+            file: 'dist/webfxcore.min.esm.js',
+            format: 'es',
+            name: 'webfx',
+            sourcemap: true,
+            sourcemapPathTransform: transformSourcemapPath(),
+            plugins: [terser()]
+        },
     ],
     plugins: [
         sourcemaps(),
