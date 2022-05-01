@@ -4,6 +4,346 @@
     (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.webfx = {}));
 })(this, (function (exports) { 'use strict';
 
+    // file: utils.ts
+    var __awaiter$2 = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+        function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+        return new (P || (P = Promise))(function (resolve, reject) {
+            function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+            function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+            function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+            step((generator = generator.apply(thisArg, _arguments || [])).next());
+        });
+    };
+    const _object_assign = Object.assign;
+    const _object_hasOwnProperty = Object.prototype.hasOwnProperty;
+    // Time & formatting utils:
+    function strPadLeft(str, len, ch = ' ') {
+        while (str.length < len) {
+            str = ch + str;
+        }
+        return str;
+    }
+    function formatDuration(sec) {
+        if (typeof sec !== 'number' || isNaN(sec))
+            return '--:--';
+        sec = Math.round(sec);
+        var min = Math.floor(sec / 60);
+        sec %= 60;
+        return strPadLeft(min.toString(), 2, '0') + ':' + strPadLeft(sec.toString(), 2, '0');
+    }
+    const fileSizeUnits = ['B', 'KB', 'MB', 'GB'];
+    function formatFileSize(size) {
+        if (typeof size !== "number" || isNaN(size))
+            return 'NaN';
+        var unit = 0;
+        while (unit < fileSizeUnits.length - 1 && size >= 1024) {
+            unit++;
+            size /= 1024;
+        }
+        return size.toFixed(2) + ' ' + fileSizeUnits[unit];
+    }
+    function formatDateTime(date) {
+        var now = new Date();
+        var sameday = date.getFullYear() === now.getFullYear()
+            && date.getMonth() === now.getMonth()
+            && date.getDate() === now.getDate();
+        return sameday ? date.toLocaleTimeString() : date.toLocaleString();
+    }
+    function numLimit(num, min, max) {
+        return (num < min || typeof num != 'number' || isNaN(num)) ? min :
+            (num > max) ? max : num;
+    }
+    function createName(nameFunc, existsFunc) {
+        for (let num = 0;; num++) {
+            let str = nameFunc(num);
+            if (!existsFunc(str))
+                return str;
+        }
+    }
+    /**
+     * btoa, but supports Unicode and uses UTF-8 encoding.
+     * @see https://stackoverflow.com/questions/30106476
+     */
+    function base64EncodeUtf8(str) {
+        return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function toSolidBytes(match, p1) {
+            return String.fromCharCode(('0x' + p1));
+        }));
+    }
+    function sleepAsync(time) {
+        return new Promise((resolve) => {
+            setTimeout(resolve, time);
+        });
+    }
+    function arrayRemove(array, val) {
+        for (let i = 0; i < array.length; i++) {
+            if (array[i] === val) {
+                array.splice(i, 1);
+                i--;
+            }
+        }
+    }
+    function arrayInsert(array, val, pos) {
+        if (pos === undefined)
+            array.push(val);
+        else
+            array.splice(pos, 0, val);
+    }
+    function arrayMap(arr, func) {
+        if (arr instanceof Array)
+            return arr.map(func);
+        var idx = 0;
+        var ret = new Array(arr.length);
+        for (var item of arr) {
+            ret[idx] = (func(item, idx));
+            idx++;
+        }
+        return ret;
+    }
+    function arrayForeach(arr, func) {
+        var idx = 0;
+        for (var item of arr) {
+            func(item, idx++);
+        }
+    }
+    function foreachFlaten(arr, func) {
+        for (const it of arr) {
+            if (it instanceof Array) {
+                foreachFlaten(it, func);
+            }
+            else {
+                func(it);
+            }
+        }
+    }
+    function arrayFind(arr, func) {
+        if (arr instanceof Array)
+            return arr.find(func);
+        var idx = 0;
+        for (var item of arr) {
+            if (func(item, idx++))
+                return item;
+        }
+        return null;
+    }
+    function arraySum(arr, func) {
+        var sum = 0;
+        arrayForeach(arr, (x) => {
+            var val = func(x);
+            if (val)
+                sum += val;
+        });
+        return sum;
+    }
+    function objectApply(obj, kv, keys) {
+        if (kv) {
+            if (!keys)
+                return _object_assign(obj, kv);
+            for (const key in kv) {
+                if (_object_hasOwnProperty.call(kv, key) && (!keys || keys.indexOf(key) >= 0)) {
+                    const val = kv[key];
+                    obj[key] = val;
+                }
+            }
+        }
+        return obj;
+    }
+    function objectInit(obj, kv, keys) {
+        if (kv) {
+            for (const key in kv) {
+                if (_object_hasOwnProperty.call(kv, key) && (!keys || keys.indexOf(key) >= 0)) {
+                    const val = kv[key];
+                    if (key.startsWith("on") && obj[key] instanceof Callbacks) {
+                        obj[key].add(val);
+                    }
+                    else {
+                        obj[key] = val;
+                    }
+                }
+            }
+        }
+        return obj;
+    }
+    function mod(a, b) {
+        if (a < 0)
+            a = b + a;
+        return a % b;
+    }
+    function readBlobAsDataUrl(blob) {
+        return new Promise((resolve, reject) => {
+            var reader = new FileReader();
+            reader.onload = (ev) => {
+                resolve(reader.result);
+            };
+            reader.onerror = (ev) => reject();
+            reader.readAsDataURL(blob);
+        });
+    }
+    Array.prototype.remove = function (item) {
+        arrayRemove(this, item);
+    };
+    class CallbacksImpl extends Array {
+        constructor() {
+            super(...arguments);
+            this._hook = undefined;
+        }
+        get onChanged() {
+            var _a;
+            (_a = this._hook) !== null && _a !== void 0 ? _a : (this._hook = new Callbacks());
+            return this._hook;
+        }
+        invoke(...args) {
+            this.forEach((x) => {
+                try {
+                    x.apply(this, args);
+                }
+                catch (error) {
+                    console.error("Error in callback", error);
+                }
+            });
+        }
+        add(callback) {
+            var _a;
+            this.push(callback);
+            (_a = this._hook) === null || _a === void 0 ? void 0 : _a.invoke(true, callback);
+            return callback;
+        }
+        remove(callback) {
+            var _a;
+            super.remove(callback);
+            (_a = this._hook) === null || _a === void 0 ? void 0 : _a.invoke(false, callback);
+        }
+    }
+    const Callbacks = CallbacksImpl;
+    class Ref {
+        constructor() {
+            this._value = undefined;
+            this._onChanged = undefined;
+        }
+        get onChanged() {
+            if (!this._onChanged)
+                this._onChanged = new Callbacks();
+            return this._onChanged;
+        }
+        get value() { return this._value; }
+        set value(val) {
+            this._value = val;
+            if (this._onChanged)
+                this.onChanged.invoke(this);
+        }
+    }
+    class Lazy {
+        constructor(func) {
+            this._func = func;
+            this._value = undefined;
+        }
+        get computed() { return !this._func; }
+        get rawValue() { return this._value; }
+        get value() {
+            if (this._func) {
+                this._value = this._func();
+                this._func = undefined;
+            }
+            return this._value;
+        }
+    }
+    class Semaphore {
+        constructor(init) {
+            this.queue = new Array();
+            this.maxCount = 1;
+            this.runningCount = 0;
+            objectInit(this, init);
+        }
+        enter() {
+            if (this.runningCount === this.maxCount) {
+                var resolve;
+                var prom = new Promise((res) => { resolve = res; });
+                this.queue.push(resolve);
+                return prom;
+            }
+            else {
+                this.runningCount++;
+                return Promise.resolve();
+            }
+        }
+        exit() {
+            if (this.runningCount === this.maxCount && this.queue.length) {
+                if (window.queueMicrotask) {
+                    window.queueMicrotask(this.queue.shift());
+                }
+                else {
+                    setTimeout(this.queue.shift(), 0);
+                }
+            }
+            else {
+                this.runningCount--;
+            }
+        }
+        run(func) {
+            return __awaiter$2(this, void 0, void 0, function* () {
+                yield this.enter();
+                try {
+                    yield func();
+                }
+                finally {
+                    this.exit();
+                }
+            });
+        }
+    }
+    /** Just like CancellationToken[Source] on .NET */
+    class CancelToken {
+        constructor() {
+            this.cancelled = false;
+            this.onCancelled = new Callbacks();
+        }
+        cancel() {
+            if (this.cancelled)
+                return;
+            this.cancelled = true;
+            this.onCancelled.invoke();
+        }
+        throwIfCancelled() {
+            if (this.cancelled)
+                throw new Error("operation cancelled.");
+        }
+    }
+    class AutoResetEvent {
+        constructor() {
+            this._whenNotify = null;
+            this._callback = null;
+        }
+        wait() {
+            if (!this._whenNotify) {
+                this._whenNotify = new Promise(r => {
+                    this._callback = () => {
+                        this._callback = this._whenNotify = null;
+                        r();
+                    };
+                });
+            }
+            return this._whenNotify;
+        }
+        set() {
+            this._callback && this._callback();
+        }
+    }
+    class EventRegistrations {
+        constructor() {
+            this.list = [];
+        }
+        add(event, func) {
+            this.list.push({ event, func });
+            event.add(func);
+            return func;
+        }
+        removeAll() {
+            while (this.list.length) {
+                var r = this.list.pop();
+                r.event.remove(r.func);
+            }
+        }
+    }
+
     class View {
         constructor(dom) {
             this.parentView = undefined;
@@ -658,81 +998,6 @@
     }
     const jsx = jsxFactory;
 
-    // file: utils.ts
-    var __awaiter$2 = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-        function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-        return new (P || (P = Promise))(function (resolve, reject) {
-            function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-            function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-            function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-            step((generator = generator.apply(thisArg, _arguments || [])).next());
-        });
-    };
-    const _object_assign = Object.assign;
-    const _object_hasOwnProperty = Object.prototype.hasOwnProperty;
-    // Time & formatting utils:
-    function strPadLeft(str, len, ch = ' ') {
-        while (str.length < len) {
-            str = ch + str;
-        }
-        return str;
-    }
-    function formatTime(sec) {
-        if (typeof sec !== 'number' || isNaN(sec))
-            return '--:--';
-        sec = Math.round(sec);
-        var min = Math.floor(sec / 60);
-        sec %= 60;
-        return strPadLeft(min.toString(), 2, '0') + ':' + strPadLeft(sec.toString(), 2, '0');
-    }
-    const fileSizeUnits = ['B', 'KB', 'MB', 'GB'];
-    function formatFileSize(size) {
-        if (typeof size !== "number" || isNaN(size))
-            return 'NaN';
-        var unit = 0;
-        while (unit < fileSizeUnits.length - 1 && size >= 1024) {
-            unit++;
-            size /= 1024;
-        }
-        return size.toFixed(2) + ' ' + fileSizeUnits[unit];
-    }
-    function formatDateTime(date) {
-        var now = new Date();
-        var sameday = date.getFullYear() === now.getFullYear()
-            && date.getMonth() === now.getMonth()
-            && date.getDate() === now.getDate();
-        return sameday ? date.toLocaleTimeString() : date.toLocaleString();
-    }
-    function numLimit(num, min, max) {
-        return (num < min || typeof num != 'number' || isNaN(num)) ? min :
-            (num > max) ? max : num;
-    }
-    function createName(nameFunc, existsFunc) {
-        for (let num = 0;; num++) {
-            let str = nameFunc(num);
-            if (!existsFunc(str))
-                return str;
-        }
-    }
-    /**
-     * btoa, but supports Unicode and uses UTF-8 encoding.
-     * @see https://stackoverflow.com/questions/30106476
-     */
-    function base64EncodeUtf8(str) {
-        return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function toSolidBytes(match, p1) {
-            return String.fromCharCode(('0x' + p1));
-        }));
-    }
-    function sleepAsync(time) {
-        return new Promise((resolve) => {
-            setTimeout(resolve, time);
-        });
-    }
-    // buildDOM: <T extends BuildDomReturn = BuildDomReturn>(tree: BuildDomExpr, ctx?: BuildDOMCtx) => T
-    //     = null as any; // It will be initialized by view.ts
-    // jsxFactory: typeof jsxFactory = null as any;
-    // jsx: typeof jsxFactory = null as any;
-    /** Remove all children from the node */
     function clearChildren(node) {
         while (node.lastChild)
             node.removeChild(node.lastChild);
@@ -793,6 +1058,44 @@
                 end === null || end === void 0 ? void 0 : end(finish);
             }
         };
+    }
+    function startBlockingDetect(threshold = 20) {
+        var begin = Date.now();
+        var lastRun = Date.now();
+        setInterval(() => {
+            var now = Date.now();
+            if (now - lastRun >= threshold) {
+                console.info(`[Blocking] ${(now - begin) / 1000}s: blocked for ${now - lastRun} ms`);
+            }
+            lastRun = now;
+        }, 1);
+    }
+    class Timer {
+        constructor(callback) {
+            this.callback = callback;
+            this.cancelFunc = undefined;
+        }
+        timeout(time) {
+            this.tryCancel();
+            var handle = setTimeout(this.callback, time);
+            this.cancelFunc = () => window.clearTimeout(handle);
+        }
+        interval(time) {
+            this.tryCancel();
+            var handle = setInterval(this.callback, time);
+            this.cancelFunc = () => window.clearInterval(handle);
+        }
+        animationFrame() {
+            this.tryCancel();
+            var handle = requestAnimationFrame(this.callback);
+            this.cancelFunc = () => cancelAnimationFrame(handle);
+        }
+        tryCancel() {
+            if (this.cancelFunc) {
+                this.cancelFunc();
+                this.cancelFunc = undefined;
+            }
+        }
     }
     function listenPointerEvents(element, callback, options) {
         var touchDown = false;
@@ -865,376 +1168,70 @@
         var _a;
         document.head.appendChild(buildDOM({ tag: (_a = options === null || options === void 0 ? void 0 : options.tag) !== null && _a !== void 0 ? _a : 'style', text: css }));
     }
-    function arrayRemove(array, val) {
-        for (let i = 0; i < array.length; i++) {
-            if (array[i] === val) {
-                array.splice(i, 1);
-                i--;
-            }
+    class TextCompositionWatcher {
+        constructor(dom) {
+            this.onCompositingChanged = new Callbacks();
+            this._isCompositing = false;
+            this.dom = getDOM(dom);
+            this.dom.addEventListener('compositionstart', (ev) => {
+                this.isCompositing = true;
+            });
+            this.dom.addEventListener('compositionend', (ev) => {
+                this.isCompositing = false;
+            });
+        }
+        get isCompositing() { return this._isCompositing; }
+        set isCompositing(val) {
+            this._isCompositing = val;
+            this.onCompositingChanged.invoke();
         }
     }
-    function arrayInsert(array, val, pos) {
-        if (pos === undefined)
-            array.push(val);
-        else
-            array.splice(pos, 0, val);
-    }
-    function arrayMap(arr, func) {
-        if (arr instanceof Array)
-            return arr.map(func);
-        var idx = 0;
-        var ret = new Array(arr.length);
-        for (var item of arr) {
-            ret[idx] = (func(item, idx));
-            idx++;
-        }
-        return ret;
-    }
-    function arrayForeach(arr, func) {
-        var idx = 0;
-        for (var item of arr) {
-            func(item, idx++);
-        }
-    }
-    function foreachFlaten(arr, func) {
-        for (const it of arr) {
-            if (it instanceof Array) {
-                foreachFlaten(it, func);
-            }
-            else {
-                func(it);
-            }
-        }
-    }
-    function arrayFind(arr, func) {
-        if (arr instanceof Array)
-            return arr.find(func);
-        var idx = 0;
-        for (var item of arr) {
-            if (func(item, idx++))
-                return item;
-        }
-        return null;
-    }
-    function arraySum(arr, func) {
-        var sum = 0;
-        arrayForeach(arr, (x) => {
-            var val = func(x);
-            if (val)
-                sum += val;
-        });
-        return sum;
-    }
-    function objectApply(obj, kv, keys) {
-        if (kv) {
-            if (!keys)
-                return _object_assign(obj, kv);
-            for (const key in kv) {
-                if (_object_hasOwnProperty.call(kv, key) && (!keys || keys.indexOf(key) >= 0)) {
-                    const val = kv[key];
-                    obj[key] = val;
-                }
-            }
-        }
-        return obj;
-    }
-    function objectInit(obj, kv, keys) {
-        if (kv) {
-            for (const key in kv) {
-                if (_object_hasOwnProperty.call(kv, key) && (!keys || keys.indexOf(key) >= 0)) {
-                    const val = kv[key];
-                    if (key.startsWith("on") && obj[key] instanceof Callbacks) {
-                        obj[key].add(val);
-                    }
-                    else {
-                        obj[key] = val;
-                    }
-                }
-            }
-        }
-        return obj;
-    }
-    function mod(a, b) {
-        if (a < 0)
-            a = b + a;
-        return a % b;
-    }
-    function readBlobAsDataUrl(blob) {
-        return new Promise((resolve, reject) => {
-            var reader = new FileReader();
-            reader.onload = (ev) => {
-                resolve(reader.result);
+    class InputStateTracker {
+        constructor(dom) {
+            this.dom = dom;
+            this.state = {
+                mouseDown: false,
+                mouseIn: false,
+                focusIn: false,
             };
-            reader.onerror = (ev) => reject();
-            reader.readAsDataURL(blob);
-        });
-    }
-    Array.prototype.remove = function (item) {
-        arrayRemove(this, item);
-    };
-    function startBlockingDetect(threshold = 20) {
-        var begin = Date.now();
-        var lastRun = Date.now();
-        setInterval(() => {
-            var now = Date.now();
-            if (now - lastRun >= threshold) {
-                console.info(`[Blocking] ${(now - begin) / 1000}s: blocked for ${now - lastRun} ms`);
-            }
-            lastRun = now;
-        }, 1);
-    }
-    class Timer {
-        constructor(callback) {
-            this.callback = callback;
-            this.cancelFunc = undefined;
-        }
-        timeout(time) {
-            this.tryCancel();
-            var handle = setTimeout(this.callback, time);
-            this.cancelFunc = () => window.clearTimeout(handle);
-        }
-        interval(time) {
-            this.tryCancel();
-            var handle = setInterval(this.callback, time);
-            this.cancelFunc = () => window.clearInterval(handle);
-        }
-        animationFrame() {
-            this.tryCancel();
-            var handle = requestAnimationFrame(this.callback);
-            this.cancelFunc = () => cancelAnimationFrame(handle);
-        }
-        tryCancel() {
-            if (this.cancelFunc) {
-                this.cancelFunc();
-                this.cancelFunc = undefined;
-            }
-        }
-    }
-    class SettingItem {
-        constructor(key, type, initial) {
-            this.onRender = null;
-            this.key = key;
-            type = this.type = typeof type === 'string' ? SettingItem.types[type] : type;
-            if (!type || !type.serialize || !type.deserialize)
-                throw new Error("invalid 'type' arugment");
-            this.readFromStorage(initial);
-        }
-        readFromStorage(initial) {
-            var str = this.key ? localStorage.getItem(this.key) : null;
-            this.isInitial = !str;
-            this.set(str ? this.type.deserialize(str) : initial, true);
-        }
-        render(fn, dontRaiseNow) {
-            if (!dontRaiseNow)
-                fn(this.data);
-            const oldFn = this.onRender;
-            const newFn = fn;
-            if (oldFn)
-                fn = function (x) { oldFn(x); newFn(x); };
-            this.onRender = fn;
-            return this;
-        }
-        bindToBtn(btn, prefix) {
-            if (this.type !== SettingItem.types.bool)
-                throw new Error('only for bool type');
-            var span = document.createElement('span');
-            btn.insertBefore(span, btn.firstChild);
-            this.render(function (x) {
-                btn.classList.toggle('disabled', !x);
-                prefix = prefix || ["❌", "✅"];
-                span.textContent = prefix[+x];
-            });
-            var thiz = this;
-            btn.addEventListener('click', function () { thiz.toggle(); });
-            return this;
-        }
-        remove() {
-            localStorage.removeItem(this.key);
-        }
-        save() {
-            this.isInitial = false;
-            localStorage.setItem(this.key, this.type.serialize(this.data));
-        }
-        set(data, dontSave) {
-            this.data = data;
-            this.isInitial = false;
-            this.onRender && this.onRender(data);
-            if (!dontSave && this.key)
-                this.save();
-        }
-        get() {
-            return this.data;
-        }
-        toggle() {
-            if (this.type !== SettingItem.types.bool)
-                throw new Error('only for bool type');
-            this.set((!this.data));
-        }
-        loop(arr) {
-            var curData = this.data;
-            var oldIndex = arr.findIndex(function (x) { return x === curData; });
-            var newData = arr[(oldIndex + 1) % arr.length];
-            this.set(newData);
-        }
-    }
-    SettingItem.types = {
-        bool: {
-            serialize: function (data) { return data ? 'true' : 'false'; },
-            deserialize: function (str) { return str === 'true' ? true : str === 'false' ? false : undefined; }
-        },
-        str: {
-            serialize: function (x) { return x; },
-            deserialize: function (x) { return x; }
-        },
-        json: {
-            serialize: function (x) { return JSON.stringify(x); },
-            deserialize: function (x) { return JSON.parse(x); }
-        }
-    };
-    class CallbacksImpl extends Array {
-        constructor() {
-            super(...arguments);
-            this._hook = undefined;
-        }
-        get onChanged() {
-            var _a;
-            (_a = this._hook) !== null && _a !== void 0 ? _a : (this._hook = new Callbacks());
-            return this._hook;
-        }
-        invoke(...args) {
-            this.forEach((x) => {
-                try {
-                    x.apply(this, args);
+            this._removeEvents = null;
+            this._removePointerEvents = null;
+            this.onChanged = new Callbacks();
+            this._removeEvents = listenEvents(dom, ['mouseenter', 'mouseleave', 'focusin', 'focusout'], (e) => {
+                switch (e.type) {
+                    case 'mouseenter':
+                        this.stateChanged('mouseIn', true);
+                        break;
+                    case 'mouseleave':
+                        this.stateChanged('mouseIn', false);
+                        break;
+                    case 'focusin':
+                        this.stateChanged('focusIn', true);
+                        break;
+                    case 'focusout':
+                        this.stateChanged('focusIn', false);
+                        break;
                 }
-                catch (error) {
-                    console.error("Error in callback", error);
+            }).remove;
+            this._removePointerEvents = listenPointerEvents(dom, (e) => {
+                if (e.action == 'down') {
+                    this.stateChanged('mouseDown', true);
+                    return 'track';
                 }
-            });
-        }
-        add(callback) {
-            var _a;
-            this.push(callback);
-            (_a = this._hook) === null || _a === void 0 ? void 0 : _a.invoke(true, callback);
-            return callback;
-        }
-        remove(callback) {
-            var _a;
-            super.remove(callback);
-            (_a = this._hook) === null || _a === void 0 ? void 0 : _a.invoke(false, callback);
-        }
-    }
-    const Callbacks = CallbacksImpl;
-    class Ref {
-        constructor() {
-            this._value = undefined;
-            this._onChanged = undefined;
-        }
-        get onChanged() {
-            if (!this._onChanged)
-                this._onChanged = new Callbacks();
-            return this._onChanged;
-        }
-        get value() { return this._value; }
-        set value(val) {
-            this._value = val;
-            if (this._onChanged)
-                this.onChanged.invoke(this);
-        }
-    }
-    class Lazy {
-        constructor(func) {
-            this._func = func;
-            this._value = undefined;
-        }
-        get computed() { return !this._func; }
-        get rawValue() { return this._value; }
-        get value() {
-            if (this._func) {
-                this._value = this._func();
-                this._func = undefined;
-            }
-            return this._value;
-        }
-    }
-    class Semaphore {
-        constructor(init) {
-            this.queue = new Array();
-            this.maxCount = 1;
-            this.runningCount = 0;
-            objectInit(this, init);
-        }
-        enter() {
-            if (this.runningCount === this.maxCount) {
-                var resolve;
-                var prom = new Promise((res) => { resolve = res; });
-                this.queue.push(resolve);
-                return prom;
-            }
-            else {
-                this.runningCount++;
-                return Promise.resolve();
-            }
-        }
-        exit() {
-            if (this.runningCount === this.maxCount && this.queue.length) {
-                if (window.queueMicrotask) {
-                    window.queueMicrotask(this.queue.shift());
+                else if (e.action == 'up') {
+                    this.stateChanged('mouseDown', false);
                 }
-                else {
-                    setTimeout(this.queue.shift(), 0);
-                }
-            }
-            else {
-                this.runningCount--;
-            }
+            }).remove;
         }
-        run(func) {
-            return __awaiter$2(this, void 0, void 0, function* () {
-                yield this.enter();
-                try {
-                    yield func();
-                }
-                finally {
-                    this.exit();
-                }
-            });
+        stateChanged(state, val) {
+            this.state[state] = val;
+            this.onChanged.invoke(state);
         }
-    }
-    /** Just like CancellationToken[Source] on .NET */
-    class CancelToken {
-        constructor() {
-            this.cancelled = false;
-            this.onCancelled = new Callbacks();
-        }
-        cancel() {
-            if (this.cancelled)
-                return;
-            this.cancelled = true;
-            this.onCancelled.invoke();
-        }
-        throwIfCancelled() {
-            if (this.cancelled)
-                throw new Error("operation cancelled.");
-        }
-    }
-    class AutoResetEvent {
-        constructor() {
-            this._whenNotify = null;
-            this._callback = null;
-        }
-        wait() {
-            if (!this._whenNotify) {
-                this._whenNotify = new Promise(r => {
-                    this._callback = () => {
-                        this._callback = this._whenNotify = null;
-                        r();
-                    };
-                });
-            }
-            return this._whenNotify;
-        }
-        set() {
-            this._callback && this._callback();
+        removeListeners() {
+            var _a, _b;
+            (_a = this._removeEvents) === null || _a === void 0 ? void 0 : _a.call(this);
+            (_b = this._removePointerEvents) === null || _b === void 0 ? void 0 : _b.call(this);
+            this._removePointerEvents = this._removeEvents = null;
         }
     }
     class DataUpdatingHelper {
@@ -1310,119 +1307,6 @@
         updateItem(old, data) { }
         removeItem(obj) { }
     }
-    class EventRegistrations {
-        constructor() {
-            this.list = [];
-        }
-        add(event, func) {
-            this.list.push({ event, func });
-            event.add(func);
-            return func;
-        }
-        removeAll() {
-            while (this.list.length) {
-                var r = this.list.pop();
-                r.event.remove(r.func);
-            }
-        }
-    }
-    class TextCompositionWatcher {
-        constructor(dom) {
-            this.onCompositingChanged = new Callbacks();
-            this._isCompositing = false;
-            this.dom = getDOM(dom);
-            this.dom.addEventListener('compositionstart', (ev) => {
-                this.isCompositing = true;
-            });
-            this.dom.addEventListener('compositionend', (ev) => {
-                this.isCompositing = false;
-            });
-        }
-        get isCompositing() { return this._isCompositing; }
-        set isCompositing(val) {
-            this._isCompositing = val;
-            this.onCompositingChanged.invoke();
-        }
-    }
-    class InputStateTracker {
-        constructor(dom) {
-            this.dom = dom;
-            this.state = {
-                mouseDown: false,
-                mouseIn: false,
-                focusIn: false,
-            };
-            this._removeEvents = null;
-            this._removePointerEvents = null;
-            this.onChanged = new Callbacks();
-            this._removeEvents = listenEvents(dom, ['mouseenter', 'mouseleave', 'focusin', 'focusout'], (e) => {
-                switch (e.type) {
-                    case 'mouseenter':
-                        this.stateChanged('mouseIn', true);
-                        break;
-                    case 'mouseleave':
-                        this.stateChanged('mouseIn', false);
-                        break;
-                    case 'focusin':
-                        this.stateChanged('focusIn', true);
-                        break;
-                    case 'focusout':
-                        this.stateChanged('focusIn', false);
-                        break;
-                }
-            }).remove;
-            this._removePointerEvents = listenPointerEvents(dom, (e) => {
-                if (e.action == 'down') {
-                    this.stateChanged('mouseDown', true);
-                    return 'track';
-                }
-                else if (e.action == 'up') {
-                    this.stateChanged('mouseDown', false);
-                }
-            }).remove;
-        }
-        stateChanged(state, val) {
-            this.state[state] = val;
-            this.onChanged.invoke(state);
-        }
-        removeListeners() {
-            var _a, _b;
-            (_a = this._removeEvents) === null || _a === void 0 ? void 0 : _a.call(this);
-            (_b = this._removePointerEvents) === null || _b === void 0 ? void 0 : _b.call(this);
-            this._removePointerEvents = this._removeEvents = null;
-        }
-    }
-    /** @deprecated May be removed in the future to make tree-shaking easier. */
-    const utils = {
-        strPadLeft,
-        formatTime,
-        formatFileSize,
-        formatDateTime,
-        numLimit,
-        createName,
-        base64EncodeUtf8,
-        sleepAsync,
-        clearChildren,
-        replaceChild,
-        toggleClass,
-        fadeout,
-        listenPointerEvents,
-        listenEvent,
-        listenEvents,
-        injectCss,
-        arrayRemove,
-        arrayInsert,
-        arrayMap,
-        arrayForeach,
-        arrayFind,
-        arraySum,
-        objectApply,
-        objectInit,
-        mod,
-        readBlobAsDataUrl,
-        buildDOM,
-        Timer,
-    };
 
     // file: I18n.ts
     /** Internationalization (aka i18n) helper class */
@@ -3140,7 +3024,6 @@
     exports.SectionAction = SectionAction;
     exports.SelectionHelper = SelectionHelper;
     exports.Semaphore = Semaphore;
-    exports.SettingItem = SettingItem;
     exports.TabBtn = TabBtn;
     exports.TextBtn = TextBtn;
     exports.TextCompositionWatcher = TextCompositionWatcher;
@@ -3170,8 +3053,8 @@
     exports.fadeout = fadeout;
     exports.foreachFlaten = foreachFlaten;
     exports.formatDateTime = formatDateTime;
+    exports.formatDuration = formatDuration;
     exports.formatFileSize = formatFileSize;
-    exports.formatTime = formatTime;
     exports.getDOM = getDOM;
     exports.getWebfxCss = getWebfxCss;
     exports.i18n = i18n;
@@ -3197,7 +3080,6 @@
     exports.toggleClass = toggleClass;
     exports.tryGetDOM = tryGetDOM;
     exports.unmountView = unmountView;
-    exports.utils = utils;
     exports.version = version;
 
     Object.defineProperty(exports, '__esModule', { value: true });
