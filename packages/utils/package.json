@@ -1,6 +1,6 @@
 {
   "name": "@yuuza/utils",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
   "main": "build/utils.umd.js",
   "module": "build/utils.js",
@@ -8,9 +8,6 @@
   "scripts": {
     "build": "tsc && rollup build/utils.js --format umd --name utils -o build/utils.umd.js"
   },
-  "files": [
-    "build"
-  ],
   "keywords": [],
   "author": "",
   "license": "MIT",
