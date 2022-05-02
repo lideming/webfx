@@ -215,9 +215,10 @@
     }
     const Callbacks = CallbacksImpl;
     class Ref {
-        constructor() {
+        constructor(value) {
             this._value = undefined;
             this._onChanged = undefined;
+            this._value = value;
         }
         get onChanged() {
             if (!this._onChanged)
@@ -229,6 +230,11 @@
             this._value = val;
             if (this._onChanged)
                 this.onChanged.invoke(this);
+        }
+        static from(value) {
+            const ref = new Ref();
+            ref._value = value;
+            return ref;
         }
     }
     class Lazy {
