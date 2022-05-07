@@ -204,28 +204,41 @@ export type AsyncFunc<T> = Func<Promise<T>>;
 
 export type FuncOrVal<T> = T | Func<T>;
 
-class CallbacksImpl<T extends AnyFunc = Action> extends Array<T> {
+class CallbacksImpl<T extends AnyFunc = Action> {
+    private _cbs: Set<T> | undefined = undefined;
     private _hook?: Callbacks<(adding: boolean, func: T) => void> = undefined;
+    private _invoking = false;
     get onChanged() {
         this._hook ??= new Callbacks();
         return this._hook;
     }
+    get length() { return this._cbs ? this._cbs.size : 0; }
     invoke(...args: Parameters<T>) {
-        this.forEach((x) => {
+        if (!this._cbs) return;
+        if (this._invoking) throw new Error("Cannot invoke callbacks during invocation");
+        this._invoking = true;
+        this._cbs.forEach((x: (...args: any) => void) => {
             try {
                 x.apply(this, args);
             } catch (error) {
                 console.error("Error in callback", error);
             }
         });
+        this._invoking = false;
     }
     add(callback: T) {
-        this.push(callback);
+        if (this._cbs === undefined) {
+            this._cbs = new Set<T>();
+        }
+        if (this._invoking) throw new Error("Cannot add callbacks during invocation");
+        this._cbs.add(callback);
         this._hook?.invoke(true, callback);
         return callback;
     }
     remove(callback: T) {
-        super.remove(callback);
+        if (this._cbs === undefined) return;
+        if (this._invoking) throw new Error("Cannot remove callbacks during invocation");
+        this._cbs.delete(callback);
         this._hook?.invoke(false, callback);
     }
 }
