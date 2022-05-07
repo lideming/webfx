@@ -181,18 +181,25 @@
     Array.prototype.remove = function (item) {
         arrayRemove(this, item);
     };
-    class CallbacksImpl extends Array {
+    class CallbacksImpl {
         constructor() {
-            super(...arguments);
+            this._cbs = undefined;
             this._hook = undefined;
+            this._invoking = false;
         }
         get onChanged() {
             var _a;
             (_a = this._hook) !== null && _a !== void 0 ? _a : (this._hook = new Callbacks());
             return this._hook;
         }
+        get length() { return this._cbs ? this._cbs.size : 0; }
         invoke(...args) {
-            this.forEach((x) => {
+            if (!this._cbs)
+                return;
+            if (this._invoking)
+                throw new Error("Cannot invoke callbacks during invocation");
+            this._invoking = true;
+            this._cbs.forEach((x) => {
                 try {
                     x.apply(this, args);
                 }
@@ -200,16 +207,26 @@
                     console.error("Error in callback", error);
                 }
             });
+            this._invoking = false;
         }
         add(callback) {
             var _a;
-            this.push(callback);
+            if (this._cbs === undefined) {
+                this._cbs = new Set();
+            }
+            if (this._invoking)
+                throw new Error("Cannot add callbacks during invocation");
+            this._cbs.add(callback);
             (_a = this._hook) === null || _a === void 0 ? void 0 : _a.invoke(true, callback);
             return callback;
         }
         remove(callback) {
             var _a;
-            super.remove(callback);
+            if (this._cbs === undefined)
+                return;
+            if (this._invoking)
+                throw new Error("Cannot remove callbacks during invocation");
+            this._cbs.delete(callback);
             (_a = this._hook) === null || _a === void 0 ? void 0 : _a.invoke(false, callback);
         }
     }
