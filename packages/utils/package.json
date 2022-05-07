@@ -1,6 +1,6 @@
 {
   "name": "@yuuza/utils",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "",
   "main": "build/utils.umd.js",
   "module": "build/utils.js",
