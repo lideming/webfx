@@ -249,12 +249,36 @@ class CallbacksImpl<T extends AnyFunc = Action> {
         this._cbs.delete(callback);
         this._hook?.invoke(false, callback);
     }
+
+    waitOnce(): Promise<Parameters<T>>;
+    waitOnce(callback: T): void;
+    waitOnce(callback?: T) {
+        if (arguments.length === 0) {
+            return new Promise<Parameters<T>>((resolve, reject) => {
+                const cb = ((...args) => {
+                    this.remove(cb);
+                    resolve(args);
+                }) as T;
+                this.add(cb);
+            });
+        } else if (callback) {
+            const cb = ((...args) => {
+                this.remove(cb);
+                return callback(...args);
+            }) as T;
+            this.add(cb);
+        } else {
+            throw new Error("Invalid callback");
+        }
+    }
 }
 
 export interface Callbacks<T extends AnyFunc = Action> {
     invoke(...args: Parameters<T>): void;
     add(callback: T): T;
     remove(callback: T): void;
+    waitOnce(): Promise<Parameters<T>>;
+    waitOnce(callback: T): void;
     readonly length: number;
     readonly onChanged: Callbacks<(adding: boolean, func: T) => void>;
 }
