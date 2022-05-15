@@ -206,6 +206,7 @@ export type FuncOrVal<T> = T | Func<T>;
 
 class CallbacksImpl<T extends AnyFunc = Action> {
     private _cbs: Set<T> | undefined = undefined;
+    private _cbs_invoking: Set<T> | undefined = undefined;
     private _hook?: Callbacks<(adding: boolean, func: T) => void> = undefined;
     private _invoking = false;
     get onChanged() {
@@ -224,20 +225,27 @@ class CallbacksImpl<T extends AnyFunc = Action> {
                 console.error("Error in callback", error);
             }
         });
+        this._cbs_invoking?.clear();
         this._invoking = false;
     }
     add(callback: T) {
         if (this._cbs === undefined) {
             this._cbs = new Set<T>();
         }
-        if (this._invoking) throw new Error("Cannot add callbacks during invocation");
-        this._cbs.add(callback);
+        if (this._invoking) {
+            this._cbs_invoking ??= new Set<T>();
+            this._cbs_invoking.add(callback);
+        } else {
+            this._cbs.add(callback);
+        }
         this._hook?.invoke(true, callback);
         return callback;
     }
     remove(callback: T) {
         if (this._cbs === undefined) return;
-        if (this._invoking) throw new Error("Cannot remove callbacks during invocation");
+        if (this._invoking) {
+            this._cbs_invoking?.delete(callback);
+        }
         this._cbs.delete(callback);
         this._hook?.invoke(false, callback);
     }
