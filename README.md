@@ -19,10 +19,11 @@ It was originally created for [MusicCloud](https://github.com/lideming/MusicClou
 
 ## Project Structure
 
-* `utils.ts` - Utilities
-* `i18n.ts` - Internationalization (i18n) helper
 * `buildDOM.ts` - View and DOM builder
 * `view.ts` - The core of View
+* `packages/`
+  * `utils` - [Utilities](packages/utils/README.md)
+  * `i18n` - [Internationalization (i18n) helper](#i18n-helper)
 * `views/` - Some built-in Views and helpers
   * `Basics`
   * `ListView`
@@ -241,9 +242,9 @@ mountView(document.body, new Counter());
 
 ### I18n Helper
 
-Using the [tagged templates](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals#tagged_templates) feature, the i18n is very easy.
+(Also as a standalone package `@yuuza/i18n`)
 
-This feature is also available as a standalone package `@yuuza/i18n`.
+Using the [tagged templates](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals#tagged_templates) feature, the i18n is very easy.
 
 ```js
 import { i18n, I } from "@yuuza/webfx";
