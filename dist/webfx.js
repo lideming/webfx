@@ -237,6 +237,27 @@
             this._cbs.delete(callback);
             (_b = this._hook) === null || _b === void 0 ? void 0 : _b.invoke(false, callback);
         }
+        waitOnce(callback) {
+            if (arguments.length === 0) {
+                return new Promise((resolve, reject) => {
+                    const cb = ((...args) => {
+                        this.remove(cb);
+                        resolve(args);
+                    });
+                    this.add(cb);
+                });
+            }
+            else if (callback) {
+                const cb = ((...args) => {
+                    this.remove(cb);
+                    return callback(...args);
+                });
+                this.add(cb);
+            }
+            else {
+                throw new Error("Invalid callback");
+            }
+        }
     }
     const Callbacks = CallbacksImpl;
     class Ref {
