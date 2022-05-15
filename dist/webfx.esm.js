@@ -178,6 +178,7 @@ Array.prototype.remove = function (item) {
 class CallbacksImpl {
     constructor() {
         this._cbs = undefined;
+        this._cbs_invoking = undefined;
         this._hook = undefined;
         this._invoking = false;
     }
@@ -188,6 +189,7 @@ class CallbacksImpl {
     }
     get length() { return this._cbs ? this._cbs.size : 0; }
     invoke(...args) {
+        var _a;
         if (!this._cbs)
             return;
         if (this._invoking)
@@ -201,27 +203,33 @@ class CallbacksImpl {
                 console.error("Error in callback", error);
             }
         });
+        (_a = this._cbs_invoking) === null || _a === void 0 ? void 0 : _a.clear();
         this._invoking = false;
     }
     add(callback) {
-        var _a;
+        var _a, _b;
         if (this._cbs === undefined) {
             this._cbs = new Set();
         }
-        if (this._invoking)
-            throw new Error("Cannot add callbacks during invocation");
-        this._cbs.add(callback);
-        (_a = this._hook) === null || _a === void 0 ? void 0 : _a.invoke(true, callback);
+        if (this._invoking) {
+            (_a = this._cbs_invoking) !== null && _a !== void 0 ? _a : (this._cbs_invoking = new Set());
+            this._cbs_invoking.add(callback);
+        }
+        else {
+            this._cbs.add(callback);
+        }
+        (_b = this._hook) === null || _b === void 0 ? void 0 : _b.invoke(true, callback);
         return callback;
     }
     remove(callback) {
-        var _a;
+        var _a, _b;
         if (this._cbs === undefined)
             return;
-        if (this._invoking)
-            throw new Error("Cannot remove callbacks during invocation");
+        if (this._invoking) {
+            (_a = this._cbs_invoking) === null || _a === void 0 ? void 0 : _a.delete(callback);
+        }
         this._cbs.delete(callback);
-        (_a = this._hook) === null || _a === void 0 ? void 0 : _a.invoke(false, callback);
+        (_b = this._hook) === null || _b === void 0 ? void 0 : _b.invoke(false, callback);
     }
 }
 const Callbacks = CallbacksImpl;
