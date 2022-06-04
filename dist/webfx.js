@@ -31,7 +31,7 @@
         sec %= 60;
         return strPadLeft(min.toString(), 2, '0') + ':' + strPadLeft(sec.toString(), 2, '0');
     }
-    const fileSizeUnits = ['B', 'KB', 'MB', 'GB'];
+    const fileSizeUnits = ['B', 'KB', 'MB', 'GB', 'TB'];
     function formatFileSize(size) {
         if (typeof size !== "number" || isNaN(size))
             return 'NaN';
@@ -40,7 +40,7 @@
             unit++;
             size /= 1024;
         }
-        return size.toFixed(2) + ' ' + fileSizeUnits[unit];
+        return (unit > 0 ? size.toFixed(2) : size) + ' ' + fileSizeUnits[unit];
     }
     function formatDateTime(date) {
         var now = new Date();
