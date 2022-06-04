@@ -20,7 +20,7 @@ export function formatDuration(sec: number | any) {
     return strPadLeft(min.toString(), 2, '0') + ':' + strPadLeft(sec.toString(), 2, '0');
 }
 
-const fileSizeUnits = ['B', 'KB', 'MB', 'GB'];
+const fileSizeUnits = ['B', 'KB', 'MB', 'GB', 'TB'];
 export function formatFileSize(size: number | any) {
     if (typeof size !== "number" || isNaN(size)) return 'NaN';
     var unit = 0;
@@ -28,7 +28,7 @@ export function formatFileSize(size: number | any) {
         unit++;
         size /= 1024;
     }
-    return size.toFixed(2) + ' ' + fileSizeUnits[unit];
+    return (unit > 0 ? size.toFixed(2) : size) + ' ' + fileSizeUnits[unit];
 }
 
 export function formatDateTime(date: Date) {
