@@ -225,6 +225,11 @@ class CallbacksImpl<T extends AnyFunc = Action> {
                 console.error("Error in callback", error);
             }
         });
+        if (this._cbs_invoking) {
+            for (const x of this._cbs_invoking) {
+                this._cbs.add(x);
+            }
+        }
         this._cbs_invoking?.clear();
         this._invoking = false;
     }
