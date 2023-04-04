@@ -2,7 +2,7 @@
 
 Web UI framework and utilities.
 
-It was originally created for [MusicCloud](https://github.com/lideming/MusicCloud).
+It was originally created for [MusicCloud][musiccloud-repo].
 
 [![npm](https://img.shields.io/npm/dy/@yuuza/webfx?label=%40yuuza%2Fwebfx&logo=npm)](https://www.npmjs.com/package/@yuuza/webfx)
 
@@ -15,7 +15,9 @@ It was originally created for [MusicCloud](https://github.com/lideming/MusicClou
 - [Human-ping](https://webfx.yuuza.net/human-ping.html)
   ([HTML + JS](https://github.com/lideming/webfx/blob/master/demo/human-ping.html))
 
-- And of cource [MusicCloud (GitHub repo)](https://github.com/lideming/MusicCloud)
+- And of cource [MusicCloud (GitHub repo)][musiccloud-repo]
+
+[musiccloud-repo]: https://github.com/lideming/MusicCloud
 
 ## Project Structure
 
@@ -83,7 +85,7 @@ const { View, ButtonView, mountView } = webfx;
 // Define a very basic view class
 class Hello extends View {
   createDom() {
-    // Returns a so-called "DOM expression" object.
+    // Returns a DOM expression object for rendering.
     return {
       tag: "p.text.bold#hello",
       text: "hello webfx",
@@ -91,31 +93,31 @@ class Hello extends View {
   }
 }
 
-// Create a instance of the view and mount it on <body>.
+// Create an instance of the view and mount it onto the <body>.
 mountView(document.body, new Hello());
 ```
 
-Renders:
+**Renders**:
 
 ```html
 <p class="text bold" id="hello">hello webfx</p>
 ```
 
-Note: `createDom()` can be omited, then the DOM will be an empty `<div>`.
+Note: You can omit the `createDom()` can be omited if you want an empty `<div>`.
 
 ### DOM Expression
 
-A DOM Expression is a `BuildDomNode` object, `View` object, string, number or function (which returns string/number only).
+A DOM Expression is an object of type `BuildDomNode`, or a `View` object, a string, a number, or a function that returns a string or number.
 
 ```ts
 type BuildDomNode = {
-  tag?: BuildDomTag; // A string indicates DOM tag name, class names and id, similar to CSS seletor.
+  tag?: BuildDomTag; // A string that indicates a DOM tag name, class names, and id, similar to a CSS selector.
   child?: BuildDomExpr[] | BuildDomExpr; // One or more DOM expressions as the children.
-  text?: FuncOrVal<string>; // Shortcut for `textContent`, can be a function, see below.
-  hidden?: FuncOrVal<boolean>; // `hidden` but can be a function, see below.
-  init?: Action<HTMLElement>; // A callback that is called on the DOM created.
-  update?: Action<HTMLElement>; // A callback that is called on the View updated.
-  // ...omited internal properties...
+  text?: FuncOrVal<string>; // A shortcut for `textContent`. It can be a function, see below.
+  hidden?: FuncOrVal<boolean>; // The `hidden` property, but can be a function, see below.
+  init?: Action<HTMLElement>; // A callback that is called when the DOM is created.
+  update?: Action<HTMLElement>; // A callback that is called when the view is updated.
+  // ...internal properties omitted...
 };
 ```
 
@@ -123,17 +125,20 @@ The `text` and `hidden` callbacks will be called in `updateDom()`.
 
 ### Properties and Child Elements
 
-There are no `state`s in webfx. They're just properties.
+Webfx does not have `state`s; they are just properties.
 
-Use the `child` key in DOM expression for child elements.
+You can use the `child` key in the DOM expression for child elements.
 
 ```js
+// Inject Webfx CSS.
 webfx.injectWebfxCss();
+
 class Counter extends View {
   constructor() {
     super();
     this.count = 0;
   }
+
   createDom() {
     return {
       tag: "div.counter",
@@ -151,35 +156,41 @@ class Counter extends View {
     };
   }
 }
+
+// Mount the view onto the body element.
 mountView(document.body, new Counter());
 ```
 
-Renders:
+**Renders:**
 
 ```html
 <div class="counter">
-  Count: 9<br />
+  Count: 9
+  <br />
   <div class="btn" tabindex="0">Click me</div>
 </div>
 ```
 
-### Hook methods
+### Hook Methods
 
-`postCreateDom()` is called when the DOM is just created.
+Webfx provides two hook methods:
 
-`updateDom()` is called after `postCreateDom()`, also be called manually by `updateDom()`.
+- `postCreateDom()`: called when the DOM is just created.
+- `updateDom()`: called after `postCreateDom()`. Can also be called manually by `updateDom()`.
 
 `updateWith()` is a shortcut for changing properties and calling `updateDom()`.
 
-Note: Remember to call the `super` method when overriding these methods.
+Note: When overriding these methods, call the `super` method.
 
 ```js
 webfx.injectWebfxCss();
+
 class Counter extends View {
   constructor() {
     super();
     this.count = 0;
   }
+
   createDom() {
     return {
       tag: "div.counter",
@@ -206,15 +217,19 @@ class Counter extends View {
       ],
     };
   }
+
   postCreateDom() {
     super.postCreateDom();
     console.info("the counter DOM is created", this.dom);
   }
+
   updateDom() {
     super.updateDom();
     console.info("the counter DOM is updated", this.dom);
   }
 }
+
+// Mount the view onto the body element.
 mountView(document.body, new Counter());
 ```
 
@@ -222,25 +237,27 @@ mountView(document.body, new Counter());
 
 (TBD)
 
-### JSX/TSX
+### Using JSX/TSX
 
 Before using JSX/TSX, make sure to set `jsx()` as the JSX factory in the transpiler.
 
-This can be done by one of:
+You can do this in one of two ways:
 
 - Set `"jsxFactory": "jsx"` in `tsconfig.json`.
-- Use `/** @jsx jsx */` in source.
+- Use `/** @jsx jsx */` in your source code.
 
 ```jsx
 /** @jsx jsx */
 import { View, ButtonView, jsx } from "@yuuza/webfx";
 
 webfx.injectWebfxCss();
+
 class Counter extends View {
   constructor() {
     super();
     this.count = 0;
   }
+
   createDom() {
     return (
       <div class="counter">
@@ -257,12 +274,14 @@ class Counter extends View {
     );
   }
 }
+
+// Mount the view onto the body element.
 mountView(document.body, new Counter());
 ```
 
 ## Todos
 
-- [ ] Functional DOM tree updating
-- [ ] React-like function components with hooks
+- [ ] Implement functional DOM tree updating.
+- [ ] Add React-like function components with hooks.
 
 (TBD)
