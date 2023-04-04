@@ -23,7 +23,7 @@ It was originally created for [MusicCloud](https://github.com/lideming/MusicClou
 - `view.ts` - The core of View
 - `packages/`
   - `utils` - [Utilities](packages/utils/README.md)
-  - `i18n` - [Internationalization (i18n) helper](#i18n-helper)
+  - `i18n` - [Internationalization (i18n) helper](packages/i18n/README.md)
 - `views/` - Some built-in Views and helpers
   - `Basics`
   - `ListView`
@@ -224,11 +224,16 @@ mountView(document.body, new Counter());
 
 ### JSX/TSX
 
-Some configuration is required to make the JSX/TSX compiler use the correct JSX factory. Set `"jsxFactory": "jsx"` in `tsconfig.json` or use `/** @jsx jsx */`.
+Before using JSX/TSX, make sure to set `jsx()` as the JSX factory in the transpiler.
+
+This can be done by one of:
+
+- Set `"jsxFactory": "jsx"` in `tsconfig.json`.
+- Use `/** @jsx jsx */` in source.
 
 ```jsx
 /** @jsx jsx */
-import { View, jsx } from "@yuuza/webfx";
+import { View, ButtonView, jsx } from "@yuuza/webfx";
 
 webfx.injectWebfxCss();
 class Counter extends View {
@@ -253,37 +258,6 @@ class Counter extends View {
   }
 }
 mountView(document.body, new Counter());
-```
-
-### I18n Helper
-
-(Also as a standalone package `@yuuza/i18n`)
-
-Using the [tagged templates](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals#tagged_templates) feature, the i18n is very easy.
-
-```js
-import { i18n, I } from "@yuuza/webfx";
-
-i18n.add2dArray([
-  ["en", "zh"],
-  ["Hello!", "你好！"],
-  ["My name is {0}.", "我的名字是 {0}。"],
-]);
-
-function sayHello(name) {
-  console.log(I`Hello!`);
-  console.log(I`My name is ${name}.`);
-}
-
-i18n.curLang = "en";
-sayHello("Yuuza");
-// Hello!
-// My name is Yuuza.
-
-i18n.curLang = "zh";
-sayHello("Yuuza");
-// 你好！
-// 我的名字是 Yuuza。
 ```
 
 ## Todos
