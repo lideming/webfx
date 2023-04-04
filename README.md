@@ -8,36 +8,36 @@ It was originally created for [MusicCloud](https://github.com/lideming/MusicClou
 
 ## Demos
 
-* [Counter & viewlib](https://webfx.yuuza.net/counter.html)
-([HTML + JS](https://github.com/lideming/webfx/blob/master/demo/counter.html))
-([JSX](https://github.com/lideming/webfx/blob/master/demo/counter.jsx))
+- [Counter & viewlib](https://webfx.yuuza.net/counter.html)
+  ([HTML + JS](https://github.com/lideming/webfx/blob/master/demo/counter.html))
+  ([JSX](https://github.com/lideming/webfx/blob/master/demo/counter.jsx))
 
-* [Human-ping](https://webfx.yuuza.net/human-ping.html)
-([HTML + JS](https://github.com/lideming/webfx/blob/master/demo/human-ping.html))
+- [Human-ping](https://webfx.yuuza.net/human-ping.html)
+  ([HTML + JS](https://github.com/lideming/webfx/blob/master/demo/human-ping.html))
 
-* And of cource [MusicCloud (GitHub repo)](https://github.com/lideming/MusicCloud)
+- And of cource [MusicCloud (GitHub repo)](https://github.com/lideming/MusicCloud)
 
 ## Project Structure
 
-* `buildDOM.ts` - View and DOM builder
-* `view.ts` - The core of View
-* `packages/`
-  * `utils` - [Utilities](packages/utils/README.md)
-  * `i18n` - [Internationalization (i18n) helper](#i18n-helper)
-* `views/` - Some built-in Views and helpers
-  * `Basics`
-  * `ListView`
-  * `Dialog`
-  * `Menu`
-  * `Overlay`
-  * `Toast`
-  * `LoadingIndicator`
-  * `Section`
-* `style.css` - CSS for the built-in views
-* `dist/` - Bundles
-  * `webfx.js` - UMD bundle for browsers (+ `.min.js` version)
-  * `webfxcore.min.js` - UMD bundle without the viewlib and style
-  * `webfx.esm.js` - ESM bundle
+- `buildDOM.ts` - View and DOM builder
+- `view.ts` - The core of View
+- `packages/`
+  - `utils` - [Utilities](packages/utils/README.md)
+  - `i18n` - [Internationalization (i18n) helper](#i18n-helper)
+- `views/` - Some built-in Views and helpers
+  - `Basics`
+  - `ListView`
+  - `Dialog`
+  - `Menu`
+  - `Overlay`
+  - `Toast`
+  - `LoadingIndicator`
+  - `Section`
+- `style.css` - CSS for the built-in views
+- `dist/` - Bundles
+  - `webfx.js` - UMD bundle for browsers (+ `.min.js` version)
+  - `webfxcore.min.js` - UMD bundle without the viewlib and style
+  - `webfx.esm.js` - ESM bundle
 
 ## Installation
 
@@ -85,22 +85,23 @@ class Hello extends View {
   createDom() {
     // Returns a so-called "DOM expression" object.
     return {
-      tag: 'p.text.bold#hello',
-      text: 'hello webfx'
-    }
+      tag: "p.text.bold#hello",
+      text: "hello webfx",
+    };
   }
 }
 
 // Create a instance of the view and mount it on <body>.
 mountView(document.body, new Hello());
 ```
+
 Renders:
+
 ```html
 <p class="text bold" id="hello">hello webfx</p>
 ```
 
 Note: `createDom()` can be omited, then the DOM will be an empty `<div>`.
-
 
 ### DOM Expression
 
@@ -108,18 +109,17 @@ A DOM Expression is a `BuildDomNode` object, `View` object, string, number or fu
 
 ```ts
 type BuildDomNode = {
-    tag?: BuildDomTag;  // A string indicates DOM tag name, class names and id, similar to CSS seletor.
-    child?: BuildDomExpr[] | BuildDomExpr;  // One or more DOM expressions as the children.
-    text?: FuncOrVal<string>;  // Shortcut for `textContent`, can be a function, see below.
-    hidden?: FuncOrVal<boolean>;  // `hidden` but can be a function, see below.
-    init?: Action<HTMLElement>;  // A callback that is called on the DOM created.
-    update?: Action<HTMLElement>;  // A callback that is called on the View updated.
-    // ...omited internal properties...
-}
+  tag?: BuildDomTag; // A string indicates DOM tag name, class names and id, similar to CSS seletor.
+  child?: BuildDomExpr[] | BuildDomExpr; // One or more DOM expressions as the children.
+  text?: FuncOrVal<string>; // Shortcut for `textContent`, can be a function, see below.
+  hidden?: FuncOrVal<boolean>; // `hidden` but can be a function, see below.
+  init?: Action<HTMLElement>; // A callback that is called on the DOM created.
+  update?: Action<HTMLElement>; // A callback that is called on the View updated.
+  // ...omited internal properties...
+};
 ```
 
 The `text` and `hidden` callbacks will be called in `updateDom()`.
-
 
 ### Properties and Child Elements
 
@@ -136,23 +136,29 @@ class Counter extends View {
   }
   createDom() {
     return {
-      tag: 'div.counter',
+      tag: "div.counter",
       child: [
-        'Count: ', () => this.count, {tag: 'br'},
-        new ButtonView({ text: 'Click me', onActive: () => {
-          this.updateWith({count: this.count + 1});
-        }})
-      ]
-    }
+        "Count: ",
+        () => this.count,
+        { tag: "br" },
+        new ButtonView({
+          text: "Click me",
+          onActive: () => {
+            this.updateWith({ count: this.count + 1 });
+          },
+        }),
+      ],
+    };
   }
 }
 mountView(document.body, new Counter());
 ```
 
 Renders:
+
 ```html
 <div class="counter">
-  Count: 9<br>
+  Count: 9<br />
   <div class="btn" tabindex="0">Click me</div>
 </div>
 ```
@@ -176,30 +182,37 @@ class Counter extends View {
   }
   createDom() {
     return {
-      tag: 'div.counter',
+      tag: "div.counter",
       child: [
-        'Count: ',
+        "Count: ",
         {
-          tag: 'span',
+          tag: "span",
           text: () => this.count,
-          init: (dom) => { console.info('the <span> DOM is created', dom); },
-          update: (dom) => { dom.style.fontSize = `${14 + this.count}px`; }
+          init: (dom) => {
+            console.info("the <span> DOM is created", dom);
+          },
+          update: (dom) => {
+            dom.style.fontSize = `${14 + this.count}px`;
+          },
         },
-        {tag: 'br'},
+        { tag: "br" },
 
-        new ButtonView({text: 'Click me', onActive: () => {
-          this.updateWith({count: this.count + 1});
-        }})
-      ]
-    }
+        new ButtonView({
+          text: "Click me",
+          onActive: () => {
+            this.updateWith({ count: this.count + 1 });
+          },
+        }),
+      ],
+    };
   }
   postCreateDom() {
     super.postCreateDom();
-    console.info('the counter DOM is created', this.dom);
+    console.info("the counter DOM is created", this.dom);
   }
   updateDom() {
     super.updateDom();
-    console.info('the counter DOM is updated', this.dom);
+    console.info("the counter DOM is updated", this.dom);
   }
 }
 mountView(document.body, new Counter());
@@ -208,7 +221,6 @@ mountView(document.body, new Counter());
 ### ListView
 
 (TBD)
-
 
 ### JSX/TSX
 
@@ -227,11 +239,14 @@ class Counter extends View {
   createDom() {
     return (
       <div class="counter">
-        Count: {() => this.count}<br/>
-        <ButtonView onActive={() => {
-          this.updateWith({count: this.count + 1});
-        }}>
-            Click me
+        Count: {() => this.count}
+        <br />
+        <ButtonView
+          onActive={() => {
+            this.updateWith({ count: this.count + 1 });
+          }}
+        >
+          Click me
         </ButtonView>
       </div>
     );
@@ -250,23 +265,23 @@ Using the [tagged templates](https://developer.mozilla.org/en-US/docs/Web/JavaSc
 import { i18n, I } from "@yuuza/webfx";
 
 i18n.add2dArray([
-    ['en', 'zh'],
-    ['Hello!', '你好！'],
-    ['My name is {0}.', '我的名字是 {0}。']
+  ["en", "zh"],
+  ["Hello!", "你好！"],
+  ["My name is {0}.", "我的名字是 {0}。"],
 ]);
 
 function sayHello(name) {
-    console.log(I`Hello!`);
-    console.log(I`My name is ${name}.`);
+  console.log(I`Hello!`);
+  console.log(I`My name is ${name}.`);
 }
 
-i18n.curLang = 'en';
-sayHello('Yuuza');
+i18n.curLang = "en";
+sayHello("Yuuza");
 // Hello!
 // My name is Yuuza.
 
-i18n.curLang = 'zh';
-sayHello('Yuuza');
+i18n.curLang = "zh";
+sayHello("Yuuza");
 // 你好！
 // 我的名字是 Yuuza。
 ```
