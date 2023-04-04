@@ -22,8 +22,8 @@ It was originally created for [MusicCloud](https://github.com/lideming/MusicClou
 - `buildDOM.ts` - View and DOM builder
 - `view.ts` - The core of View
 - `packages/`
-  - `utils` - [Utilities](packages/utils/README.md)
-  - `i18n` - [Internationalization (i18n) helper](packages/i18n/README.md)
+  - `utils` - [Utilities](packages/utils)
+  - `i18n` - [Internationalization (i18n) helper](packages/i18n)
 - `views/` - Some built-in Views and helpers
   - `Basics`
   - `ListView`
