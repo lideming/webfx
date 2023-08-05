@@ -259,7 +259,7 @@ a.item {
     background: var(--color-bg);
     border-radius: 5px;
     box-shadow: 0 0 12px var(--color-shadow);
-    animation: dialogin .2s ease-out;
+    animation: dialogin .3s cubic-bezier(0,0,0,1);
     z-index: 10001;
     display: flex;
     flex-direction: column;
@@ -274,8 +274,8 @@ a.item {
 }
 
 .fading-out .dialog {
-    transition: transform .3s ease-in;
-    transform: scale(.85);
+    transition: transform .3s cubic-bezier(.5,0,1,1);
+    transform: scale(.7);
 }
 
 .dialog-title, .dialog-content, .dialog-bottom {
@@ -303,7 +303,7 @@ a.item {
 
 @keyframes dialogin {
     0% {
-        transform: scale(.85);
+        transform: scale(.5);
     }
     100% {
         transform: scale(1);
