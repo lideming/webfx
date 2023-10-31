@@ -196,8 +196,9 @@ export function listenEvents<K extends Array<keyof HTMLElementEventMap>>(element
     };
 }
 
-export function injectCss(css: string, options?: { tag: string; }) {
-    document.head.appendChild(buildDOM({ tag: options?.tag ?? 'style', text: css }));
+export function injectCss(css: string, options?: { parent?: Node, tag?: string; }) {
+    const parent = options?.parent ?? document.head;
+    parent.appendChild(buildDOM({ tag: options?.tag ?? 'style', text: css }));
 }
 
 export class TextCompositionWatcher {
