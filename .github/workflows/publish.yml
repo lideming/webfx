@@ -20,23 +20,18 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
         
-      - name: Use Node.js 14.x
-        uses: actions/setup-node@v2
+      # https://pnpm.io/continuous-integration#github-actions
+      - uses: pnpm/action-setup@v2
         with:
-          node-version: 14.x
-          registry-url: 'https://registry.npmjs.org'
+          version: 8
 
-      - name: Cache .pnpm-store
-        uses: actions/cache@v1
+      - name: Use Node.js 18.x
+        uses: actions/setup-node@v3
         with:
-          path: ~/.pnpm-store
-          key: ${{ runner.os }}-node14-${{ hashFiles('**/pnpm-lock.yaml') }}
-
-      - name: Install pnpm
-        run: curl -f https://get.pnpm.io/v6.js | node - add --global pnpm@6
+          node-version: 18
+          cache: pnpm
 
       - name: Install dependencies
-        if: steps.cache_node_modules.outputs.cache-hit != 'true'
         run: |
           pnpm install --frozen-lockfile
 

@@ -6,7 +6,7 @@ name: Build & Demo Deploy
 # events but only for the master branch
 on:
   push:
-    branches: [ master ]
+    branches: [master]
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -19,30 +19,26 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
-        
-      - name: Use Node.js 14.x
-        uses: actions/setup-node@v2
-        with:
-          node-version: 14.x
 
-      - name: Cache .pnpm-store
-        uses: actions/cache@v1
+      # https://pnpm.io/continuous-integration#github-actions
+      - uses: pnpm/action-setup@v2
         with:
-          path: ~/.pnpm-store
-          key: ${{ runner.os }}-node14-${{ hashFiles('**/pnpm-lock.yaml') }}
+          version: 8
 
-      - name: Install pnpm
-        run: curl -f https://get.pnpm.io/v6.js | node - add --global pnpm@6
+      - name: Use Node.js 18.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: pnpm
 
       - name: Install dependencies
-        if: steps.cache_node_modules.outputs.cache-hit != 'true'
         run: |
           pnpm install --frozen-lockfile
 
       - name: Build
         run: pnpm run buildall
 
-      - name: Pre depoly
+      - name: Pre deploy
         run: pnpm run buildpages
 
       # Runs a set of commands using the runners shell
