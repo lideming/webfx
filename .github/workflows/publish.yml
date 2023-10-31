@@ -30,6 +30,8 @@ jobs:
         with:
           node-version: 18
           cache: pnpm
+          # https://docs.github.com/en/actions/publishing-packages/publishing-nodejs-packages
+          registry-url: 'https://registry.npmjs.org'
 
       - name: Install dependencies
         run: |
