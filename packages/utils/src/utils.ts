@@ -289,6 +289,18 @@ export interface Callbacks<T extends AnyFunc = Action> {
 }
 export const Callbacks: { new <T extends AnyFunc = Action>(): Callbacks<T>; } = CallbacksImpl;
 
+let accessedRefs: Set<Ref<any>> | null = null;
+
+function beginRefCollect() {
+    accessedRefs = new Set<Ref<any>>()
+}
+
+function endRefCollect() {
+    const result = accessedRefs;
+    accessedRefs = null;
+    return result!;
+}
+
 export class Ref<T> {
     private _value: T | undefined = undefined;
     private _onChanged: Callbacks<Action<Ref<T>>> | undefined = undefined;
@@ -299,7 +311,10 @@ export class Ref<T> {
         if (!this._onChanged) this._onChanged = new Callbacks();
         return this._onChanged;
     }
-    get value() { return this._value; }
+    get value() {
+        if (accessedRefs) accessedRefs.add(this);
+        return this._value;
+    }
     set value(val) {
         this._value = val;
         if (this._onChanged) this.onChanged.invoke(this);
@@ -308,6 +323,26 @@ export class Ref<T> {
         const ref = new Ref<T>();
         ref._value = value;
         return ref as (Ref<T> & { value: T });
+    }
+    static computed<T>(func: Func<T>) {
+        const ref = new Ref<T>();
+        let deps: Set<Ref<any>> | null = null;
+        const updateValue = () => {
+            if (deps) {
+                for (const dep of deps) {
+                    dep.onChanged.remove(updateValue);
+                }
+            }
+            beginRefCollect();
+            const value = func();
+            deps = endRefCollect();
+            for (const dep of deps) {
+                dep.onChanged.add(updateValue);
+            }
+            ref.value = value;
+        };
+        updateValue();
+        return ref;
     }
 }
 
