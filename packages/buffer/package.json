@@ -1,0 +1,17 @@
+{
+  "name": "@yuuza/buffer",
+  "version": "1.0.0",
+  "description": "",
+  "main": "build/index.umd.js",
+  "module": "build/index.js",
+  "types": "build/index.d.ts",
+  "scripts": {
+    "build": "tsc && rollup build/index.js --format umd --name yuuzaBuffer -o build/index.umd.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^4.6.4"
+  }
+}
