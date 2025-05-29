@@ -3,10 +3,10 @@
   "version": "1.0.4",
   "description": "",
   "main": "build/utils.umd.js",
-  "module": "build/utils.js",
-  "types": "build/utils.d.ts",
+  "module": "build/index.js",
+  "types": "build/index.d.ts",
   "scripts": {
-    "build": "tsc && rollup build/utils.js --format umd --name utils -o build/utils.umd.js"
+    "build": "tsc && rollup build/index.js --format umd --name utils -o build/utils.umd.js"
   },
   "keywords": [],
   "author": "",

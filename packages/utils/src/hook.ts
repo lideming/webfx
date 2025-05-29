@@ -14,7 +14,7 @@ export function hookFunction<T extends object, K extends keyof T>(
   name: K,
   middleware: (next) => T[K],
 ): T[K] extends Function ? HookedFunction<T[K]> : never {
-  const func = obj[name] as Function;
+  const func = obj[name] as unknown as Function;
   if (typeof func !== "function") {
     throw new Error(`Property ${String(name)} is not a function`);
   }

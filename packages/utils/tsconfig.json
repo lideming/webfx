@@ -1,6 +1,6 @@
 {
     "extends": "../../tsconfig.json",
-    "files": ["./src/utils.ts"],
+    "files": ["./src/index.ts"],
     "compilerOptions": {
         "types": [],
         "outDir": "./build"

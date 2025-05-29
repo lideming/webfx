@@ -1,5 +1,3 @@
-// file: utils.ts
-
 const _object_assign = Object.assign;
 const _object_hasOwnProperty = Object.prototype.hasOwnProperty;
 
