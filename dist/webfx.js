@@ -4,16 +4,6 @@
     (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.webfx = {}));
 })(this, (function (exports) { 'use strict';
 
-    // file: utils.ts
-    var __awaiter$2 = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-        function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-        return new (P || (P = Promise))(function (resolve, reject) {
-            function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-            function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-            function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-            step((generator = generator.apply(thisArg, _arguments || [])).next());
-        });
-    };
     const _object_assign = Object.assign;
     const _object_hasOwnProperty = Object.prototype.hasOwnProperty;
     // Time & formatting utils:
@@ -368,16 +358,14 @@
                 this.runningCount--;
             }
         }
-        run(func) {
-            return __awaiter$2(this, void 0, void 0, function* () {
-                yield this.enter();
-                try {
-                    yield func();
-                }
-                finally {
-                    this.exit();
-                }
-            });
+        async run(func) {
+            await this.enter();
+            try {
+                await func();
+            }
+            finally {
+                this.exit();
+            }
         }
     }
     /** Just like CancellationToken[Source] on .NET */
@@ -432,6 +420,42 @@
                 r.event.remove(r.func);
             }
         }
+    }
+
+    const hookedMethods = {
+        toString() {
+            return this.hookOriginal.toString().replace(/\{/, "{ /* hooked */ ");
+        },
+    };
+    function hookFunction(obj, name, middleware) {
+        const func = obj[name];
+        if (typeof func !== "function") {
+            throw new Error(`Property ${String(name)} is not a function`);
+        }
+        let hooked = func;
+        if (!hooked.hookMiddlewares) {
+            hooked = function (...args) {
+                const next = (index) => (...args) => {
+                    if (index < hooked.hookMiddlewares.length) {
+                        return hooked.hookMiddlewares[index](next(index + 1)).apply(this, args);
+                    }
+                    else {
+                        return hooked.hookOriginal.apply(this, args);
+                    }
+                };
+                return next(0)(...args);
+            };
+            hooked.hookOriginal = func;
+            hooked.hookMiddlewares = [];
+            hooked.toString = hookedMethods.toString;
+            Object.defineProperty(obj, name, {
+                value: hooked,
+                writable: true,
+                configurable: true,
+            });
+        }
+        hooked.hookMiddlewares.unshift(middleware);
+        return hooked;
     }
 
     class View {
@@ -1592,7 +1616,7 @@
     var i18n = new I18n();
     const I = createStringBuilder(i18n);
 
-    const version = "1.10.4";
+    const version = "1.10.5";
 
     var css = ":root {\n    --color-bg: white;\n    --color-text: black;\n    --color-text-gray: #666;\n    --color-bg-selection: hsl(5, 100%, 85%);\n    --color-primary: hsl(5, 100%, 67%);\n    --color-primary-darker: hsl(5, 100%, 60%);\n    --color-primary-dark: hsl(5, 100%, 40%);\n    --color-primary-dark-depends: hsl(5, 100%, 40%);\n    --color-primary-verydark: hsl(5, 100%, 20%);\n    --color-primary-light: hsl(5, 100%, 83%);\n    --color-primary-lighter: hsl(5, 100%, 70%);\n    --color-fg-11: #111111;\n    --color-fg-22: #222222;\n    --color-fg-33: #333333;\n    --color-bg-cc: #cccccc;\n    --color-bg-dd: #dddddd;\n    --color-bg-ee: #eeeeee;\n    --color-bg-f8: #f8f8f8;\n    --color-shadow: rgba(0, 0, 0, .5);\n}\n\n.no-selection {\n    user-select: none;\n    -ms-user-select: none;\n    -moz-user-select: none;\n    -webkit-user-select: none;\n}\n\n/* listview item */\n\n.item {\n    display: block;\n    position: relative;\n    padding: 10px;\n    /* background: #ddd; */\n    /* animation: showing .3s forwards; */\n    text-decoration: none;\n    line-height: 1.2;\n}\n\na.item {\n    color: inherit;\n}\n\n.clickable, .item {\n    cursor: pointer;\n    transition: transform .3s;\n    -webkit-tap-highlight-color: transparent;\n}\n\n.item:hover, .dragover {\n    background: var(--color-bg-ee);\n}\n\n.keyboard-input .item:focus {\n    outline-offset: -2px;\n}\n\n.dragover-placeholder {\n    /* border-top: 2px solid gray; */\n    position: relative;\n}\n\n.dragover-placeholder::before {\n    content: \"\";\n    display: block;\n    position: absolute;\n    transform: translate(0, -1px);\n    height: 2px;\n    width: 100%;\n    background: gray;\n    z-index: 100;\n    pointer-events: none;\n}\n\n.clickable:active, .item:active {\n    transition: transform .07s;\n    transform: scale(.97);\n}\n\n.item:active {\n    background: var(--color-bg-dd);\n}\n\n.item.no-transform:active {\n    transform: none;\n}\n\n.item.active {\n    background: var(--color-bg-dd);\n}\n\n.loading-indicator {\n    position: relative;\n    margin: .3em;\n    margin-top: 3em;\n    margin-bottom: 1em;\n    text-align: center;\n    white-space: pre-wrap;\n    cursor: default;\n    animation: loading-fadein .3s;\n}\n\n.loading-indicator-text {\n    margin: 0 auto;\n}\n\n.loading-indicator.running .loading-indicator-inner {\n    display: inline-block;\n    position: relative;\n    vertical-align: bottom;\n}\n\n.loading-indicator.running .loading-indicator-inner::after {\n    content: \"\";\n    height: 1px;\n    margin: 0%;\n    background: var(--color-text);\n    display: block;\n    animation: fadein .5s 1s backwards;\n}\n\n.loading-indicator.running .loading-indicator-text {\n    margin: 0 .5em;\n    animation: fadein .3s, loading-first .3s .5s cubic-bezier(0.55, 0.055, 0.675, 0.19) reverse, loading-second .3s .8s cubic-bezier(0.55, 0.055, 0.675, 0.19), loading .25s 1.1s cubic-bezier(0.55, 0.055, 0.675, 0.19) alternate-reverse infinite;\n}\n\n.loading-indicator.error {\n    color: red;\n}\n\n.loading-indicator.fading-out {\n    transition: max-height;\n    animation: loading-fadein .3s reverse;\n}\n\n@keyframes loading-fadein {\n    0% {\n        opacity: 0;\n        max-height: 0;\n    }\n    100% {\n        opacity: 1;\n        max-height: 200px;\n    }\n}\n\n@keyframes fadein {\n    0% {\n        opacity: 0;\n    }\n    100% {\n        opacity: 1;\n    }\n}\n\n@keyframes loading-first {\n    0% {\n        transform: translate(0, -2em) scale(1) rotate(360deg);\n    }\n    100% {\n        transform: translate(0, 0) scale(1) rotate(0deg);\n    }\n}\n\n@keyframes loading-second {\n    0% {\n        transform: translate(0, -2em);\n    }\n    100% {\n        transform: translate(0, 0);\n    }\n}\n\n@keyframes loading {\n    0% {\n        transform: translate(0, -1em);\n    }\n    100% {\n        transform: translate(0, 0);\n    }\n}\n\n@keyframes showing {\n    0% {\n        opacity: .3;\n        transform: translate(-20px, 0)\n    }\n    100% {\n        opacity: 1;\n        transform: translate(0, 0)\n    }\n}\n\n@keyframes showing-top {\n    0% {\n        opacity: .3;\n        transform: translate(0, -20px)\n    }\n    100% {\n        opacity: 1;\n        transform: translate(0, 0)\n    }\n}\n\n@keyframes showing-right {\n    0% {\n        opacity: .3;\n        transform: translate(20px, 0)\n    }\n    100% {\n        opacity: 1;\n        transform: translate(0, 0)\n    }\n}\n\n.overlay {\n    background: rgba(0, 0, 0, .2);\n    position: absolute;\n    top: 0;\n    left: 0;\n    right: 0;\n    bottom: 0;\n    animation: fadein .3s;\n    z-index: 10001;\n    overflow: hidden;\n    contain: strict;\n    will-change: transform;\n}\n\n.overlay.fixed {\n    position: fixed;\n}\n\n.overlay.nobg {\n    background: none;\n    will-change: auto;\n}\n\n.overlay.centerChild {\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.overlay.clickThrough {\n    pointer-events: none;\n}\n\n.dialog * {\n    box-sizing: border-box;\n}\n\n.dialog {\n    font-size: 14px;\n    position: relative;\n    overflow: auto;\n    background: var(--color-bg);\n    border-radius: 5px;\n    box-shadow: 0 0 12px var(--color-shadow);\n    animation: dialogin .3s cubic-bezier(0,0,0,1);\n    z-index: 10001;\n    display: flex;\n    flex-direction: column;\n    max-height: 100%;\n    contain: content;\n    will-change: transform;\n    pointer-events: auto;\n}\n\n.dialog.resize {\n    resize: both;\n}\n\n.fading-out .dialog {\n    transition: transform .3s cubic-bezier(.5,0,1,1);\n    transform: scale(.7);\n}\n\n.dialog-title, .dialog-content, .dialog-bottom {\n    padding: 10px;\n}\n\n.dialog-title {\n    background: var(--color-bg-ee);\n}\n\n.dialog-content {\n    flex: 1;\n    padding: 5px 10px;\n    overflow: auto;\n}\n\n.dialog-content.flex {\n    display: flex;\n    flex-direction: column;\n}\n\n.dialog-bottom {\n    padding: 5px 10px;\n}\n\n@keyframes dialogin {\n    0% {\n        transform: scale(.5);\n    }\n    100% {\n        transform: scale(1);\n    }\n}\n\n.input-label {\n    font-size: 80%;\n    color: var(--color-text-gray);\n    margin: 5px 0 3px 0;\n}\n\n.input-text {\n    display: block;\n    width: 100%;\n    padding: 5px;\n    border: solid 1px gray;\n    background: var(--color-bg);\n    color: var(--color-text);\n}\n\n.dialog .input-text {\n    margin: 5px 0;\n}\n\ntextarea.input-text {\n    resize: vertical;\n}\n\n.labeled-input {\n    display: flex;\n    flex-direction: column;\n}\n\n.labeled-input .input-text {\n    flex: 1;\n}\n\n.labeled-input:focus-within .input-label {\n    color: var(--color-primary-darker);\n}\n\n.input-text:focus {\n    border-color: var(--color-primary-darker);\n}\n\n.input-text:active {\n    border-color: var(--color-primary-dark);\n}\n\n.btn {\n    display: block;\n    text-align: center;\n    transition: all .2s;\n    padding: 0 .4em;\n    min-width: 3em;\n    line-height: 1.5em;\n    background: var(--color-primary);\n    color: white;\n    text-shadow: 0 0 4px var(--color-primary-verydark);\n    box-shadow: 0 0 3px var(--color-shadow);\n    cursor: pointer;\n    -ms-user-select: none;\n    -moz-user-select: none;\n    -webkit-user-select: none;\n    user-select: none;\n    position: relative;\n    overflow: hidden;\n}\n\n.btn:hover {\n    transition: all .05s;\n    background: var(--color-primary-darker);\n}\n\n.btn.btn-down, .btn:active {\n    transition: all .05s;\n    background: var(--color-primary-dark);\n    box-shadow: 0 0 1px var(--color-shadow);\n}\n\n.btn.disabled {\n    background: var(--color-primary-light);\n}\n\n.dialog .btn {\n    margin: 10px 0;\n}\n\n.btn-big {\n    padding: 5px;\n}\n\n.btn-inline {\n    display: inline;\n}\n\n.textbtn {\n    display: inline-block;\n    color: var(--color-text-gray);\n    margin: 0 5px;\n}\n\n.textbtn.active {\n    color: var(--color-text);\n}\n\n*[hidden] {\n    display: none !important;\n}\n\n.context-menu {\n    position: absolute;\n    overflow-y: auto;\n    background: var(--color-bg);\n    border: solid 1px #777;\n    box-shadow: 0 0px 12px var(--color-shadow);\n    min-width: 100px;\n    max-width: 450px;\n    outline: none;\n    z-index: 10001;\n    animation: context-menu-in .2s ease-out forwards;\n    will-change: transform;\n}\n\n.context-menu .item.dangerous {\n    transition: color .3s, background .3s;\n    color: red;\n}\n\n.context-menu .item.dangerous:hover {\n    transition: color .1s, background .1s;\n    background: red;\n    color: white;\n}\n\n@keyframes context-menu-in {\n    0% {\n        transform: scale(.9);\n    }\n    100% {\n        transform: scale(1);\n    }\n}\n\n*.menu-shown {\n    background: var(--color-bg-dd);\n}\n\n.menu-info {\n    white-space: pre-wrap;\n    color: var(--color-text-gray);\n    padding: 5px 10px;\n    /* animation: showing .3s; */\n    cursor: default;\n}\n\n.toasts-container {\n    position: fixed;\n    bottom: 0;\n    right: 0;\n    padding: 5px;\n    width: 300px;\n    z-index: 10001;\n    overflow: hidden;\n}\n\n.toast {\n    margin: 5px;\n    padding: 10px;\n    border-radius: 5px;\n    box-shadow: 0 0 10px var(--color-shadow);\n    background: var(--color-bg);\n    white-space: pre-wrap;\n    animation: showing-right .3s;\n}\n\n.fading-out {\n    transition: opacity .3s;\n    opacity: 0;\n    pointer-events: none;\n}\n\n.anchor-bottom {\n    transform: translate(-50%, -100%);\n}\n\n.tooltip {\n    position: absolute;\n    background: var(--color-bg);\n    box-shadow: 0 0 5px var(--color-shadow);\n    border-radius: 5px;\n    padding: .2em .25em;\n}\n";
 
@@ -1946,15 +1970,6 @@
         }
     }
 
-    var __awaiter$1 = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-        function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-        return new (P || (P = Promise))(function (resolve, reject) {
-            function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-            function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-            function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-            step((generator = generator.apply(thisArg, _arguments || [])).next());
-        });
-    };
     class Dialog extends View {
         get domheader() { return this.header.dom; }
         static get defaultParent() {
@@ -2166,12 +2181,10 @@
             this.addBtn(btn);
             return this;
         }
-        showAndWaitResult() {
-            return __awaiter$1(this, void 0, void 0, function* () {
-                this.show();
-                yield this.waitClose();
-                return this.result;
-            });
+        async showAndWaitResult() {
+            this.show();
+            await this.waitClose();
+            return this.result;
         }
     }
     class DialogParent {
@@ -2713,15 +2726,6 @@
         }
     }
 
-    var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-        function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-        return new (P || (P = Promise))(function (resolve, reject) {
-            function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-            function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-            function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-            step((generator = generator.apply(thisArg, _arguments || [])).next());
-        });
-    };
     class LoadingIndicator extends View {
         constructor(init) {
             super();
@@ -2750,15 +2754,13 @@
             }
             this.onclick = retry;
         }
-        action(func) {
-            return __awaiter(this, void 0, void 0, function* () {
-                try {
-                    yield func();
-                }
-                catch (error) {
-                    this.error(error, () => this.action(func));
-                }
-            });
+        async action(func) {
+            try {
+                await func();
+            }
+            catch (error) {
+                this.error(error, () => this.action(func));
+            }
         }
         createDom() {
             return {
@@ -3150,6 +3152,7 @@
     exports.formatFileSize = formatFileSize;
     exports.getDOM = getDOM;
     exports.getWebfxCss = getWebfxCss;
+    exports.hookFunction = hookFunction;
     exports.i18n = i18n;
     exports.injectCss = injectCss;
     exports.injectWebfxCss = injectWebfxCss;
