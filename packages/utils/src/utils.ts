@@ -315,7 +315,11 @@ export class Ref<T> {
     }
     set value(val) {
         this._value = val;
-        if (this._onChanged) this.onChanged.invoke(this);
+        if (this._onChanged) {
+            queueMicrotask(() => {
+                this.onChanged.invoke(this);
+            });
+        }
     }
     static from<T>(value: T) {
         const ref = new Ref<T>();
@@ -324,23 +328,28 @@ export class Ref<T> {
     }
     static computed<T>(func: Func<T>) {
         const ref = new Ref<T>();
+        Ref.effect(() => {
+            const value = func();
+            ref.value = value;
+        });
+        return ref;
+    }
+    static effect(func: Action) {
         let deps: Set<Ref<any>> | null = null;
-        const updateValue = () => {
+        const runEffect = () => {
             if (deps) {
                 for (const dep of deps) {
-                    dep.onChanged.remove(updateValue);
+                    dep.onChanged.remove(runEffect);
                 }
             }
             beginRefCollect();
-            const value = func();
+            func();
             deps = endRefCollect();
             for (const dep of deps) {
-                dep.onChanged.add(updateValue);
+                dep.onChanged.add(runEffect);
             }
-            ref.value = value;
         };
-        updateValue();
-        return ref;
+        runEffect();
     }
 }
 
