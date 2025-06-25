@@ -1,6 +1,6 @@
 {
   "name": "@yuuza/webfx",
-  "version": "1.10.6",
+  "version": "1.10.7",
   "description": "",
   "repository": "github:lideming/webfx",
   "main": "dist/webfx.js",
