@@ -27,6 +27,13 @@
             color: white;
             text-align: center;
         }
+
+        .app .history {
+            font-size: 14px;
+            position: absolute;
+            left: 8px;
+            bottom: 8px;
+        }
     </style>
 </head>
 
@@ -41,11 +48,13 @@
                 constructor() {
                     super();
                     this.onclick = (e) => {
+                        if (e.target === this.history.value) return;
                         e.preventDefault();
                         this.clickEvent.set();
                     };
                     this.clickEvent = new webfx.AutoResetEvent();
                     this.text = new webfx.Ref();
+                    this.history = new webfx.Ref();
                     this.routine();
                 }
                 createDom() {
@@ -53,10 +62,16 @@
                         tag: 'div.app',
                         onmousedown: this.onclick,
                         ontouchstart: this.onclick,
-                        child: {
-                            ref: this.text,
-                            tag: 'p'
-                        }
+                        child: [
+                            {
+                                ref: this.text,
+                                tag: 'p'
+                            },
+                            {
+                                ref: this.history,
+                                tag: 'div.history'
+                            },
+                        ],
                     }
                 }
                 set(color, str) {
@@ -69,7 +84,7 @@
                         await this.clickEvent.wait();
                         this.set(WAIT, "Wait for green...");
                         const action = await Promise.race([
-                            new Promise(r => setTimeout(r, 1000 + Math.random() * 2000, "timer")),
+                            new Promise(r => setTimeout(r, 1000 + Math.random() * 3000, "timer")),
                             this.clickEvent.wait(),
                         ]);
                         if (action == "timer") {
@@ -78,8 +93,10 @@
                             await this.clickEvent.wait();
                             const ms = Date.now() - startTime;
                             this.set(READY, `${ms} ms`);
+                            this.history.value.textContent += `${ms} `;
                         } else {
                             this.set(READY, `Too early!`);
+                            this.history.value.textContent += `(early!) `;
                         }
                     }
                 }
