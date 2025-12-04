@@ -28,11 +28,34 @@
             text-align: center;
         }
 
+        .app .state {
+            white-space: pre-wrap;
+        }
+
         .app .history {
             font-size: 14px;
             position: absolute;
             left: 8px;
             bottom: 8px;
+            z-index: 10;
+        }
+
+        .circle {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 4px solid rgba(255, 255, 255, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            transition: opacity 0.5s;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
         }
     </style>
 </head>
@@ -47,14 +70,38 @@
             class App extends webfx.View {
                 constructor() {
                     super();
+                    this.state = 'INIT';
+                    this.rounds = 0;
+                    this.clicksInThisRound = 0;
+                    this.firstClickMs = 0;
                     this.onclick = (e) => {
-                        if (e.target === this.history.value) return;
-                        e.preventDefault();
-                        this.clickEvent.set();
+                        if (this.history.value && e.target === this.history.value) return;
+                        if (e.preventDefault) e.preventDefault();
+
+                        if (this.state === 'CLICK') {
+                            const touches = e.changedTouches ?? [e];
+                            for (const touch of touches) {
+                                let x = touch.clientX;
+                                let y = touch.clientY;
+                                const ms = Math.round(performance.now() - this.startTime);
+                                if (x !== undefined) {
+                                    this.addCircle(x, y, ms);
+                                }
+                                this.history.value.textContent += `${ms} `;
+                                this.clicksInThisRound++;
+                                if (this.clicksInThisRound === 1) {
+                                    this.firstClickMs = ms;
+                                }
+                                this.clickEvent.set();
+                            }
+                        } else {
+                            this.clickEvent.set();
+                        }
                     };
                     this.clickEvent = new webfx.AutoResetEvent();
                     this.text = new webfx.Ref();
                     this.history = new webfx.Ref();
+                    this.circleContainer = new webfx.Ref();
                     this.routine();
                 }
                 createDom() {
@@ -65,12 +112,17 @@
                         child: [
                             {
                                 ref: this.text,
-                                tag: 'p'
+                                tag: 'p.state'
                             },
                             {
                                 ref: this.history,
                                 tag: 'div.history'
                             },
+                            {
+                                ref: this.circleContainer,
+                                tag: 'div',
+                                style: 'position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;overflow:hidden;'
+                            }
                         ],
                     }
                 }
@@ -78,24 +130,65 @@
                     this.dom.style.backgroundColor = color;
                     this.text.value.textContent = str || '';
                 }
+                addCircle(x, y, ms) {
+                    const el = webfx.buildDOM({
+                        tag: 'div.circle',
+                        style: {
+                            left: x + 'px',
+                            top: y + 'px',
+                        },
+                        text: ms.toString(),
+                    });
+                    el.dataset.round = this.rounds;
+                    this.circleContainer.value.appendChild(el);
+                }
+                updateCircles() {
+                    if (!this.circleContainer.value) return;
+                    const circles = Array.from(this.circleContainer.value.children);
+                    for (const c of circles) {
+                        const age = this.rounds - parseInt(c.dataset.round);
+                        if (age >= 3) {
+                            c.remove();
+                        } else {
+                            c.style.opacity = (1 / age).toFixed(2);
+                        }
+                    }
+                }
                 async routine() {
                     this.set(READY, "Click to start");
+                    this.state = 'READY';
                     while (true) {
                         await this.clickEvent.wait();
+                        
                         this.set(WAIT, "Wait for green...");
+                        this.state = 'WAIT';
+                        
                         const action = await Promise.race([
-                            new Promise(r => setTimeout(r, 1000 + Math.random() * 3000, "timer")),
+                            new Promise(r => setTimeout(r, 1000 + Math.random() * 5000, "timer")),
                             this.clickEvent.wait(),
                         ]);
+                        
                         if (action == "timer") {
                             this.set(CLICK, "CLICK NOW!");
-                            const startTime = Date.now();
+                            this.state = 'CLICK';
+                            this.startTime = performance.now();
+                            this.clicksInThisRound = 0;
+                            this.firstClickMs = 0;
+                            
+                            // Wait for at least one click
                             await this.clickEvent.wait();
-                            const ms = Date.now() - startTime;
-                            this.set(READY, `${ms} ms`);
-                            this.history.value.textContent += `${ms} `;
+                            this.set(READY, `${this.firstClickMs} ms`);
+                            
+                            // Wait for multiplayer clicks
+                            await new Promise(r => setTimeout(r, 1000));
+                            
+                            this.rounds++;
+                            this.updateCircles();
+                            this.set(READY, `\n${this.firstClickMs} ms\nClick to start`);
+                            this.state = 'READY';
                         } else {
                             this.set(READY, `Too early!`);
+                            this.state = 'READY';
                             this.history.value.textContent += `(early!) `;
                         }
                     }
