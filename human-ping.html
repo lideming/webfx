@@ -28,6 +28,10 @@
             text-align: center;
         }
 
+        .app .state {
+            white-space: pre-wrap;
+        }
+
         .app .history {
             font-size: 14px;
             position: absolute;
@@ -108,7 +112,7 @@
                         child: [
                             {
                                 ref: this.text,
-                                tag: 'p'
+                                tag: 'p.state'
                             },
                             {
                                 ref: this.history,
@@ -180,6 +184,7 @@
                             
                             this.rounds++;
                             this.updateCircles();
+                            this.set(READY, `\n${this.firstClickMs} ms\nClick to start`);
                             this.state = 'READY';
                         } else {
                             this.set(READY, `Too early!`);
