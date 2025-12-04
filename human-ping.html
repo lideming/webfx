@@ -75,20 +75,21 @@
                         if (e.preventDefault) e.preventDefault();
 
                         if (this.state === 'CLICK') {
-                            let x = e.clientX ?? e.changedTouches?.[0]?.clientX;
-                            let y = e.clientY ?? e.changedTouches?.[0]?.clientY;
-                            if (x === undefined) {
-                                x = window.innerWidth / 2;
-                                y = window.innerHeight / 2;
+                            const touches = e.changedTouches ?? [e];
+                            for (const touch of touches) {
+                                let x = touch.clientX;
+                                let y = touch.clientY;
+                                const ms = Math.round(performance.now() - this.startTime);
+                                if (x !== undefined) {
+                                    this.addCircle(x, y, ms);
+                                }
+                                this.history.value.textContent += `${ms} `;
+                                this.clicksInThisRound++;
+                                if (this.clicksInThisRound === 1) {
+                                    this.firstClickMs = ms;
+                                }
+                                this.clickEvent.set();
                             }
-                            const ms = Math.round(performance.now() - this.startTime);
-                            this.addCircle(x, y, ms);
-                            this.history.value.textContent += `${ms} `;
-                            this.clicksInThisRound++;
-                            if (this.clicksInThisRound === 1) {
-                                this.firstClickMs = ms;
-                            }
-                            this.clickEvent.set();
                         } else {
                             this.clickEvent.set();
                         }
